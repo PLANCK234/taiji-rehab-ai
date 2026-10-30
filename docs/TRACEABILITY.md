@@ -2,6 +2,8 @@
 
 | Requirement | Design | Tests | Sprint | State |
 |---|---|---|---|---|
+| Sprint 0 bootstrap | `frontend/`, `backend/`, `infra/compose.yaml`, README | frontend lint/typecheck/test/build; backend Ruff/pytest; migration up/down; HTTP smoke | 0 | local verified 2026-10-30; remote CI pending |
+| Sprint 0 handoff | `AGENTS.md`, `HANDOFF.md`, `TASKS.md`, `SESSION_LOG.md`, ADR-0004 | `scripts/check_handoff.py`; recovery walkthrough | 0 | local verified 2026-10-30 |
 | FR-001 user/auth | security, API | AT-05 | 0–1 | not implemented |
 | FR-002 consent/screen | data, research | AT-03, AT-14 | 1 | not implemented |
 | FR-003 assessments | dictionary, API | AT-01, AT-02 | 2 | not implemented |

@@ -1,6 +1,6 @@
 # REST API contract (proposed /api/v1)
 
-**Status**: design contract; no server implemented. `application/json`, ISO8601 UTC, UUID identifiers, consistent errors, cursor pagination, CSRF protection where cookie sessions are used. All endpoints require authentication and scoped server-side authorization unless stated otherwise.
+**Status**: business routes are a design contract. Sprint 0 implements only public process `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503). No clinical or authenticated route exists yet. Future business routes use `application/json`, ISO8601 UTC, UUID identifiers, consistent errors, cursor pagination and CSRF protection where cookie sessions are used; all require authentication and scoped server-side authorization.
 
 | Method and path | Authorized purpose | Critical behavior |
 |---|---|---|

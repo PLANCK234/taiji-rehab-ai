@@ -6,5 +6,6 @@ Current proposals:
 - [ADR-0001](0001-modular-monolith.md): modular monolith first.
 - [ADR-0002](0002-human-approved-clinical-rules.md): clinical approval gate.
 - [ADR-0003](0003-frozen-offline-ml.md): frozen-snapshot offline optimization.
+- [ADR-0004](0004-persistent-agent-handoff.md): repository-based checkpoint and cross-session handoff.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.
