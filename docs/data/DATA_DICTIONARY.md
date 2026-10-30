@@ -5,6 +5,13 @@
 | study_code | string | registration | no name/phone in general exports |
 | participant.study_code | string | synthetic-only seed | unique within study; no name, phone or eligibility fields in S1 |
 | user.email | string | synthetic staff seed | account identifier; never include in participant responses or audit summaries |
+| consent_record.decision | granted/refused/withdrawn | synthetic staff entry | latest entry controls synthetic screening write; no verified consent signature |
+| consent_record.photo_scope | boolean | synthetic staff entry | record only; photo upload remains unavailable |
+| consent_record.document_version / purpose_code | `SYN-` code | synthetic staff entry | no real protocol, signature or purpose approval implied |
+| screening_record.item_code | `SYN-` code | synthetic staff entry | placeholder only; no clinical question or required set approved |
+| screening_record.answer | yes/no/unknown | synthetic staff entry | unknown is explicit; no answer implies not assessed |
+| screening.review_state | not_assessed/needs_review | API projection | never safe/eligible; even all answered remains needs_review |
+| intake.change_reason | `SYN-` code | synthetic staff entry | required for later consent records or same-item screening corrections |
 | age_years | integer years | clinician | scoped by protocol; no guessed age |
 | sppb_total | integer 0–12 | clinician-confirmed evaluation | missing ≠ 0; score algorithm only after SOP approval |
 | sppb_balance | source-defined score | evaluation | unit/formula to approve |

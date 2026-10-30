@@ -79,6 +79,25 @@ def check_origin(request: Request) -> None:
         raise HTTPException(status_code=403, detail="origin denied")
 
 
+def require_csrf(
+    request: Request,
+    auth: AuthContext,
+    db: Session,
+    action: str,
+    resource_type: str,
+    resource_id: uuid.UUID | None = None,
+) -> None:
+    check_origin(request)
+    if not valid_csrf(
+        auth.login_session,
+        request.headers.get("x-csrf-token"),
+        request.cookies.get(csrf_cookie_name()),
+    ):
+        audit(db, action, resource_type, "denied", auth.user.id, resource_id)
+        db.commit()
+        raise HTTPException(status_code=403, detail="CSRF token required")
+
+
 @router.post("/auth/login", response_model=UserView)
 def login(
     payload: LoginRequest,
@@ -127,15 +146,7 @@ def logout(
     auth: AuthContext = Depends(current_auth),
     db: Session = Depends(get_db),
 ) -> None:
-    check_origin(request)
-    if not valid_csrf(
-        auth.login_session,
-        request.headers.get("x-csrf-token"),
-        request.cookies.get(csrf_cookie_name()),
-    ):
-        audit(db, "logout", "session", "denied", actor_id=auth.user.id)
-        db.commit()
-        raise HTTPException(status_code=403, detail="CSRF token required")
+    require_csrf(request, auth, db, "logout", "session")
     auth.login_session.revoked_at = datetime.now(timezone.utc)
     audit(db, "logout", "session", "allowed", actor_id=auth.user.id)
     db.commit()
@@ -157,31 +168,39 @@ def studies(
 
 
 def authorized_participant(
-    db: Session, auth: AuthContext, participant_id: uuid.UUID
+    db: Session,
+    auth: AuthContext,
+    participant_id: uuid.UUID,
+    *,
+    action: str = "read",
+    allowed_roles: set[str] | None = None,
+    audit_success: bool = True,
+    lock_for_write: bool = False,
 ) -> Participant:
-    if auth.user.role not in READ_ROLES:
-        audit(db, "read", "participant", "denied", auth.user.id, participant_id)
+    if auth.user.role not in (allowed_roles if allowed_roles is not None else READ_ROLES):
+        audit(db, action, "participant", "denied", auth.user.id, participant_id)
         db.commit()
         raise HTTPException(status_code=403, detail="access denied")
-    participant = db.scalar(
+    statement = (
         select(Participant)
         .join(StudyAssignment, StudyAssignment.study_id == Participant.study_id)
-        .join(
-            ParticipantAssignment,
-            ParticipantAssignment.participant_id == Participant.id,
-        )
+        .join(ParticipantAssignment, ParticipantAssignment.participant_id == Participant.id)
         .where(
             Participant.id == participant_id,
             StudyAssignment.user_id == auth.user.id,
             ParticipantAssignment.user_id == auth.user.id,
         )
     )
+    if lock_for_write:
+        statement = statement.with_for_update(of=Participant)
+    participant = db.scalar(statement)
     if participant is None:
-        audit(db, "read", "participant", "denied", auth.user.id, participant_id)
+        audit(db, action, "participant", "denied", auth.user.id, participant_id)
         db.commit()
         raise HTTPException(status_code=403, detail="access denied")
-    audit(db, "read", "participant", "allowed", auth.user.id, participant_id)
-    db.commit()
+    if audit_success:
+        audit(db, action, "participant", "allowed", auth.user.id, participant_id)
+        db.commit()
     return participant
 
 

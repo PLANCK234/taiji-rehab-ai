@@ -1,4 +1,4 @@
-"""Authentication and coded scope tables; no identity or clinical fields."""
+"""Synthetic staff, coded participants, and append-only intake records."""
 
 import uuid
 from datetime import datetime, timezone
@@ -70,6 +70,58 @@ class ParticipantAssignment(Base):
     participant_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("participants.id"), primary_key=True
     )
+
+
+class WriteReceipt(Base):
+    __tablename__ = "write_receipts"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), primary_key=True)
+    route_key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    payload_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    resource_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class ConsentRecord(Base):
+    __tablename__ = "consent_records"
+    __table_args__ = (
+        CheckConstraint(
+            "decision IN ('granted','refused','withdrawn')", name="ck_consent_decision"
+        ),
+        CheckConstraint("NOT photo_scope OR decision = 'granted'", name="ck_consent_photo_scope"),
+        Index("ix_consent_participant_time", "participant_id", "recorded_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    document_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    purpose_code: Mapped[str] = mapped_column(String(64), nullable=False)
+    decision: Mapped[str] = mapped_column(String(20), nullable=False)
+    photo_scope: Mapped[bool] = mapped_column(default=False, nullable=False)
+    change_reason: Mapped[str | None] = mapped_column(String(240))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class ScreeningRecord(Base):
+    __tablename__ = "screening_records"
+    __table_args__ = (
+        CheckConstraint("answer IN ('yes','no','unknown')", name="ck_screening_answer"),
+        Index("ix_screening_participant_time", "participant_id", "recorded_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    item_code: Mapped[str] = mapped_column(String(64), nullable=False)
+    answer: Mapped[str] = mapped_column(String(10), nullable=False)
+    change_reason: Mapped[str | None] = mapped_column(String(240))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class LoginSession(Base):

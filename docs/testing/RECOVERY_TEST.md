@@ -17,3 +17,7 @@
 4. 需跑后端 Ruff/pytest、迁移升降级与权限/同意集成测试、前端 lint/typecheck/test/build；AT-03/14 必须通过。
 5. 未获批准的量表计分、适配模板、禁忌/剂量、安全上报时限、真实数据与模型发布规则不能擅改；见 `OPEN_QUESTIONS.md`。
 6. 用任务分支提交可验证单元，更新 TASKS/STATUS/TRACEABILITY/HANDOFF，追加 SESSION_LOG，按 PR 审核协作；完整指令见 `prompts/handoff.md`。
+
+## 2026-10-30 S1-02 接续核对
+
+从干净的 `a95c9cd` 检查点读仓库与 Git，确认 S1-01 完成、S1-02 的合成数据回退边界可执行。完成后应核对 `feat/s1-02-synthetic-intake` 的最新 HEAD、迁移 `0003_synthetic_intake`、18 项后端与 7 项前端测试、临时 PostgreSQL 和页面烟测证据（见 `STATUS.md`）。下一任务 S2-01 只能采用 PRD 明许的合成数据人工确认总分路径；Q-02 未关闭时不能增加自动分项计分。原合成数据库卷未迁移或删除，真实研究准入仍未批准。

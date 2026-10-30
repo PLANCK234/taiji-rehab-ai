@@ -15,7 +15,13 @@
 - Staff passwords use Argon2 via `pwdlib`; 32-byte opaque session tokens are hashed in PostgreSQL. Sessions expire after eight hours and are revoked on logout. Cookies are HttpOnly/Strict; `Secure` and `__Host-` prefix apply outside local/test HTTP. Logout requires a matching CSRF header and cookie; browser login origins are checked.
 - Login failures are limited per HMAC-hashed email/client-host key in a 15-minute window. Audit events record login, logout and coded-record read outcomes without credentials, raw email/IP or clinical data.
 - Coded participant reads require an allowed role, study assignment **and** explicit participant assignment. Unknown and unassigned IDs both return 403. The admin and analyst roles have no individual participant read permission.
-- `ALLOW_SYNTHETIC_ONLY=true` is required for protected database routes. Seed creation additionally requires `APP_ENV=local` and an explicit local password. No real data or production permission is implied. Export, identity mapping and patient CRUD remain unavailable.
+- `ALLOW_SYNTHETIC_ONLY=true` and `APP_ENV=local`/`test` are required for protected database routes. Seed creation additionally requires `APP_ENV=local` and an explicit local password. No real data or production permission is implied. Export and identity mapping remain unavailable.
+
+## S1-02 synthetic intake boundary
+
+- Coded creation accepts only `SYN-` codes, checks role and study assignment, then atomically assigns the creator. List/detail and all consent/screening routes require server-side study **and** object assignment. Writes additionally require CSRF and an idempotency key; audit records permitted and denied operations without form contents.
+- Consent and screening entries append revisions with staff actor and UTC time. Subsequent consent entries and same-item screening corrections require a synthetic reason code. Without the latest simulated `granted` consent, screening writes return 403. Absent screening returns `not_assessed`; any entries return `needs_review`, never a safety or enrollment clearance.
+- No name/contact fields, verified signature, clinical screening questions, identity mapping, file storage or image upload endpoint is implemented. A recorded photo scope does not enable upload. Q-01/Q-07/Q-10 remain unresolved; no real data collection is authorized.
 
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.

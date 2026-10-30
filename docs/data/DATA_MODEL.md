@@ -1,6 +1,6 @@
 # Logical data model (initial proposal)
 
-Use UUID primary keys, UTC timestamps, stable `study_code`, explicit soft-delete/retention policy only after approval. The table below is a **logical target**. Migration `0002_auth_scope` currently implements only `users`, `studies`, `study_assignments`, `participants` (coded ID only), `participant_assignments`, `login_sessions`, `login_rate_limits` and `audit_events`. No identity mapping, eligibility, clinical or outcome fields exist yet.
+Use UUID primary keys, UTC timestamps, stable `study_code`, explicit soft-delete/retention policy only after approval. The table below is a **logical target**. Migration `0002_auth_scope` implements users, studies, assignments, coded participants, sessions, rate limits and audit. Migration `0003_synthetic_intake` adds `write_receipts`, `consent_records` and `screening_records` for synthetic-only intake. No identity mapping, verified signature, eligibility, clinical or outcome fields exist yet.
 
 | Entity | Key fields | Integrity and confidentiality |
 |---|---|---|
@@ -9,8 +9,9 @@ Use UUID primary keys, UTC timestamps, stable `study_code`, explicit soft-delete
 | study_assignments | user_id, study_id, site_id, permissions | authorization on every read/write |
 | participants | id, study_id, study_code, eligibility_status | unique(study_id,study_code) |
 | identity_mapping | participant_id, encrypted_identity/contact | separate access policy; optional in demo |
-| consents | id, participant_id, version, signed_at, photo_scope, revoked_at | no photo without valid scope |
-| screening_items | id, participant_id, code, answer, rationale, assessed_at | tri-state yes/no/unknown |
+| consent_records (implemented synthetic subset) | id, participant_id, document_version, purpose_code, decision, photo_scope, change_reason, recorded_by/at | append-only simulated entries; no verified signature or photo upload |
+| screening_records (implemented synthetic subset) | id, participant_id, item_code, answer, change_reason, recorded_by/at | append-only yes/no/unknown; no safe/eligible inference |
+| write_receipts (implemented) | user_id, route_key, key, payload_hash, resource_id | atomic idempotency for intake creates |
 | assessments | id, participant_id, visit_id, type, status, performed_at, assessor_id | one participant many assessments |
 | measurements | id, assessment_id, metric_code, raw_value, unit, validity, missing_reason, source | nullable raw; missing_reason when invalid |
 | grading_results | id, assessment_id, rule_version_id, candidate_grade, evidence_json, confirmed_grade, reviewer_id, reviewed_at, status | predictions and approvals never conflated |

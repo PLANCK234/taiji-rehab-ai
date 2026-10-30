@@ -10,9 +10,11 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.api import router
+from app.intake_api import router as intake_router
 
 app = FastAPI(title="太极康复研究平台 API", version="0.1.0")
 app.include_router(router)
+app.include_router(intake_router)
 
 
 @app.middleware("http")
@@ -45,6 +47,8 @@ async def http_error(request: Request, exc: HTTPException) -> JSONResponse:
         401: ("AUTH_REQUIRED", "身份验证失败"),
         403: ("FORBIDDEN", "没有访问权限"),
         404: ("NOT_FOUND", "资源不存在"),
+        409: ("VERSION_CONFLICT", "请求与现有记录冲突"),
+        422: ("INVALID_INPUT", "输入格式无效"),
         429: ("RATE_LIMITED", "尝试次数过多"),
         503: ("SERVICE_UNAVAILABLE", "服务暂不可用"),
     }

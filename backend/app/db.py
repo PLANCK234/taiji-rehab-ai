@@ -22,7 +22,10 @@ def get_engine():
 
 
 def get_db() -> Iterator[Session]:
-    if os.environ.get("ALLOW_SYNTHETIC_ONLY") != "true":
+    if (
+        os.environ.get("ALLOW_SYNTHETIC_ONLY") != "true"
+        or os.environ.get("APP_ENV") not in {"local", "test"}
+    ):
         raise HTTPException(status_code=503, detail="synthetic-only mode required")
     with Session(get_engine()) as session:
         yield session

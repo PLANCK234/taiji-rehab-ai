@@ -1,6 +1,155 @@
 {
   "components": {
     "schemas": {
+      "ConsentCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "change_reason": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "decision": {
+            "enum": [
+              "granted",
+              "refused",
+              "withdrawn"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "document_version": {
+            "maxLength": 64,
+            "minLength": 7,
+            "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+            "title": "Document Version",
+            "type": "string"
+          },
+          "photo_scope": {
+            "default": false,
+            "title": "Photo Scope",
+            "type": "boolean"
+          },
+          "purpose_code": {
+            "maxLength": 64,
+            "minLength": 7,
+            "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+            "title": "Purpose Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "document_version",
+          "purpose_code",
+          "decision"
+        ],
+        "title": "ConsentCreate",
+        "type": "object"
+      },
+      "ConsentHistory": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/ConsentView"
+            },
+            "title": "Records",
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "not_recorded",
+              "granted",
+              "refused",
+              "withdrawn"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "records"
+        ],
+        "title": "ConsentHistory",
+        "type": "object"
+      },
+      "ConsentView": {
+        "properties": {
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "decision": {
+            "enum": [
+              "granted",
+              "refused",
+              "withdrawn"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "document_version": {
+            "title": "Document Version",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "photo_scope": {
+            "title": "Photo Scope",
+            "type": "boolean"
+          },
+          "purpose_code": {
+            "title": "Purpose Code",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "document_version",
+          "purpose_code",
+          "decision",
+          "photo_scope",
+          "change_reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "ConsentView",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -35,6 +184,29 @@
         "title": "LoginRequest",
         "type": "object"
       },
+      "ParticipantCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "study_code": {
+            "maxLength": 64,
+            "minLength": 7,
+            "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+            "title": "Study Code",
+            "type": "string"
+          },
+          "study_id": {
+            "format": "uuid",
+            "title": "Study Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "study_id",
+          "study_code"
+        ],
+        "title": "ParticipantCreate",
+        "type": "object"
+      },
       "ParticipantView": {
         "properties": {
           "id": {
@@ -58,6 +230,130 @@
           "study_code"
         ],
         "title": "ParticipantView",
+        "type": "object"
+      },
+      "ScreeningCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Answer",
+            "type": "string"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "item_code": {
+            "maxLength": 64,
+            "minLength": 7,
+            "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+            "title": "Item Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_code",
+          "answer"
+        ],
+        "title": "ScreeningCreate",
+        "type": "object"
+      },
+      "ScreeningHistory": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/ScreeningView"
+            },
+            "title": "Records",
+            "type": "array"
+          },
+          "review_state": {
+            "enum": [
+              "not_assessed",
+              "needs_review"
+            ],
+            "title": "Review State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "review_state",
+          "records"
+        ],
+        "title": "ScreeningHistory",
+        "type": "object"
+      },
+      "ScreeningView": {
+        "properties": {
+          "answer": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Answer",
+            "type": "string"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "item_code": {
+            "title": "Item Code",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "item_code",
+          "answer",
+          "change_reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "ScreeningView",
         "type": "object"
       },
       "StudyView": {
@@ -219,6 +515,78 @@
         "summary": "Me"
       }
     },
+    "/api/v1/participants": {
+      "get": {
+        "operationId": "list_participants_api_v1_participants_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ParticipantView"
+                  },
+                  "title": "Response List Participants Api V1 Participants Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Participants"
+      },
+      "post": {
+        "operationId": "create_participant_api_v1_participants_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParticipantCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipantView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Participant"
+      }
+    },
     "/api/v1/participants/{participant_id}": {
       "get": {
         "operationId": "get_participant_api_v1_participants__participant_id__get",
@@ -257,6 +625,206 @@
           }
         },
         "summary": "Get Participant"
+      }
+    },
+    "/api/v1/participants/{participant_id}/consents": {
+      "get": {
+        "operationId": "list_consents_api_v1_participants__participant_id__consents_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Consents"
+      },
+      "post": {
+        "operationId": "record_consent_api_v1_participants__participant_id__consents_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Consent"
+      }
+    },
+    "/api/v1/participants/{participant_id}/screenings": {
+      "get": {
+        "operationId": "list_screenings_api_v1_participants__participant_id__screenings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Screenings"
+      },
+      "post": {
+        "operationId": "record_screening_api_v1_participants__participant_id__screenings_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScreeningCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Screening"
       }
     },
     "/api/v1/studies": {

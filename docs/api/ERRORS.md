@@ -6,7 +6,7 @@ Implemented S1 endpoints return a stable object:
 ```
 `request_id` may be logged; do not include patient identity in the error or logs.
 
-Current S1 handlers return generic Chinese messages and empty `details` for 401/403/404/429/503 and validation 422. This avoids echoing credentials or object identifiers. Remaining domain-specific codes below are future contracts.
+Current S1 handlers return generic Chinese messages and empty `details` for 401/403/404/409/429/503 and validation 422. This avoids echoing credentials or object identifiers. The 409 code covers duplicate synthetic codes and reused idempotency keys. Remaining domain-specific codes below are future contracts.
 
 | HTTP | Code | Scenario |
 |---|---|---|
