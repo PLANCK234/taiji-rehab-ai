@@ -1,0 +1,20 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+dist/
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+*.sqlite*
+coverage/
+playwright-report/
+test-results/
+.DS_Store
+# no research datasets or imagery in git
+private-data/
+uploads/
+exports/
+model-artifacts/
