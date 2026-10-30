@@ -3,6 +3,8 @@
 | Variable | Type / unit | Source | Missingness / cautions |
 |---|---|---|---|
 | study_code | string | registration | no name/phone in general exports |
+| participant.study_code | string | synthetic-only seed | unique within study; no name, phone or eligibility fields in S1 |
+| user.email | string | synthetic staff seed | account identifier; never include in participant responses or audit summaries |
 | age_years | integer years | clinician | scoped by protocol; no guessed age |
 | sppb_total | integer 0–12 | clinician-confirmed evaluation | missing ≠ 0; score algorithm only after SOP approval |
 | sppb_balance | source-defined score | evaluation | unit/formula to approve |

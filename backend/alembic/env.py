@@ -6,12 +6,14 @@ from logging.config import fileConfig
 from sqlalchemy import create_engine, pool
 
 from alembic import context
+from app import models  # noqa: F401 - register mapped tables
+from app.db import Base
 
 config = context.config
 if config.config_file_name:
     fileConfig(config.config_file_name)
 
-target_metadata = None
+target_metadata = Base.metadata
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     raise RuntimeError("DATABASE_URL is required for migrations")

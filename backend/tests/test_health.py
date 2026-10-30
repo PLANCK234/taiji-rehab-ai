@@ -15,4 +15,4 @@ def test_readiness_requires_database_configuration(monkeypatch) -> None:
     monkeypatch.delenv("DATABASE_URL", raising=False)
     response = client.get("/ready")
     assert response.status_code == 503
-    assert response.json() == {"detail": "database not configured"}
+    assert response.json()["error"]["code"] == "SERVICE_UNAVAILABLE"

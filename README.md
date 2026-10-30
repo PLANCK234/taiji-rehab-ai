@@ -1,10 +1,10 @@
 # 太极拳康复分级评估与科研数据平台
 
-[![Status](https://img.shields.io/badge/status-sprint--0-yellow)](#项目状态)
+[![Status](https://img.shields.io/badge/status-sprint--1-yellow)](#项目状态)
 
 **Researcher-facing Tai Chi Rehabilitation Assessment & Research Platform.**
 
-> 当前仓库包含 Sprint 0 工程骨架与交接机制，不包含临床业务功能。只允许合成数据。
+> 当前仓库包含 Sprint 0 工程骨架和 Sprint 1 的合成账号、只读编码对象授权基础。不包含真实数据接入或临床业务功能。
 
 ## 目标
 医疗人员对研究对象建档、安全筛查、录入 SPPB 等客观评估，获取可解释的功能分级候选及太极训练适配建议并人工复核；每次训练后收集结构化反馈；周期末冻结数据并对照 V0 规则离线优化，审批通过的新版本才可发布。
@@ -23,19 +23,22 @@
 
 ## 本地启动（合成数据）
 
-需要 Docker Desktop / Docker Engine 与 Compose。复制 `.env.example` 为 `.env`，仅用于本地的示例口令不得复用于共享环境。PowerShell：
+需要 Docker Desktop / Docker Engine 与 Compose。首次复制 `.env.example` 为 `.env`，将 `SESSION_SECRET` 和 `DEMO_PASSWORD` 改为仅用于本机的随机值（后者至少 12 字符），不要提交 `.env`。PowerShell：
 
 ```powershell
 Copy-Item .env.example .env
 docker compose -f infra/compose.yaml config --quiet
 docker compose -f infra/compose.yaml up --build -d
 docker compose -f infra/compose.yaml run --rm backend uv run --no-dev alembic upgrade head
+docker compose -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_demo
 Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod http://127.0.0.1:8000/ready
-Start-Process http://127.0.0.1:3000
+Start-Process http://localhost:3000/login
 ```
 
-迁移回退只在**空的本地合成数据库**操作：`docker compose -f infra/compose.yaml run --rm backend uv run --no-dev alembic downgrade base`。停止服务用 `docker compose -f infra/compose.yaml down`，保留数据库卷；不要对有研究数据的环境执行卷删除。数据库只在 Compose 私网，宿主机不公开 5432。
+演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。它只创建虚构研究编号、编码对象和权限分配。
+
+迁移回退只在**空的本地合成数据库**操作：`docker compose -f infra/compose.yaml run --rm backend uv run --no-dev alembic downgrade 0001_baseline`。这会删除 S1 认证表及其所有记录；已运行种子后不要执行。停止服务用 `docker compose -f infra/compose.yaml down`，保留数据库卷；不要对有研究数据的环境执行卷删除。数据库只在 Compose 私网，宿主机不公开 5432。
 
 不使用容器时，需要 Node.js 26、pnpm 10、Python 3.12–3.14 与 uv；数据库仍可用 Compose 启动：
 
@@ -49,7 +52,7 @@ uv sync --frozen
 uv run uvicorn app.main:app --reload
 ```
 
-前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。`database/seed/synthetic_cases.json` 仅是将来业务测试可用的虚构编号，不写入尚不存在的受试者表。
+前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。研究对象目前仅有合成编码，无姓名、联系方式、评估或导出功能。
 
 ## 研究安全边界
 - 数据是敏感研究数据；真实患者数据只进入获批准的环境。

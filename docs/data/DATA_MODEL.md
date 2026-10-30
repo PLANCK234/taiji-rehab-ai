@@ -1,10 +1,11 @@
 # Logical data model (initial proposal)
 
-Use UUID primary keys, UTC `created_at`/`updated_at`, stable `study_code`, explicit soft-delete/retention policy only after approval. The following is a **logical contract**, not an implemented migration.
+Use UUID primary keys, UTC timestamps, stable `study_code`, explicit soft-delete/retention policy only after approval. The table below is a **logical target**. Migration `0002_auth_scope` currently implements only `users`, `studies`, `study_assignments`, `participants` (coded ID only), `participant_assignments`, `login_sessions`, `login_rate_limits` and `audit_events`. No identity mapping, eligibility, clinical or outcome fields exist yet.
 
 | Entity | Key fields | Integrity and confidentiality |
 |---|---|---|
 | users | id, role, status, password_hash | never export secrets; participant scope via assignments |
+| participant_assignments | user_id, participant_id | explicit object scope in addition to study assignment |
 | study_assignments | user_id, study_id, site_id, permissions | authorization on every read/write |
 | participants | id, study_id, study_code, eligibility_status | unique(study_id,study_code) |
 | identity_mapping | participant_id, encrypted_identity/contact | separate access policy; optional in demo |

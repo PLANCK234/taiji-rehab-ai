@@ -1,13 +1,23 @@
 # REST API contract (proposed /api/v1)
 
-**Status**: business routes are a design contract. Sprint 0 implements only public process `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503). No clinical or authenticated route exists yet. Future business routes use `application/json`, ISO8601 UTC, UUID identifiers, consistent errors, cursor pagination and CSRF protection where cookie sessions are used; all require authentication and scoped server-side authorization.
+**Status**: Sprint 1 implements the authentication and coded-read subset below. Other routes remain design proposals. `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503) are public. Implemented business routes are prefixed `/api/v1`; use JSON, UUIDs, server-side session/RBAC/study/participant scope. All require authentication except login. Error format is in [ERRORS.md](ERRORS.md).
+
+| Implemented path | Behavior |
+|---|---|
+| POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure |
+| GET `/api/v1/auth/me` | Current staff ID, email, role; 401 if absent/expired/revoked |
+| POST `/api/v1/auth/logout` | Requires matching CSRF header and cookie; revokes session |
+| GET `/api/v1/studies` | Lists only assigned synthetic study codes |
+| GET `/api/v1/participants/{id}` | Returns code only when role, study assignment and participant assignment all permit it; otherwise 403 |
+
+These are synthetic-only demo routes. No account provisioning, patient creation, identity mapping, consent, assessment, export or image endpoint exists yet. See generated [OpenAPI](../../backend/openapi.json).
 
 | Method and path | Authorized purpose | Critical behavior |
 |---|---|---|
 | POST `/auth/login` | staff | secure HttpOnly cookie, rate limit, safe error |
 | POST `/auth/logout` | staff | revoke session |
-| GET/POST `/participants` | assigned staff | create study-code record, consent checks |
-| GET/PATCH `/participants/{id}` | assigned staff | scope and optimistic version checks |
+| GET/POST `/participants` | assigned staff | future list/create study-code record, consent checks |
+| PATCH `/participants/{id}` | assigned staff | future scoped update and optimistic version checks |
 | POST `/participants/{id}/screenings` | clinician | tri-state and source |
 | POST `/assessments` | assessor | base / revisit, draft first |
 | PUT `/assessments/{id}/measurements` | assessor | per-metric missingness + units |

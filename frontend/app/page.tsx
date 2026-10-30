@@ -1,4 +1,5 @@
 import { getApiHealth } from "./health";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function Home() {
         </dl>
         <p className="note">此页面不提供临床评估、诊断或训练建议。</p>
       </section>
+      <p><Link href="/login">研究人员登录</Link></p>
     </main>
   );
 }

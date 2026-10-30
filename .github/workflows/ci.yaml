@@ -28,7 +28,10 @@ jobs:
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run pytest
+      - run: uv run python -m app.export_openapi
+      - run: git diff --exit-code -- openapi.json
       - run: uv run alembic upgrade head
+      - run: uv run alembic check
       - run: uv run alembic downgrade base
 
   frontend:
