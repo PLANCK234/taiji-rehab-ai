@@ -35,3 +35,13 @@
 
 ## References
 `README.md` → `docs/README.md` → PRD / architecture / API / data / ML / security / testing / runbooks. Current work: `docs/STATUS.md` and `docs/ROADMAP.md`.
+
+## Agent lifecycle and durable handoff
+1. **Rehydrate**: read this file, `docs/STATUS.md`, `docs/HANDOFF.md`, `docs/TASKS.md`, relevant specifications and nearest nested `AGENTS.md`. Check Git branch, HEAD, worktree and actual code; documents may lag.
+2. **Select and scope**: choose a task whose dependencies are satisfied. State its Task ID, smallest files, acceptance IDs, tests and risk. Never infer an unapproved clinical rule.
+3. **Implement and verify**: run applicable checks and record failures or unavailable tools honestly. Code written is not `DONE` until its exit criteria are verified.
+4. **Checkpoint**: after each independently verifiable task, update its ledger state and handoff. For long tasks, persist a checkpoint before moving to another substantial unit. Prefer a scoped Git commit with test evidence.
+5. **Handoff**: inspect diff/status; run applicable checks; update `TASKS`, `STATUS`, `TRACEABILITY` and `HANDOFF`; append `SESSION_LOG`; update affected contracts; report commit, uncommitted changes and next Task ID. Keep `HANDOFF` current even if other docs need no change.
+6. **Stop**: for permissions, missing services, clinical approvals or unsafe ambiguity, mark the affected task `BLOCKED`, record the exact cause and next action, then continue independent tasks. Do not retry indefinitely.
+
+The repository code, committed documents, executed test results and Git history are the cross-session record. Agents must not depend on hidden memory from a previous chat. See [collaboration workflow](docs/CONTRIBUTING.md) and [continuation prompt](docs/prompts/continue.md). Never overwrite another developer's uncommitted work or force push; remote main updates and PR merges require developer authorization.

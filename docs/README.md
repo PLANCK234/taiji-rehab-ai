@@ -16,5 +16,6 @@
 | 10 | [部署](operations/DEPLOYMENT.md) / [运维](operations/RUNBOOK.md) | 上线与恢复 |
 | 11 | [路线图](ROADMAP.md) / [状态](STATUS.md) / [问题清单](OPEN_QUESTIONS.md) | 项目执行 |
 | 12 | [ADR](decisions/README.md) / [开发提示卡](prompts/README.md) | 长期维护 |
+| 13 | [交接](HANDOFF.md) / [任务台账](TASKS.md) / [会话日志](SESSION_LOG.md) | 跨会话开发与恢复 |
 
 **更新要求**：每次涉及公开行为/数据变更同步改 PRD、API、数据字典、验收与追踪；规则优化改模型文档与研究标签定义。所有文档均为实施设计草案，未代表获批医学方案。

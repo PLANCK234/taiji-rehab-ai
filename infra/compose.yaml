@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: taiji
+      POSTGRES_USER: taiji
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in local .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taiji -d taiji"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [private]
+
+  backend:
+    build: ../backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://taiji:${POSTGRES_PASSWORD}@db:5432/taiji
+      APP_ENV: ${APP_ENV:-local}
+      ALLOW_SYNTHETIC_ONLY: ${ALLOW_SYNTHETIC_ONLY:-true}
+      SESSION_SECRET: ${SESSION_SECRET:?set in local .env}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:3000}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      RESET_DEMO_PASSWORD: ${RESET_DEMO_PASSWORD:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "uv", "run", "--no-dev", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks: [private]
+
+  frontend:
+    build: ../frontend
+    environment:
+      API_INTERNAL_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks: [private]
+
+networks:
+  private:
+
+volumes:
+  pgdata:

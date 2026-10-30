@@ -10,6 +10,25 @@
 7. Redaction test for logs, exports and CI fixtures. Backups encrypt and test restore; controlled retention/deletion depends on approved data policy.
 8. Clinical safety: symptom report accessible even if full feedback incomplete. Display emergency/stop messages per approved policy; do not autonomously determine SAE or resumption of exercise.
 
+## Implemented S1 synthetic-only boundary
+
+- Staff passwords use Argon2 via `pwdlib`; 32-byte opaque session tokens are hashed in PostgreSQL. Sessions expire after eight hours and are revoked on logout. Cookies are HttpOnly/Strict; `Secure` and `__Host-` prefix apply outside local/test HTTP. Logout requires a matching CSRF header and cookie; browser login origins are checked.
+- Login failures are limited per HMAC-hashed email/client-host key in a 15-minute window. Audit events record login, logout and coded-record read outcomes without credentials, raw email/IP or clinical data.
+- Coded participant reads require an allowed role, study assignment **and** explicit participant assignment. Unknown and unassigned IDs both return 403. The admin and analyst roles have no individual participant read permission.
+- `ALLOW_SYNTHETIC_ONLY=true` and `APP_ENV=local`/`test` are required for protected database routes. Seed creation additionally requires `APP_ENV=local` and an explicit local password. No real data or production permission is implied. Export and identity mapping remain unavailable.
+
+## S1-02 synthetic intake boundary
+
+- Coded creation accepts only `SYN-` codes, checks role and study assignment, then atomically assigns the creator. List/detail and all consent/screening routes require server-side study **and** object assignment. Writes additionally require CSRF and an idempotency key; audit records permitted and denied operations without form contents.
+- Consent and screening entries append revisions with staff actor and UTC time. Subsequent consent entries and same-item screening corrections require a synthetic reason code. Without the latest simulated `granted` consent, screening writes return 403. Absent screening returns `not_assessed`; any entries return `needs_review`, never a safety or enrollment clearance.
+- No name/contact fields, verified signature, clinical screening questions, identity mapping, file storage or image upload endpoint is implemented. A recorded photo scope does not enable upload. Q-01/Q-07/Q-10 remain unresolved; no real data collection is authorized.
+
+## S2-01 synthetic assessment boundary
+
+- Baseline/revisit assessment reads and writes require role, assigned study and explicit object assignment on the server. Unknown or unassigned assessment IDs return 403. Writes additionally check current simulated `granted` consent, CSRF, idempotency key and expected revision; withdrawal blocks subsequent writes and confirmations.
+- Clinician and research assistant can create/revise manual total drafts; clinician and clinical approver can confirm a recorded draft. Every measurement or confirmation appends an attributable snapshot. A correction after a recorded value requires a `SYN-` reason. Audit records allow/deny outcomes without raw values.
+- `SYN-MANUAL-V1` is a synthetic engineering marker. No approved SPPB item algorithm, grading, safety determination or treatment recommendation is inferred from a total; no real-data use is authorized. Downgrade `0004_manual_assessments` removes tables and is rehearsed only on a disposable empty database.
+
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.
 - PI/clinical approver: approves clinical adaptation rules and significant changes.

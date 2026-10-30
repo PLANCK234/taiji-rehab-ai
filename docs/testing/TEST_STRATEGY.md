@@ -7,7 +7,7 @@
 - Research ML: deterministic frozen snapshot, participant grouping, time-cutoff, baseline-vs-candidate comparison, rare safety event reporting, blocked unapproved publishing.
 - Security and operations: direct-object-reference attempts, CSV redaction, image scope, export logs, backup/restore, TLS and environment secrets.
 
-## Proposed commands, subject to repository bootstrap
+## Implemented commands and later targets
 ```bash
 cd backend && uv run ruff check . && uv run pytest
 pnpm --dir frontend lint
@@ -16,10 +16,14 @@ pnpm --dir frontend test
 pnpm --dir frontend exec playwright test
 docker compose -f infra/compose.yaml config
 ```
-No scripts/packages are installed by this documentation package. Codex must create and verify commands in Sprint 0, then adjust instructions if different.
+Sprint 0 installed frontend/backend tooling. Sprint 1 adds `backend/tests/test_auth_scope.py` for login, CSRF, rate limiting, session expiry, study and explicit participant scope, audit, and the synthetic-only gate; `frontend/app/workspace/auth.test.ts` covers session-guard branches. PostgreSQL migration `0002_auth_scope` is checked with `uv run alembic check` after upgrade. Playwright remains a later target; no Playwright package or browser suite is installed yet.
+
+S1-02 adds `backend/tests/test_synthetic_intake.py` for coded create scope/idempotency, consent revision and withdrawal, screening unknown/needs-review states, consent-gated collection, and absent photo route. `frontend/app/workspace/intake.test.ts` covers CSRF/idempotency transport and denied-list handling. Migration `0003_synthetic_intake` requires PostgreSQL upgrade/check and a disposable-database downgrade rehearsal; no downgrade on a populated synthetic or real database.
+
+S2-01 adds `backend/tests/test_manual_assessments.py` for manual total 0 versus null, invalid/missing validation, append-only revisions, clinician confirmation, scope/consent/CSRF/idempotency/409 behavior and database constraints. `frontend/app/workspace/assessments.test.ts` covers display semantics, transport and local-time conversion. Migration `0004_manual_assessments` must upgrade, pass Alembic drift check, downgrade to `0003_synthetic_intake` and upgrade again on an **empty disposable** PostgreSQL database. PostgreSQL API smoke should verify persistence across a fresh TestClient and deny no-consent/unassigned access. These checks cover only the AT-01 recording/history and AT-02 input-domain portions.
 
 ## Seed data
-Synthetic cohort of 8–12 cases covering SPPB boundary scores, no measurement, consent refusal, aborted session, symptom event, missing feedback, role denial, two cycles, and approved/rejected model. Label the dataset SYNTHETIC.
+S1 local seed (`python -m app.seed_demo`) creates only three synthetic staff accounts, two studies and three coded objects for access tests; it has no clinical measurements. A later synthetic cohort should cover SPPB boundaries, missingness, consent refusal, aborted sessions, symptoms, role denial, cycles and model decisions. Label all such data SYNTHETIC.
 
 ## Definition of done
 Feature follows documented contract, permissions/validation, migration and rollback, tests executed with recorded output, no unapproved clinical rule, updated docs/traceability/status and reviewer checklist. No change is done because its code compiles alone.

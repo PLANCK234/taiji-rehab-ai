@@ -1,0 +1,5 @@
+{
+  "fixture_type": "SYNTHETIC_ONLY",
+  "description": "Future feature tests may use these fictional study codes; no participant data is stored in Sprint 0.",
+  "study_codes": ["SYN-001", "SYN-002", "SYN-003"]
+}
