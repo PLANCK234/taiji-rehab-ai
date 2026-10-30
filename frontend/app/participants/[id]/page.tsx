@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "../../workspace/auth";
 import { getConsentHistory, getParticipant, getScreeningHistory } from "../../workspace/intake";
+import { getParticipantAssessments, measurementText } from "../../workspace/assessments";
 import IntakeForms from "./intake-forms";
+import CreateAssessmentForm from "./create-assessment-form";
 
 export const dynamic = "force-dynamic";
 
@@ -22,9 +24,10 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings] = await Promise.all([
+  const [consents, screenings, assessments] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
+    getParticipantAssessments(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
 
@@ -53,6 +56,24 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
             <li key={row.id}>{row.item_code}：{answerText[row.answer]}</li>
           ))}</ul> : <p>暂无筛查项。</p>}
         </> : <p>筛查记录暂不可用；状态未知。</p>}
+      </section>
+      <section aria-labelledby="assessments-heading">
+        <h2 id="assessments-heading">合成人工总分评估</h2>
+        <p className="note">仅录入人工 SPPB 总分，不计算分项、等级或训练建议。</p>
+        {assessments === null ? <p>评估记录暂不可用。</p> : assessments.length ? (
+          <ul>{assessments.map((row) => (
+            <li key={row.id}>
+              <Link href={`/assessments/${row.id}`}>
+                {row.visit_kind === "baseline" ? "基线" : "复评"} ·
+                {row.current.state === "draft" ? "草稿" : "已确认"} ·
+                {measurementText(row.current)}
+              </Link>
+            </li>
+          ))}</ul>
+        ) : <p>暂无评估记录。</p>}
+        {canWrite && consents?.state === "granted" && assessments !== null ? (
+          <CreateAssessmentForm participantId={participant.id} />
+        ) : <p className="note">创建评估需要当前模拟同意及录入权限。</p>}
       </section>
       {canWrite && consents && screenings ? <IntakeForms
         participantId={participant.id}

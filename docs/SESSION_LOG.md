@@ -28,3 +28,12 @@
 - 测试：后端 Ruff/pytest 18；前端 Node 26/pnpm 10 容器 lint/typecheck/test 7/build；临时空 PostgreSQL 17 迁移升降升及 Alembic check；PostgreSQL API 登录/授权/同意/筛查烟测；前端代理工作台和对象页状态烟测。首次本机 pnpm 缺失，改用容器；首次容器 pnpm 安装因非交互模块清理中止，设置 `CI=true` 后通过。结果见 `STATUS.md`。
 - 提交/PR：本地分支 `feat/s1-02-synthetic-intake`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：AT-14 真实数据准入、远端 CI 与临床审批未完成；S2-01 仅可在 PRD 人工总分合成回退路径上推进，Q-02 未决时不得实现分项自动计分。
+
+## 2026-10-30 UTC · S2-01
+
+- 目标：仅依据仓库检查点接续，在 Q-02 未决的合成回退路径实现手工 SPPB 总分评估（FR-003、AT-01/02 录入部分）。
+- 完成：基线/复评草稿；有效整数 0–12、缺失、无效与未记录状态；只追加版本、工作人员确认、更正原因、操作者和 UTC 时间；模拟同意、角色/研究/对象授权、CSRF、幂等与版本冲突；中文对象页及评估时间线；迁移和 OpenAPI。
+- 决策：完整快照版本保留历史，`SYN-MANUAL-V1` 不是临床 SOP；无分项自动计分、分级、安全或建议，见 ADR-0007。S3-01 因 Q-03/09 未签核阻断，下一可执行任务 S6-01 仅纯合成本地预览。
+- 测试：后端 Ruff/pytest 22；前端 Node 26/pnpm 10 容器 lint/typecheck/test 11/build；临时空 PostgreSQL 17 迁移升降升及 Alembic check；另一临时库 API 权限/同意/零分/幂等/重启持久化；Next 代理页面复评缺失流程。首次烟测脚本受本机 SOCKS 代理影响，直连后执行；React 数字节点注释造成的文本断言调整后通过。结果见 `STATUS.md`。
+- 提交/PR：本地分支 `feat/s2-01-manual-assessments`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：AT-01 CSV/周期、AT-02 分级、完整量表、远端 CI/Playwright、真实数据准入和所有临床审批均未完成。

@@ -10,11 +10,13 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.api import router
+from app.assessment_api import router as assessment_router
 from app.intake_api import router as intake_router
 
 app = FastAPI(title="太极康复研究平台 API", version="0.1.0")
 app.include_router(router)
 app.include_router(intake_router)
+app.include_router(assessment_router)
 
 
 @app.middleware("http")

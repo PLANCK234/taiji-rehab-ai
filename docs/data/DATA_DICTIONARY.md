@@ -12,6 +12,14 @@
 | screening_record.answer | yes/no/unknown | synthetic staff entry | unknown is explicit; no answer implies not assessed |
 | screening.review_state | not_assessed/needs_review | API projection | never safe/eligible; even all answered remains needs_review |
 | intake.change_reason | `SYN-` code | synthetic staff entry | required for later consent records or same-item screening corrections |
+| assessment.visit_kind | baseline/revisit | synthetic staff entry | visit label only; no approved visit schedule inferred |
+| assessment.protocol_version | `SYN-MANUAL-V1` | assessment API | synthetic marker, not a signed measurement SOP |
+| assessment_revision.state | draft/confirmed | assessment API | confirmation is staff record review, not a clinical grade or completed measurement when missing |
+| assessment_revision.validity | unrecorded/valid/missing/invalid | synthetic staff entry | initial draft unrecorded; missing and invalid have no usable total |
+| assessment_revision.raw_value | integer points or null | synthetic staff entry | valid manual total 0–12; zero is observed, null is not zero; invalid raw original may be retained |
+| assessment_revision.missing_reason | enum below or null | synthetic staff entry | required for missing/invalid; valid and unrecorded null |
+| assessment_revision.performed_at | timezone-aware UTC instant or null | synthetic staff entry | required for valid; no invented measurement time for missing |
+| assessment_revision.recorded_by/at | staff UUID / UTC instant | assessment API | attributable append-only version; `SYN-` correction reason required after first measurement |
 | age_years | integer years | clinician | scoped by protocol; no guessed age |
 | sppb_total | integer 0–12 | clinician-confirmed evaluation | missing ≠ 0; score algorithm only after SOP approval |
 | sppb_balance | source-defined score | evaluation | unit/formula to approve |

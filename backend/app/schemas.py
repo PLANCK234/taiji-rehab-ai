@@ -4,7 +4,15 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    StrictInt,
+    model_validator,
+)
 
 SYNTHETIC_CODE = r"^SYN-[A-Z0-9_-]{3,60}$"
 
@@ -96,3 +104,88 @@ class ScreeningView(BaseModel):
 class ScreeningHistory(BaseModel):
     review_state: Literal["not_assessed", "needs_review"]
     records: list[ScreeningView]
+
+
+MissingReason = Literal[
+    "not_scheduled",
+    "not_attempted",
+    "declined",
+    "unsafe_to_attempt",
+    "technical_failure",
+    "lost_followup",
+    "unknown",
+]
+
+
+class AssessmentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    participant_id: uuid.UUID
+    visit_kind: Literal["baseline", "revisit"]
+
+
+class MeasurementWrite(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: StrictInt = Field(ge=1)
+    validity: Literal["valid", "missing", "invalid"]
+    raw_value: StrictInt | None = None
+    missing_reason: MissingReason | None = None
+    performed_at: AwareDatetime | None = None
+    change_reason: str | None = Field(default=None, max_length=64, pattern=SYNTHETIC_CODE)
+
+    @model_validator(mode="after")
+    def validate_measurement(self) -> "MeasurementWrite":
+        if self.validity == "valid":
+            if (
+                self.raw_value is None
+                or not 0 <= self.raw_value <= 12
+                or self.missing_reason is not None
+                or self.performed_at is None
+            ):
+                raise ValueError("valid manual total requires 0..12 and performed_at")
+        elif self.validity == "missing":
+            if self.raw_value is not None or self.missing_reason is None or self.performed_at:
+                raise ValueError("missing manual total requires reason and no value/time")
+        elif self.missing_reason is None:
+            raise ValueError("invalid manual total requires reason")
+        return self
+
+
+class AssessmentConfirm(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: StrictInt = Field(ge=1)
+
+
+class AssessmentRevisionView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    assessment_id: uuid.UUID
+    revision_no: int
+    state: Literal["draft", "confirmed"]
+    metric_code: Literal["sppb_total"]
+    raw_value: int | None
+    unit: Literal["points"]
+    validity: Literal["unrecorded", "valid", "missing", "invalid"]
+    missing_reason: MissingReason | None
+    performed_at: datetime | None
+    source: Literal["manual_staff_entry"]
+    change_reason: str | None
+    recorded_by: uuid.UUID
+    recorded_at: datetime
+
+
+class AssessmentSummary(BaseModel):
+    id: uuid.UUID
+    participant_id: uuid.UUID
+    visit_kind: Literal["baseline", "revisit"]
+    protocol_version: str
+    created_by: uuid.UUID
+    created_at: datetime
+    current: AssessmentRevisionView
+
+
+class AssessmentDetail(AssessmentSummary):
+    history: list[AssessmentRevisionView]

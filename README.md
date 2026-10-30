@@ -38,7 +38,7 @@ Start-Process http://localhost:3000/login
 
 演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。它只创建虚构研究编号、编码对象和权限分配。
 
-登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；进入对象页追加模拟同意记录，再填写合成项目代码和 `yes`/`no`/`unknown` 三态筛查。无当前模拟同意时筛查写入关闭；所有筛查结果都保持“待复核”，绝不表示安全或入组资格。历史记录只追加，更正需合成原因代码。照片、真实身份、评估和导出均未开放。
+登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；进入对象页追加模拟同意记录，再填写合成项目代码和 `yes`/`no`/`unknown` 三态筛查。无当前模拟同意时筛查写入关闭；所有筛查结果都保持“待复核”，绝不表示安全或入组资格。当前模拟同意下可创建基线/复评草稿，仅由工作人员录入 SPPB 人工总分、缺失或无效状态，按权限确认并查看追加版本。零分与缺失分开显示；不自动计算分项、等级或训练建议。照片、真实身份和导出均未开放。
 
 迁移回退只在**空的临时合成测试数据库**操作：`docker compose -f infra/compose.yaml run --rm backend uv run --no-dev alembic downgrade 0002_auth_scope` 会删除 S1-02 的同意、筛查和幂等记录表；进一步退至 `0001_baseline` 会删除认证表。已创建记录后不要直接执行；需先有获批准的备份及回退计划。停止服务用 `docker compose -f infra/compose.yaml down`，保留数据库卷；不要对有研究数据的环境执行卷删除。数据库只在 Compose 私网，宿主机不公开 5432。
 
@@ -54,7 +54,7 @@ uv sync --frozen
 uv run uvicorn app.main:app --reload
 ```
 
-前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。研究对象仅有合成编码及模拟记录，无姓名、联系方式、评估或导出功能。
+前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。研究对象仅有合成编码、模拟记录和人工总分草稿/历史，无姓名、联系方式、临床分级或导出功能。
 
 ## 研究安全边界
 - 数据是敏感研究数据；真实患者数据只进入获批准的环境。

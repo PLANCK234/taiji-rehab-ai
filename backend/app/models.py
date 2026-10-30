@@ -124,6 +124,69 @@ class ScreeningRecord(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class Assessment(Base):
+    __tablename__ = "assessments"
+    __table_args__ = (
+        CheckConstraint("visit_kind IN ('baseline','revisit')", name="ck_assessment_visit_kind"),
+        Index("ix_assessments_participant_created", "participant_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    visit_kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    protocol_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class AssessmentRevision(Base):
+    __tablename__ = "assessment_revisions"
+    __table_args__ = (
+        UniqueConstraint("assessment_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_assessment_revision_positive"),
+        CheckConstraint("state IN ('draft','confirmed')", name="ck_assessment_revision_state"),
+        CheckConstraint("metric_code = 'sppb_total'", name="ck_assessment_metric"),
+        CheckConstraint("unit = 'points'", name="ck_assessment_unit"),
+        CheckConstraint("source = 'manual_staff_entry'", name="ck_assessment_source"),
+        CheckConstraint(
+            "missing_reason IS NULL OR missing_reason IN "
+            "('not_scheduled','not_attempted','declined','unsafe_to_attempt',"
+            "'technical_failure','lost_followup','unknown')",
+            name="ck_assessment_missing_reason",
+        ),
+        CheckConstraint(
+            "(validity = 'unrecorded' AND raw_value IS NULL AND missing_reason IS NULL "
+            "AND performed_at IS NULL AND state = 'draft') OR "
+            "(validity = 'valid' AND raw_value BETWEEN 0 AND 12 "
+            "AND missing_reason IS NULL AND performed_at IS NOT NULL) OR "
+            "(validity = 'missing' AND raw_value IS NULL AND missing_reason IS NOT NULL "
+            "AND performed_at IS NULL) OR "
+            "(validity = 'invalid' AND missing_reason IS NOT NULL)",
+            name="ck_assessment_value_state",
+        ),
+        Index("ix_assessment_revisions_assessment_no", "assessment_id", "revision_no"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    assessment_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("assessments.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    metric_code: Mapped[str] = mapped_column(String(32), nullable=False)
+    raw_value: Mapped[int | None] = mapped_column()
+    unit: Mapped[str] = mapped_column(String(16), nullable=False)
+    validity: Mapped[str] = mapped_column(String(16), nullable=False)
+    missing_reason: Mapped[str | None] = mapped_column(String(32))
+    performed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    source: Mapped[str] = mapped_column(String(32), nullable=False)
+    change_reason: Mapped[str | None] = mapped_column(String(64))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class LoginSession(Base):
     __tablename__ = "login_sessions"
     __table_args__ = (Index("ix_login_sessions_user_id", "user_id"),)

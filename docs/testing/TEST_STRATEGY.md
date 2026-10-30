@@ -20,6 +20,8 @@ Sprint 0 installed frontend/backend tooling. Sprint 1 adds `backend/tests/test_a
 
 S1-02 adds `backend/tests/test_synthetic_intake.py` for coded create scope/idempotency, consent revision and withdrawal, screening unknown/needs-review states, consent-gated collection, and absent photo route. `frontend/app/workspace/intake.test.ts` covers CSRF/idempotency transport and denied-list handling. Migration `0003_synthetic_intake` requires PostgreSQL upgrade/check and a disposable-database downgrade rehearsal; no downgrade on a populated synthetic or real database.
 
+S2-01 adds `backend/tests/test_manual_assessments.py` for manual total 0 versus null, invalid/missing validation, append-only revisions, clinician confirmation, scope/consent/CSRF/idempotency/409 behavior and database constraints. `frontend/app/workspace/assessments.test.ts` covers display semantics, transport and local-time conversion. Migration `0004_manual_assessments` must upgrade, pass Alembic drift check, downgrade to `0003_synthetic_intake` and upgrade again on an **empty disposable** PostgreSQL database. PostgreSQL API smoke should verify persistence across a fresh TestClient and deny no-consent/unassigned access. These checks cover only the AT-01 recording/history and AT-02 input-domain portions.
+
 ## Seed data
 S1 local seed (`python -m app.seed_demo`) creates only three synthetic staff accounts, two studies and three coded objects for access tests; it has no clinical measurements. A later synthetic cohort should cover SPPB boundaries, missingness, consent refusal, aborted sessions, symptoms, role denial, cycles and model decisions. Label all such data SYNTHETIC.
 

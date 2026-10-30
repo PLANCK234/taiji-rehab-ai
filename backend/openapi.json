@@ -1,6 +1,286 @@
 {
   "components": {
     "schemas": {
+      "AssessmentConfirm": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_revision"
+        ],
+        "title": "AssessmentConfirm",
+        "type": "object"
+      },
+      "AssessmentCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "visit_kind": {
+            "enum": [
+              "baseline",
+              "revisit"
+            ],
+            "title": "Visit Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "visit_kind"
+        ],
+        "title": "AssessmentCreate",
+        "type": "object"
+      },
+      "AssessmentDetail": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "current": {
+            "$ref": "#/components/schemas/AssessmentRevisionView"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentRevisionView"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "visit_kind": {
+            "enum": [
+              "baseline",
+              "revisit"
+            ],
+            "title": "Visit Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "visit_kind",
+          "protocol_version",
+          "created_by",
+          "created_at",
+          "current",
+          "history"
+        ],
+        "title": "AssessmentDetail",
+        "type": "object"
+      },
+      "AssessmentRevisionView": {
+        "properties": {
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "metric_code": {
+            "const": "sppb_total",
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_scheduled",
+                  "not_attempted",
+                  "declined",
+                  "unsafe_to_attempt",
+                  "technical_failure",
+                  "lost_followup",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Reason"
+          },
+          "performed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Performed At"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "source": {
+            "const": "manual_staff_entry",
+            "title": "Source",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "confirmed"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "unit": {
+            "const": "points",
+            "title": "Unit",
+            "type": "string"
+          },
+          "validity": {
+            "enum": [
+              "unrecorded",
+              "valid",
+              "missing",
+              "invalid"
+            ],
+            "title": "Validity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "assessment_id",
+          "revision_no",
+          "state",
+          "metric_code",
+          "raw_value",
+          "unit",
+          "validity",
+          "missing_reason",
+          "performed_at",
+          "source",
+          "change_reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "AssessmentRevisionView",
+        "type": "object"
+      },
+      "AssessmentSummary": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "current": {
+            "$ref": "#/components/schemas/AssessmentRevisionView"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "protocol_version": {
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "visit_kind": {
+            "enum": [
+              "baseline",
+              "revisit"
+            ],
+            "title": "Visit Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "visit_kind",
+          "protocol_version",
+          "created_by",
+          "created_at",
+          "current"
+        ],
+        "title": "AssessmentSummary",
+        "type": "object"
+      },
       "ConsentCreate": {
         "additionalProperties": false,
         "properties": {
@@ -182,6 +462,87 @@
           "password"
         ],
         "title": "LoginRequest",
+        "type": "object"
+      },
+      "MeasurementWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "change_reason": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_scheduled",
+                  "not_attempted",
+                  "declined",
+                  "unsafe_to_attempt",
+                  "technical_failure",
+                  "lost_followup",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Reason"
+          },
+          "performed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Performed At"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "validity": {
+            "enum": [
+              "valid",
+              "missing",
+              "invalid"
+            ],
+            "title": "Validity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "validity"
+        ],
+        "title": "MeasurementWrite",
         "type": "object"
       },
       "ParticipantCreate": {
@@ -448,6 +809,222 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/assessments": {
+      "post": {
+        "operationId": "create_assessment_api_v1_assessments_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Assessment"
+      }
+    },
+    "/api/v1/assessments/{assessment_id}": {
+      "get": {
+        "operationId": "get_assessment_api_v1_assessments__assessment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assessment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Assessment"
+      }
+    },
+    "/api/v1/assessments/{assessment_id}/confirm": {
+      "post": {
+        "operationId": "confirm_assessment_api_v1_assessments__assessment_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assessment Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentRevisionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Assessment"
+      }
+    },
+    "/api/v1/assessments/{assessment_id}/measurements": {
+      "put": {
+        "operationId": "write_measurement_api_v1_assessments__assessment_id__measurements_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assessment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assessment Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeasurementWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentRevisionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Write Measurement"
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "operationId": "login_api_v1_auth_login_post",
@@ -625,6 +1202,50 @@
           }
         },
         "summary": "Get Participant"
+      }
+    },
+    "/api/v1/participants/{participant_id}/assessments": {
+      "get": {
+        "operationId": "list_assessments_api_v1_participants__participant_id__assessments_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssessmentSummary"
+                  },
+                  "title": "Response List Assessments Api V1 Participants  Participant Id  Assessments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Assessments"
       }
     },
     "/api/v1/participants/{participant_id}/consents": {
