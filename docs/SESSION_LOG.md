@@ -55,3 +55,12 @@
 - 测试：后端 Ruff 通过、pytest 23 passed（上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 lint/typecheck/test 12/build 通过；Compose config、交接脚本（13 Task ID/链接）和上次提交 `git show --check --stat` 通过。上一检查点的临时 PostgreSQL/HTTP 烟测未重跑；浏览器手工 E2E 与远端 CI 未运行。
 - 提交/PR：本地文档分支 `chore/recovery-audit-2026-10-31`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：需 Q-03 的适配模板/禁忌/剂量及 Q-09 的审批/发布责任人与版本证据完成签核，方可启动 S3-01；浏览器手工 E2E、远端 CI 和其他审批仍待后续。
+
+## 2026-10-31 UTC · S6-02
+
+- 目标：从干净的 `692971f35f585dcfe4eaa3c3309746b5e4dcbf29` 检查点恢复，补齐已记录的 AT-12 合成姿态页浏览器验收缺口，不触及真实影像或临床规则。
+- 完成：登记 `S6-02`，新增 Playwright/Chromium 测试、本地合成 API 夹具、可复用的发行版 Chromium 测试镜像与锁定依赖；验证未登录跳转、未分配对象拒绝、算法提示、模拟照片范围不解锁采集、合成 SVG 生成/切换/清除以及无摄像头调用和非 GET 请求。无产品业务代码、后端接口或迁移变更。
+- 决策：浏览器测试只使用 `SYN-001` 等合成夹具；模拟 API 的页面验收不代表真实 PostgreSQL 全链路。Playwright 浏览器 CDN 在本机容器 DNS 中不可达，测试镜像改用发行版 Chromium；这只是测试工具选择，不改变影像政策。
+- 测试：后端 Ruff/pytest 23；前端 Node 26/pnpm 10 lint/typecheck/test 12/build；Chromium 浏览器 3 passed；测试镜像构建、Compose config、交接脚本。首轮浏览器测试 2/3，过宽图片选择器误匹配 Next 开发工具图标，限定到合成预览区域后全部通过。浏览器手工 UAT、远端 CI、真实影像与临床验收未运行。
+- 提交/PR：本地分支 `feat/s6-02-synthetic-browser-e2e`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：S3-01 仍待 Q-03/09 签核；S4/S5/S7/S8 有前序或审批依赖。AT-12 真实影像待 Q-01/10；真实 PostgreSQL/Next HTTP 烟测本轮未重跑。

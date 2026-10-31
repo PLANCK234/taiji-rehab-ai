@@ -1,6 +1,6 @@
 # 实施状态
 
-更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳本地完成；Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
+更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳、S6-02 模拟 API 浏览器验收本地完成；Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
 
 | 范围 | 状态 | 证据与限制 |
 |---|---|---|
@@ -12,11 +12,15 @@
 | S1-02 合成建档/模拟同意/筛查 | DONE | `SYN-` 编号创建与列表、追加式同意/三态筛查、当前同意门禁、未知/待复核状态、权限和审计；本地测试、PostgreSQL 及页面烟测通过 |
 | S2-01 合成人工 SPPB 总分评估 | DONE | 基线/复评草稿、有效/缺失/无效总分、追加历史、更正理由与临床角色确认；权限、模拟同意、CSRF、幂等、审计；本地单测、迁移、PostgreSQL 和页面烟测通过。FR-003/AT-01/02 仅录入部分 |
 | S6-01 合成姿态演示壳 | DONE | 已授权对象可打开合成 SVG 预览页；“姿态识别算法尚未接入”；无摄像头、文件选择、上传、保存或评分。AT-12 仅合成部分；真实影像和浏览器手工 E2E 未验收 |
+| S6-02 合成姿态页浏览器验收 | DONE | Playwright/Chromium 3 场景通过，覆盖未登录、模拟 API 拒绝未分配对象、合成 SVG 交互和无摄像头/写请求；模拟 API 非真实 PostgreSQL 集成验收 |
 | FR-004 至 FR-011 后续业务功能 | NOT_STARTED | 无分级、建议、训练、周期或导出 API；AT-01 导出与 AT-02 分级边界未实现；见 `TASKS.md` |
 | 真实数据/临床上线 | BLOCKED | Q-01 至 Q-13 待相应负责人签核；见 `OPEN_QUESTIONS.md` |
 
 ## 最近实测结果
 
+- S6-02：从干净的 `692971f35f585dcfe4eaa3c3309746b5e4dcbf29` 恢复；原台账无可执行 ID，登记独立合成浏览器验收任务 `S6-02`，依赖已完成的 S6-01，未更改产品代码或临床规则。`frontend/e2e/synthetic-pose.pw.ts` 在 Next + 本地模拟 API 的 Chromium 中 3 passed：未登录跳转、未分配对象 404、算法提示/模拟照片范围/合成 SVG 生成切换清除、无摄像头调用或非 GET 请求。模拟 API 只含合成编号数据，不是 PostgreSQL 全链路或真实影像验收。
+- S6-02 检查：后端 Windows `uv run ruff check .` 通过、`uv run pytest -q` → 23 passed（上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 `pnpm lint`、`pnpm typecheck`、`pnpm test` → 12 passed、`pnpm build` 成功；Chromium 测试镜像 `docker build -f Dockerfile.e2e -t taiji-s6-02-e2e .` 成功，容器 `pnpm test:e2e` → 3 passed。文档/交接脚本和最终 Git 状态在提交前后复核。
+- S6-02 首次尝试 `pnpm exec playwright install --with-deps chromium` 因容器无法解析 `storage.googleapis.com` 未下载浏览器；改用发行版 Chromium。浏览器套件首跑 2 passed/1 failed，失败因过宽的 `getByRole('img')` 匹配 Next 开发工具图标；限定到合成预览区域后 3 passed。未重跑真实 PostgreSQL/Next HTTP 烟测，未运行浏览器手工 UAT、远端 CI 或真实影像测试。
 - 2026-10-31 恢复审计：从干净的 `feat/s6-01-synthetic-pose-demo` 工作区与 HEAD `207d8896c295fbca090193198d6037d61d8a1419` 复核 HANDOFF、TASKS、Git 历史、S6-01 代码/测试及相关设计；`git show --check --stat HEAD` 通过。本轮仅更新交接文档，另建 `chore/recovery-audit-2026-10-31` 分支；任务状态不变。
 - 本轮实测：后端 `uv run ruff check .` 通过、`uv run pytest -q` → 23 passed（Starlette TestClient 上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 `pnpm lint`、`pnpm typecheck`、`pnpm test` → 12 passed、`pnpm build` 成功；Compose config 与 `scripts/check_handoff.py`（13 个 Task ID、本地链接）通过。S6-01 的临时 PostgreSQL/HTTP 烟测为上一检查点证据，本轮未重跑；浏览器手工 E2E 和远端 CI 仍未运行。
 - 依赖核对：S3-01 的 Q-03/09 未签核，保持 `BLOCKED`；S4/S5/S7/S8 均有未满足的前序或审批依赖。台账无下一可执行 Task ID；没有实施或修改任何临床规则。
@@ -52,4 +56,4 @@
 
 ## 当前阻断与下一步
 
-S2-01 与 S6-01 的合成路径已完成；Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。台账当前没有依赖已满足的下一 Task ID：最靠前的 `S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；其后的 S4/S5/S7/S8 依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
+S2-01、S6-01 与 S6-02 的合成路径已完成；Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。台账当前没有依赖已满足的下一 Task ID：最靠前的 `S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；其后的 S4/S5/S7/S8 依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
