@@ -281,6 +281,72 @@
         "title": "AssessmentSummary",
         "type": "object"
       },
+      "AssessmentTrend": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentTrendEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "entries"
+        ],
+        "title": "AssessmentTrend",
+        "type": "object"
+      },
+      "AssessmentTrendEntry": {
+        "properties": {
+          "assessment_id": {
+            "format": "uuid",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current": {
+            "$ref": "#/components/schemas/AssessmentRevisionView"
+          },
+          "latest_confirmed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssessmentRevisionView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "visit_kind": {
+            "enum": [
+              "baseline",
+              "revisit"
+            ],
+            "title": "Visit Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "visit_kind",
+          "created_at",
+          "current",
+          "latest_confirmed"
+        ],
+        "title": "AssessmentTrendEntry",
+        "type": "object"
+      },
       "ConsentCreate": {
         "additionalProperties": false,
         "properties": {
@@ -1202,6 +1268,46 @@
           }
         },
         "summary": "Get Participant"
+      }
+    },
+    "/api/v1/participants/{participant_id}/assessment-trend": {
+      "get": {
+        "operationId": "get_assessment_trend_api_v1_participants__participant_id__assessment_trend_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentTrend"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Assessment Trend"
       }
     },
     "/api/v1/participants/{participant_id}/assessments": {

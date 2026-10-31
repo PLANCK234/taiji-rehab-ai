@@ -1,6 +1,6 @@
 # REST API contract (proposed /api/v1)
 
-**Status**: Sprint 1 implements authentication, coded reads and synthetic intake; S2-01 adds synthetic manual SPPB total assessment entry below. Other routes remain design proposals. `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503) are public. Implemented business routes are prefixed `/api/v1`; use JSON, UUIDs, server-side session/RBAC/study/participant scope. All require authentication except login. Error format is in [ERRORS.md](ERRORS.md).
+**Status**: Sprint 1 implements authentication, coded reads and synthetic intake; S2-01 adds synthetic manual SPPB total assessment entry, and ENG-02A adds a read-only trend projection. Other routes remain design proposals. `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503) are public. Implemented business routes are prefixed `/api/v1`; use JSON, UUIDs, server-side session/RBAC/study/participant scope. All require authentication except login. Error format is in [ERRORS.md](ERRORS.md).
 
 | Implemented path | Behavior |
 |---|---|
@@ -14,12 +14,15 @@
 | GET/POST `/api/v1/participants/{id}/consents` | Reads/adds append-only simulated consent records; document/purpose codes must start `SYN-` |
 | GET/POST `/api/v1/participants/{id}/screenings` | Reads/adds append-only `yes`/`no`/`unknown` synthetic item records; writing requires latest consent decision `granted` |
 | GET `/api/v1/participants/{id}/assessments` | Lists baseline/revisit manual-total assessments within assigned study and object scope |
+| GET `/api/v1/participants/{id}/assessment-trend` | Read-only, audited manual-total sequence for clinician/clinical approver/research assistant with both study and object assignment; unknown/unassigned/analyst return 403 |
 | POST `/api/v1/assessments` | Creates one unrecorded draft for an assigned participant with current simulated consent; clinician/assistant |
 | GET `/api/v1/assessments/{id}` | Returns current revision and newest-first full history within assigned scope |
 | PUT `/api/v1/assessments/{id}/measurements` | Appends a manual `sppb_total` draft with `expected_revision`; clinician/assistant |
 | POST `/api/v1/assessments/{id}/confirm` | Appends a confirmed copy of the current recorded draft; clinician/clinical approver |
 
-These are synthetic-only demo routes. All intake and assessment writes require a matching `X-CSRF-Token` and `Idempotency-Key` (16–128 ASCII letters/digits/`._-`). Repeating a key with the same body returns the same record; using it with another body returns 409. Corrections append a record and require a `SYN-` change reason. Consent `granted` is only a simulated staff entry, not a verified signature or ethics approval. Screening returns `not_assessed` with no entries and `needs_review` with any entries; it never concludes safe/eligible. Photo collection stays unavailable even when `photo_scope=true`. Assessments accept only `baseline`/`revisit`, manual `sppb_total` in points, and protocol marker `SYN-MANUAL-V1`. Valid values are integer 0–12 plus timezone-aware `performed_at`; missing is null value plus reason and no measurement time; invalid can retain a raw value with a reason. An initial unrecorded draft cannot be confirmed. Measurement corrections need a `SYN-` reason. The expected revision yields 409 on stale writes, and all revisions retain actor and UTC time. There is no item scoring, grade, eligibility or advice endpoint. No identity mapping, real patient creation, export or image endpoint exists. See generated [OpenAPI](../../backend/openapi.json).
+These are synthetic-only demo routes. All intake and assessment writes require a matching `X-CSRF-Token` and `Idempotency-Key` (16–128 ASCII letters/digits/`._-`). Repeating a key with the same body returns the same record; using it with another body returns 409. Corrections append a record and require a `SYN-` change reason. Consent `granted` is only a simulated staff entry, not a verified signature or ethics approval. Screening returns `not_assessed` with no entries and `needs_review` with any entries; it never concludes safe/eligible. S6-01 adds only the server-guarded Next page `/participants/{id}/pose-demo` with a browser-local synthetic SVG preview; photo collection stays unavailable even when `photo_scope=true`, and there is no image API. Assessments accept only `baseline`/`revisit`, manual `sppb_total` in points, and protocol marker `SYN-MANUAL-V1`. Valid values are integer 0–12 plus timezone-aware `performed_at`; missing is null value plus reason and no measurement time; invalid can retain a raw value with a reason. An initial unrecorded draft cannot be confirmed. Measurement corrections need a `SYN-` reason. The expected revision yields 409 on stale writes, and all revisions retain actor and UTC time. There is no item scoring, grade, eligibility or advice endpoint. No identity mapping, real patient creation or export endpoint exists. See generated [OpenAPI](../../backend/openapi.json).
+
+ENG-02A trend response is `{participant_id, entries}` ordered by assessment `created_at` and ID. Each entry has `assessment_id`, `visit_kind`, `created_at`, `current` (latest revision, including a pending draft) and `latest_confirmed` (most recent confirmed revision or `null`). The UI charts only `latest_confirmed` with `validity=valid` and non-null total; a later draft is shown separately. Missing, invalid and unconfirmed entries have no plotted value. This is descriptive history without a cycle schedule, clinical grade, efficacy label or result aggregation. A failed read is not an empty `entries` array.
 
 | Method and path | Authorized purpose | Critical behavior |
 |---|---|---|
@@ -43,7 +46,7 @@ These are synthetic-only demo routes. All intake and assessment writes require a
 | POST `/optimization-runs` | ML/data manager | snapshot + target + experiment version |
 | GET `/optimization-runs/{id}` | ML/clinical | evaluation report; no silent deployment |
 | POST `/model-versions/{id}/review` | approved clinical/data reviewers | explicit approvals and rollback route |
-| POST `/assessments/{id}/images` | image-authorized staff | demo gated by consent, retention policy |
+| POST `/assessments/{id}/images` | image-authorized staff | future proposal only; absent until ethics, consent, storage and retention approvals |
 
 ## Example: training feedback
 ```json

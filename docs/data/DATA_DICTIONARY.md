@@ -17,9 +17,13 @@
 | assessment_revision.state | draft/confirmed | assessment API | confirmation is staff record review, not a clinical grade or completed measurement when missing |
 | assessment_revision.validity | unrecorded/valid/missing/invalid | synthetic staff entry | initial draft unrecorded; missing and invalid have no usable total |
 | assessment_revision.raw_value | integer points or null | synthetic staff entry | valid manual total 0–12; zero is observed, null is not zero; invalid raw original may be retained |
+| assessment_trend.current | assessment revision projection | authorized read-only API | latest revision may be draft; never silently replace the last confirmed value |
+| assessment_trend.latest_confirmed | assessment revision or null | authorized read-only API | most recent confirmed revision per assessment; null means no confirmed version, not zero |
+| assessment_trend.entries | ordered assessment projections | authorized read-only API | order by assessment registration time/ID, not an approved cycle schedule; missing and invalid are not plotted |
 | assessment_revision.missing_reason | enum below or null | synthetic staff entry | required for missing/invalid; valid and unrecorded null |
 | assessment_revision.performed_at | timezone-aware UTC instant or null | synthetic staff entry | required for valid; no invented measurement time for missing |
 | assessment_revision.recorded_by/at | staff UUID / UTC instant | assessment API | attributable append-only version; `SYN-` correction reason required after first measurement |
+| ENG-03A offline row | synthetic coded ID, visit label, state, validity, raw_value, missing_reason, performed_at | `ml/offline_dataset.py` | fictitious generated examples only; null is unknown, observed zero stays zero; no endpoint or efficacy label |
 | age_years | integer years | clinician | scoped by protocol; no guessed age |
 | sppb_total | integer 0–12 | clinician-confirmed evaluation | missing ≠ 0; score algorithm only after SOP approval |
 | sppb_balance | source-defined score | evaluation | unit/formula to approve |

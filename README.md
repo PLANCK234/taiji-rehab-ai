@@ -1,10 +1,10 @@
 # 太极拳康复分级评估与科研数据平台
 
-[![Status](https://img.shields.io/badge/status-sprint--1-yellow)](#项目状态)
+[![Status](https://img.shields.io/badge/status-synthetic--demo-yellow)](docs/STATUS.md)
 
 **Researcher-facing Tai Chi Rehabilitation Assessment & Research Platform.**
 
-> 当前仓库包含 Sprint 0 工程骨架、Sprint 1 合成账号授权与编号对象建档、模拟同意及三态筛查。不包含真实数据接入或临床判定功能。
+> 当前仓库包含 Sprint 0 工程骨架、Sprint 1 合成账号授权与建档/模拟同意/筛查、Sprint 2 人工 SPPB 总分记录，以及 S6-01 合成姿态预览壳。不包含真实数据接入或临床判定功能。
 
 ## 目标
 医疗人员对研究对象建档、安全筛查、录入 SPPB 等客观评估，获取可解释的功能分级候选及太极训练适配建议并人工复核；每次训练后收集结构化反馈；周期末冻结数据并对照 V0 规则离线优化，审批通过的新版本才可发布。
@@ -18,7 +18,7 @@
 | 前端 | Next.js、React、TypeScript |
 | 后端 | FastAPI、Pydantic、SQLAlchemy、Alembic |
 | 数据库 | PostgreSQL |
-| 分析 | 后续阶段离线实现；Sprint 0 仅保留 `ml/` 约束 |
+| 分析 | `ml/` 的 ENG-03A 固定合成数据质量与对象级切分工具；模型训练及真实数据仍未接入 |
 | 部署 | Docker Compose 本地开发；生产 TLS/私有存储待审批 |
 
 ## 本地启动（合成数据）
@@ -36,9 +36,15 @@ Invoke-RestMethod http://127.0.0.1:8000/ready
 Start-Process http://localhost:3000/login
 ```
 
-演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。它只创建虚构研究编号、编码对象和权限分配。
+演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。基础种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。基础种子只创建虚构研究编号、编码对象和权限分配。
 
-登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；进入对象页追加模拟同意记录，再填写合成项目代码和 `yes`/`no`/`unknown` 三态筛查。无当前模拟同意时筛查写入关闭；所有筛查结果都保持“待复核”，绝不表示安全或入组资格。当前模拟同意下可创建基线/复评草稿，仅由工作人员录入 SPPB 人工总分、缺失或无效状态，按权限确认并查看追加版本。零分与缺失分开显示；不自动计算分项、等级或训练建议。照片、真实身份和导出均未开放。
+可选的人工复评合成夹具：在已配置的本地合成环境运行 `docker compose -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_reassessment_demo`。它先确认基础种子，再创建 `SYN-ENG01A-001/002` 两名虚构编号对象的模拟同意、未知/未记录筛查、人工基线与复评（含缺失和更正历史）。重复运行只核对既有记录；如果夹具被改动会报错，不覆盖记录。密码重置须先单独运行基础种子。夹具原始值不是疗效结果，不生成等级、训练计划或临床建议。
+
+登录后可在上述编号对象详情页查看只读的人工总分记录趋势。已确认有效值才有 0–12 分图示；待确认草稿、缺失和无效分别显示。它按登记顺序排列，不是获批准的周期访视或疗效报告。
+
+独立离线合成数据演示（不读取业务数据库）：在 `ml/` 运行 `uv sync --frozen`、`uv run ruff check .`、`uv run pytest`；从仓库根目录运行 `uv run --project ml python -m ml.offline_dataset --output exports/eng03a-demo`。输出含 JSONL 记录、质量报告、对象级划分和带 SHA-256 的清单；相同种子重复运行只核对相同内容，内容变化时拒绝覆盖。`exports/` 被 Git 忽略。所有数值均为明确标记的合成演示数据，不是疗效标签、获批准研究快照或临床模型输入。
+
+登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；进入对象页追加模拟同意记录，再填写合成项目代码和 `yes`/`no`/`unknown` 三态筛查。无当前模拟同意时筛查写入关闭；所有筛查结果都保持“待复核”，绝不表示安全或入组资格。当前模拟同意下可创建基线/复评草稿，仅由工作人员录入 SPPB 人工总分、缺失或无效状态，按权限确认并查看追加版本。零分与缺失分开显示；不自动计算分项、等级或训练建议。对象页的姿态演示仅生成合成线条图，明确标示识别算法尚未接入；没有摄像、文件选择、上传或保存。真实照片、身份和导出均未开放。
 
 迁移回退只在**空的临时合成测试数据库**操作：`docker compose -f infra/compose.yaml run --rm backend uv run --no-dev alembic downgrade 0002_auth_scope` 会删除 S1-02 的同意、筛查和幂等记录表；进一步退至 `0001_baseline` 会删除认证表。已创建记录后不要直接执行；需先有获批准的备份及回退计划。停止服务用 `docker compose -f infra/compose.yaml down`，保留数据库卷；不要对有研究数据的环境执行卷删除。数据库只在 Compose 私网，宿主机不公开 5432。
 
@@ -54,7 +60,7 @@ uv sync --frozen
 uv run uvicorn app.main:app --reload
 ```
 
-前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。研究对象仅有合成编码、模拟记录和人工总分草稿/历史，无姓名、联系方式、临床分级或导出功能。
+前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。研究对象仅有合成编码、模拟记录、人工总分草稿/历史和合成姿态预览，无姓名、联系方式、临床分级或导出功能。
 
 ## 研究安全边界
 - 数据是敏感研究数据；真实患者数据只进入获批准的环境。

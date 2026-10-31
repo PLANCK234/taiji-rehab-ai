@@ -29,6 +29,17 @@
 - Clinician and research assistant can create/revise manual total drafts; clinician and clinical approver can confirm a recorded draft. Every measurement or confirmation appends an attributable snapshot. A correction after a recorded value requires a `SYN-` reason. Audit records allow/deny outcomes without raw values.
 - `SYN-MANUAL-V1` is a synthetic engineering marker. No approved SPPB item algorithm, grading, safety determination or treatment recommendation is inferred from a total; no real-data use is authorized. Downgrade `0004_manual_assessments` removes tables and is rehearsed only on a disposable empty database.
 
+## S6-01 synthetic pose shell boundary
+
+- The Next page `/participants/{id}/pose-demo` checks the logged-in staff member and reads the coded participant through the existing server-side study and object scope. An unknown or out-of-scope object cannot render the page.
+- Its client component creates only an inline synthetic SVG held in React state. It contains no camera permission request, file input, upload request, local storage or image persistence. Simulated consent `photo_scope=true` changes only the explanatory text and does not enable image collection.
+- The backend publishes no `/images` or `/uploads` route. Real photos, video, pose estimates, object storage and retention remain blocked by Q-01/Q-10 and the deployment gate.
+
+## ENG-02A synthetic trend read boundary
+
+- The read-only assessment trend route reuses server-side role, study assignment and explicit participant assignment checks. Analyst/admin roles cannot directly read a coded participant trend; denied reads are audited through the participant guard, and allowed reads add an `assessment_trend` audit event.
+- The response contains only the authorized coded participant ID and existing assessment revisions, with no identity mapping or export. Latest confirmed values and pending drafts remain distinct; missing, invalid and unconfirmed records do not become zero scores or a clinical conclusion. Responses retain `Cache-Control: no-store`.
+
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.
 - PI/clinical approver: approves clinical adaptation rules and significant changes.

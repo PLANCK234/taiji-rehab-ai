@@ -35,7 +35,7 @@ export default async function WorkspacePage() {
             <li key={participant.id}><Link href={`/participants/${participant.id}`}>{participant.study_code}</Link></li>
           ))}</ul>
         ) : <p>暂无已分配对象。</p>}
-        <p className="note">仅限合成数据；评估、照片与导出尚未开放。</p>
+        <p className="note">仅限合成数据；人工总分和合成姿态预览可演示，真实照片、分级与导出尚未开放。</p>
       </section>
       <LogoutButton />
     </main>

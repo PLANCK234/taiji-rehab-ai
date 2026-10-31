@@ -37,3 +37,72 @@
 - 测试：后端 Ruff/pytest 22；前端 Node 26/pnpm 10 容器 lint/typecheck/test 11/build；临时空 PostgreSQL 17 迁移升降升及 Alembic check；另一临时库 API 权限/同意/零分/幂等/重启持久化；Next 代理页面复评缺失流程。首次烟测脚本受本机 SOCKS 代理影响，直连后执行；React 数字节点注释造成的文本断言调整后通过。结果见 `STATUS.md`。
 - 提交/PR：本地分支 `feat/s2-01-manual-assessments`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：AT-01 CSV/周期、AT-02 分级、完整量表、远端 CI/Playwright、真实数据准入和所有临床审批均未完成。
+
+## 2026-10-31 UTC · S6-01
+
+- 目标：从仓库与 Git 检查点接续，在 Q-01/10 未决的纯合成路径完成姿态演示壳（AT-12 合成部分）。
+- 完成：已授权编号对象可进入姿态页；页面持续显示“姿态识别算法尚未接入”；按钮仅生成、切换、清除浏览器内存中的合成 SVG；无摄像头、文件选择、上传/保存、姿态估计或评分。模拟照片范围只显示状态，不解锁采集。
+- 决策：采用页面内生成的合成线条人物，避免真实影像处理及样例来源问题，见 ADR-0008；没有数据库迁移或后端图片 API。
+- 测试：后端 Ruff/pytest 23、前端 Node 26/pnpm 10 容器 lint/typecheck/test 12/build；DOM 交互无摄像/网络/存储调用；临时 PostgreSQL + Next HTTP 登录/对象范围/照片范围及图片 API 404 烟测。首次 DOM 测试因 Node 26 `localStorage` 全局不可用失败，改用测试监视器后通过。浏览器 UI 工具因无法可靠识别当前 Chrome URL 而停止，本轮未运行浏览器手工 E2E。结果见 `STATUS.md`。
+- 提交/PR：本地分支 `feat/s6-01-synthetic-pose-demo`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：Q-01/10 真实影像审批、AT-12 真实影像/手工浏览器验收、远端 CI 均待后续；台账无依赖已满足的下一 Task ID，S3-01 待 Q-03/09 签核。
+
+## 2026-10-31 UTC · 无可执行 Task ID（恢复审计）
+
+- 目标：只依据仓库资料恢复检查点，复核 S6-01 的实际代码与测试，寻找依赖已满足的下一 Task ID。
+- 完成：确认起始工作区干净，HEAD `207d8896c295fbca090193198d6037d61d8a1419` 与 HANDOFF 一致；复核 AGENTS、继续 Prompt、STATUS/HANDOFF/TASKS、Git、S6-01 实现及相关设计。另建 `chore/recovery-audit-2026-10-31`，只更新交接文档；任务状态不变。
+- 决策：Q-03/09 仍未由有权负责人签核，S3-01 保持 BLOCKED；其他未完成任务依赖前序阶段或审批。未添加新 Task ID，未修改临床规则或真实影像处理。
+- 测试：后端 Ruff 通过、pytest 23 passed（上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 lint/typecheck/test 12/build 通过；Compose config、交接脚本（13 Task ID/链接）和上次提交 `git show --check --stat` 通过。上一检查点的临时 PostgreSQL/HTTP 烟测未重跑；浏览器手工 E2E 与远端 CI 未运行。
+- 提交/PR：本地文档分支 `chore/recovery-audit-2026-10-31`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：需 Q-03 的适配模板/禁忌/剂量及 Q-09 的审批/发布责任人与版本证据完成签核，方可启动 S3-01；浏览器手工 E2E、远端 CI 和其他审批仍待后续。
+
+## 2026-10-31 UTC · S6-02
+
+- 目标：从干净的 `692971f35f585dcfe4eaa3c3309746b5e4dcbf29` 检查点恢复，补齐已记录的 AT-12 合成姿态页浏览器验收缺口，不触及真实影像或临床规则。
+- 完成：登记 `S6-02`，新增 Playwright/Chromium 测试、本地合成 API 夹具、可复用的发行版 Chromium 测试镜像与锁定依赖；验证未登录跳转、未分配对象拒绝、算法提示、模拟照片范围不解锁采集、合成 SVG 生成/切换/清除以及无摄像头调用和非 GET 请求。无产品业务代码、后端接口或迁移变更。
+- 决策：浏览器测试只使用 `SYN-001` 等合成夹具；模拟 API 的页面验收不代表真实 PostgreSQL 全链路。Playwright 浏览器 CDN 在本机容器 DNS 中不可达，测试镜像改用发行版 Chromium；这只是测试工具选择，不改变影像政策。
+- 测试：后端 Ruff/pytest 23；前端 Node 26/pnpm 10 lint/typecheck/test 12/build；Chromium 浏览器 3 passed；测试镜像构建、Compose config、交接脚本。首轮浏览器测试 2/3，过宽图片选择器误匹配 Next 开发工具图标，限定到合成预览区域后全部通过。浏览器手工 UAT、远端 CI、真实影像与临床验收未运行。
+- 提交/PR：本地分支 `feat/s6-02-synthetic-browser-e2e`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：S3-01 仍待 Q-03/09 签核；S4/S5/S7/S8 有前序或审批依赖。AT-12 真实影像待 Q-01/10；真实 PostgreSQL/Next HTTP 烟测本轮未重跑。
+
+## 2026-10-31 UTC · 无可执行 Task ID（S6-02 后恢复复核）
+
+- 目标：只依据仓库和 Git 恢复最新检查点，复核 S6-02 结果并选择依赖已满足的下一 Task ID。
+- 完成：确认起始工作区干净、HEAD `bf85e3c21f5cfe723be93573ed3c841c713ca781` 与 HANDOFF 一致；核对任务台账、实际浏览器代码、合成夹具、S3-01 设计及未决问题。另建 `docs/recovery-audit-post-s6-02`，只更新交接文档；任务状态不变。
+- 决策：Q-03/09 仍无有权签核与版本证据，S3-01 保持 BLOCKED；其余未完成任务依赖前序阶段或其他审批。未自行新增 Task ID 或启用临床规则。
+- 测试：后端 Ruff/pytest 23、前端 Node 26/pnpm 10 lint/typecheck/test 12/build、Playwright/Chromium 3、Compose config、交接脚本 14 Task ID/链接及上次提交检查均通过；pytest 有上游弃用警告 1 条。真实 PostgreSQL/Next HTTP 烟测、手工浏览器 UAT 与远端 CI 未运行。
+- 提交/PR：本地文档分支 `docs/recovery-audit-post-s6-02`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：需 Q-03 的适配模板/禁忌/剂量与 Q-09 的审批/发布权限签核和版本证据，才可启动 S3-01；真实影像仍待 Q-01/10。
+
+## 2026-10-31 UTC · ENG-04A
+
+- 目标：依据开发负责人明确授权，在不改变临床规则的前提下登记 ENG-01 至 ENG-04，并交付首个独立的真实数据库自动化质量门禁。
+- 起点：从干净的 `e5d7a5865a0c6354c57ce857046da347e1aa75d3` 复核 AGENTS、继续 Prompt、HANDOFF/STATUS/TASKS、Git、代码和测试；确认 Q-03/09 仍未签核，`S3-01` 继续 `BLOCKED`。
+- 完成：`ENG-04A` 的临时 PostgreSQL 17 tmpfs 迁移/API 测试、OpenAPI 快照测试、CI 隔离库顺序与 ENG Task ID 交接校验；更新任务依赖与验收、测试策略、追踪和恢复演练。真实 API 覆盖合成建档、模拟同意/筛查、人工基线/复评、零分/缺失、追加更正、持久化、跨研究/同研究未分配对象和角色拒绝。无业务 API、临床阈值、建议或真实数据修改。
+- 测试：后端 Ruff 通过、普通 pytest 24 passed/1 skipped；临时库 `upgrade head → alembic check → downgrade base → upgrade head` 与 opt-in PostgreSQL 测试 1 passed；交接脚本与最终 Git 检查另在 STATUS 留痕。直接 `python` 在本机不可用，改用 `uv run --no-project python`。pytest 有上游弃用警告 1 条。远端 CI、前端与完整浏览器业务 E2E 未运行。
+- 提交/PR：本地分支 `feat/eng-04a-postgres-contract`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-01A` 可开始纯合成可重放夹具；ENG-01 全链路的候选分级仍受 S3-01/Q-03/09 阻断，训练/周期/导出另需非临床前置实现。
+
+## 2026-10-31 UTC · ENG-01A
+
+- 目标：从干净的 ENG-04A 检查点 `2357fe7` 接续，交付现有合成建档至人工复评能力的可重放 Demo 夹具。
+- 完成：新增可选 `app.seed_reassessment_demo`，基于本地基础合成账号/研究创建两名 SYN-ENG01A 编号对象、模拟同意、未知或未记录筛查、人工总分基线/复评、缺失及有原因的更正历史；记录种子审计。二次运行核验已有夹具，不增加记录；遇部分或被改动的夹具拒绝覆盖。无新 API、迁移、临床等级、疗效标签或训练建议。
+- 测试：后端 Ruff 通过、普通 pytest 25 passed/2 skipped；临时 PostgreSQL 17 空库迁移升/check/降/升后，既有真实 API 工作流和夹具 SQLite/PostgreSQL 测试 3 passed；容器停止。`README.md` 给出本地命令。前端和远端 CI 未运行；pytest 有上游弃用警告 1 条。
+- 提交/PR：本地分支 `feat/eng-01a-synthetic-reassessment`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-02A` 可基于真实数据库中的合成评估记录实现权限受控的已确认趋势与缺失视图；ENG-01 父任务仍缺候选状态、训练、周期和导出，临床候选仍受 S3-01/Q-03/09 阻断。
+
+## 2026-10-31 UTC · ENG-02A
+
+- 目标：从干净的 `888d2488c2e12bb47fa58367d256356b87bc2d84` 检查点恢复，完成现有人工 SPPB 总分的合成对象级只读趋势与缺失视图。
+- 完成：新增服务端授权/审计的趋势 API，按评估登记时间返回最新修订和最新已确认修订；对象页用可访问表格及总分图示展示已确认有效记录，将草稿、缺失、无效和实际零分分开。更新 OpenAPI、PRD/验收、数据字典、API/安全合同与 ADR-0009。没有新迁移、临床规则、疗效标签、训练或导出。
+- 测试：后端 Ruff/pytest 27 passed/2 opt-in skipped，临时 PostgreSQL 迁移升/check/降/升与真实 API 测试 3 passed；前端 Node 26/pnpm 10 lint/typecheck/test 15/build；独立 tmpfs PostgreSQL→FastAPI→Next 页面烟测显示两名合成对象的数据库总分/缺失，跨研究页面 404，临时容器/网络均停止。首轮 Ruff 一处过长行修复后通过。远端 CI、真实数据和临床人工验收未运行。
+- 提交/PR：本地分支 `feat/eng-02a-assessment-trends`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-03A` 为下一依赖已满足任务；只做合成离线数据质量和对象级切分。`S3-01` 仍因 Q-03/09 未签核 `BLOCKED`，ENG-01/02/04 父任务未完成。
+
+## 2026-10-31 UTC · ENG-03A
+
+- 目标：从干净的 ENG-02A 检查点 `e8eaca1` 接续，交付纯合成离线质量报告与对象级划分（AT-11 切分部分）。
+- 完成：独立锁定的 `ml/` 项目固定生成 18 个虚构编号对象、36 条人工总分示例；报告缺失/无效/未记录、真实零分和重复；拒绝非合成或结构错误；按对象分配 train/validation/test，阻止交叉/遗漏；导出 JSONL/质量/划分/哈希清单，同种子可重放、异内容拒绝覆盖。CI 加入 ML 检查；ADR-0010、数据集规格、验收与交接同步。没有业务数据库读取、疗效标签、模型训练或临床规则变更。
+- 测试：上次 ENG-02A 定向后端 3 passed/1 opt-in skipped，交接校验 22 ID；ML Ruff 与 4 项 pytest 通过，CLI 两次产出相同 36 行和 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`。首次 Ruff 格式失败，修正后通过。远端 CI 未运行；最终检查见 STATUS。
+- 提交/PR：本地分支 `feat/eng-03a-synthetic-offline-dataset`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-04B` 在临时真实 PostgreSQL + API + Next 上补合成业务浏览器 E2E；`S3-01` 因 Q-03/09 未签核继续 `BLOCKED`。

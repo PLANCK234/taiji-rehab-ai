@@ -1,19 +1,19 @@
 # 当前交接检查点
 
-> 新 Agent 先运行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline`，核对本文件、任务台账与实际代码。HEAD 是本文件所在提交，其完整哈希不能自写入同一提交。
+> 新 Agent 先运行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline`，核对本文件、任务台账和实际代码。HEAD 是本文件所在提交，哈希不能自写入同一提交。
 
 | 项目 | 当前值 |
 |---|---|
-| Branch / HEAD | `feat/s2-01-manual-assessments`；HEAD = 包含本文件的本地检查点提交（运行 `git rev-parse HEAD`）；上一检查点 `0ed1df1fb37608bc39fb51b45d89914977b4e4ed` |
-| 最近完成任务 | `S2-01`：仅合成编号对象的人工 SPPB 总分基线/复评草稿、确认、更正、缺失/无效与历史；Sprint 2 合成范围仍 `IN_PROGRESS`，完整量表与临床流程未实现 |
-| 本次改动 | `backend/app/assessment.py`、`assessment_api.py`、模型/模式、`0004_manual_assessments` 迁移、OpenAPI、测试；`frontend/app/assessments/[id]/` 详情与录入、对象页评估列表和创建表单、客户端测试；API、数据、产品、验收、安全、测试文档与 ADR-0007 |
-| 已通过验证 | 后端 Ruff/pytest 22；前端 Node 26/pnpm 10 容器 lint/typecheck/test 11/build；临时空 PostgreSQL 17 迁移升降升与 Alembic check；另一临时库权限/同意/幂等/零分/确认/重启持久化 API 烟测；Next 代理对象页/复评缺失记录页面烟测；Compose config 与交接脚本结果见 STATUS |
-| 失败或未运行 | 首次 Next 烟测因机器 SOCKS 代理缺 `socksio`，`trust_env=False` 后直连；一次 HTML 文本断言因 React 数字节点注释调整后通过。远端 GitHub Actions、Playwright 浏览器套件、真实数据准入均未运行；Starlette TestClient 上游弃用警告 1 条。本机无 pnpm，前端检查用容器 |
-| 已知问题 | Q-02 SOP 未决，不能自动计算分项；Q-03/09 未签核，`S3-01` 的已批准规则、适配建议和发布门禁阻断。模拟同意不是真实签署；Q-01/07/10 及其他临床/伦理问题未关闭。没有分级、安全、处方、照片上传、身份映射或导出 |
-| 尚未完成 | S1 完整受试者 CRUD/真实流程；FR-003 多量表和 AT-01 导出、AT-02 分级边界；远端 PR/CI、真实研究使用。临时 PostgreSQL tmpfs 容器和开发服务应在交接前停止；原合成数据库卷未操作 |
-| 下一任务 | `S6-01`：任务台账中依赖已满足的纯合成演示路径。仅本地/合成姿态照片预览壳，明确“算法尚未接入”，不持久上传或处理真实对象照片。`S3-01` 保持 `BLOCKED` 直到 Q-03/09 获授权签核 |
-| 需阅读 | `AGENTS.md`, `docs/ROADMAP.md`, `docs/product/PRD.md`, `docs/product/ACCEPTANCE.md`, `docs/OPEN_QUESTIONS.md`, `docs/security/SECURITY.md`, `docs/api/API_CONTRACT.md`, `docs/data/DATA_MODEL.md`, `docs/decisions/0007-synthetic-manual-total-revisions.md`, `backend/AGENTS.md`, `frontend/AGENTS.md`；S6-01 无独立 Sprint prompt，以任务台账与上述设计为准 |
-| 下一任务验收 | AT-12：页面直示“算法尚未接入”；当前无真实摄像/图片授权时不得永久上传。验证合成/本地预览、无上传端点、权限/同意边界与 UI 检查；不得声称真实图片准入已批准 |
-| 未提交修改 / 本地依赖 | 检查点提交时预计工作区干净；若实际不同以 `git status` 为准。`.pnpm-store` 不随 Git，同等前端检查可用 Node 26/pnpm 10 容器；临时数据库及密码不随 Git |
+| Branch / HEAD | `feat/eng-03a-synthetic-offline-dataset`；HEAD = 包含本文件的本地检查点提交（运行 `git rev-parse HEAD`）；上一干净检查点 `e8eaca1ebdc354e117c7681b3585197de4679a3d`（ENG-02A） |
+| 最近完成任务 | `ENG-03A` 纯合成离线质量与对象级切分；此前 `ENG-02A` 趋势、`ENG-01A` 合成复评和 `ENG-04A` 数据库门禁。ENG-01/02/03/04 父任务仍进行中 |
+| 本次改动 | 新增独立锁定的 `ml/` 项目、固定合成记录生成器、缺失/重复质量检查、对象级 train/validation/test 划分、哈希清单与拒绝覆盖逻辑；补单测、CI 作业、研究规格、ADR-0010 与交接。只生成虚构数据，不连接业务库、训练模型或定义疗效标签；无迁移或临床规则变更 |
+| 已通过验证 | 起始 ENG-02A 定向后端 3 passed/1 opt-in skipped；ML 锁定依赖、Ruff、pytest 4 passed；CLI 36 条记录两次输出相同 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`；后端回归 Ruff/pytest 27 passed/2 opt-in skipped、交接 23 ID 与 diff 检查。详见 STATUS |
+| 失败或未运行 | 首次 ML Ruff 格式错误，修复后通过。远端 CI、真实数据库数据提取、模型评估、真实数据/临床人工验收未运行 |
+| 已知问题 | Q-01/10 真实影像伦理、同意、权限、留存未签核；Q-02 未批准分项 SOP；Q-03/09 未批准适配规则和发布责任人，`S3-01` 继续 `BLOCKED`。无候选分级、训练、周期、导出或临床建议 |
+| 尚未完成 | ENG-01 候选/训练反馈/周期/导出；ENG-02 完成率/RPE/周期与研究级汇总；ENG-03 V0/候选评估、真实快照和时点特征；ENG-04 完整业务浏览器 E2E 与新会话恢复。S1 完整 CRUD/真实流程、AT-01 CSV/周期、AT-02 分级、AT-14 真实数据准入、远端 PR/CI。原合成数据库卷未操作 |
+| 下一任务 | `ENG-04B`，依赖 S1-02/S2-01/ENG-01A/ENG-02A/ENG-04A 已满足：用临时 PostgreSQL 与实际 API/Next 做已有合成业务浏览器 E2E。`S3-01` 继续等待 Q-03/09 有权人员的版本化签核 |
+| 需阅读 | `AGENTS.md`, `docs/ROADMAP.md`, `docs/TASKS.md`, `docs/product/PRD.md`, `docs/product/ACCEPTANCE.md`, `docs/OPEN_QUESTIONS.md`, `docs/testing/TEST_STRATEGY.md`, `frontend/AGENTS.md`, `frontend/e2e/`, `frontend/playwright.config.ts`, `backend/app/seed_reassessment_demo.py`, `scripts/run_eng02a_smoke.py`, `scripts/run_eng04_integration.py` |
+| 下一任务验收 | `ENG-04B`：临时真实 PostgreSQL、实际 FastAPI/Next 与浏览器覆盖合成登录、建档、模拟同意、人工评估/确认、缺失复评/趋势和越权拒绝；测试结束清理临时服务，不更改临床流程 |
+| 未提交修改 / 本地依赖 | 检查点提交时预计工作区干净，若不同以 `git status` 为准。本机无全局 `python`，可用 `uv run --no-project python`；ML 在 `ml/` 使用自己的 `uv.lock`。合成 CLI 输出在 Git 忽略的 `exports/eng03a-demo`，不是研究快照；不触碰原数据库卷。前端需 Node 26/pnpm 10 容器 |
 
-S2-01 证据见 [STATUS.md](STATUS.md)、[TRACEABILITY.md](TRACEABILITY.md)、[ADR-0007](decisions/0007-synthetic-manual-total-revisions.md) 与 [迁移](../backend/alembic/versions/0004_manual_assessments.py)。人工总分的“确认”只是工作人员确认记录，不代表临床分级、受试者安全或研究批准。恢复核对见 [RECOVERY_TEST.md](testing/RECOVERY_TEST.md)。
+ENG-03A 的限定范围与证据见 [STATUS.md](STATUS.md)、[TRACEABILITY.md](TRACEABILITY.md)、[ADR-0010](decisions/0010-synthetic-offline-split.md) 与 [测试策略](testing/TEST_STRATEGY.md)。离线记录全部为合成演示，无获批准的结局或模型。恢复核对见 [RECOVERY_TEST.md](testing/RECOVERY_TEST.md)。

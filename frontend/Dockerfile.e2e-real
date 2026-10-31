@@ -1,0 +1,14 @@
+FROM node:26.13.0-bookworm-slim
+
+RUN apt-get update -qq \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends chromium \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install --global pnpm@10
+
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY playwright.real.config.ts ./
+COPY e2e/real-business.real.ts ./e2e/
+CMD ["pnpm", "exec", "playwright", "test", "--config", "playwright.real.config.ts"]
