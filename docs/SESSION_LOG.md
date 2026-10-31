@@ -37,3 +37,12 @@
 - 测试：后端 Ruff/pytest 22；前端 Node 26/pnpm 10 容器 lint/typecheck/test 11/build；临时空 PostgreSQL 17 迁移升降升及 Alembic check；另一临时库 API 权限/同意/零分/幂等/重启持久化；Next 代理页面复评缺失流程。首次烟测脚本受本机 SOCKS 代理影响，直连后执行；React 数字节点注释造成的文本断言调整后通过。结果见 `STATUS.md`。
 - 提交/PR：本地分支 `feat/s2-01-manual-assessments`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：AT-01 CSV/周期、AT-02 分级、完整量表、远端 CI/Playwright、真实数据准入和所有临床审批均未完成。
+
+## 2026-10-31 UTC · S6-01
+
+- 目标：从仓库与 Git 检查点接续，在 Q-01/10 未决的纯合成路径完成姿态演示壳（AT-12 合成部分）。
+- 完成：已授权编号对象可进入姿态页；页面持续显示“姿态识别算法尚未接入”；按钮仅生成、切换、清除浏览器内存中的合成 SVG；无摄像头、文件选择、上传/保存、姿态估计或评分。模拟照片范围只显示状态，不解锁采集。
+- 决策：采用页面内生成的合成线条人物，避免真实影像处理及样例来源问题，见 ADR-0008；没有数据库迁移或后端图片 API。
+- 测试：后端 Ruff/pytest 23、前端 Node 26/pnpm 10 容器 lint/typecheck/test 12/build；DOM 交互无摄像/网络/存储调用；临时 PostgreSQL + Next HTTP 登录/对象范围/照片范围及图片 API 404 烟测。首次 DOM 测试因 Node 26 `localStorage` 全局不可用失败，改用测试监视器后通过。浏览器 UI 工具因无法可靠识别当前 Chrome URL 而停止，本轮未运行浏览器手工 E2E。结果见 `STATUS.md`。
+- 提交/PR：本地分支 `feat/s6-01-synthetic-pose-demo`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：Q-01/10 真实影像审批、AT-12 真实影像/手工浏览器验收、远端 CI 均待后续；台账无依赖已满足的下一 Task ID，S3-01 待 Q-03/09 签核。

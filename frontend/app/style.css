@@ -18,3 +18,6 @@ a { color: #155b43; }
 button { font: inherit; background: #155b43; color: white; border: 0; border-radius: 6px; padding: 12px 18px; cursor: pointer; margin-top: 12px; }
 button:disabled { opacity: .6; cursor: wait; }
 [role="alert"] { color: #a72323; }
+.pose-demo-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.pose-demo-frame { margin-top: 20px; }
+.pose-demo-frame svg { display: block; width: 100%; height: auto; border-radius: 12px; }

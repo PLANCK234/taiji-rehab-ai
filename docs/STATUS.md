@@ -1,6 +1,6 @@
 # 实施状态
 
-更新：2026-10-30；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 本地完成；Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
+更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳本地完成；Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
 
 | 范围 | 状态 | 证据与限制 |
 |---|---|---|
@@ -11,11 +11,16 @@
 | S1-01 身份和编码只读授权 | DONE | Argon2 员工登录、持久会话、CSRF 注销、限流、研究及对象双重分配、审计；本地测试与容器烟测通过 |
 | S1-02 合成建档/模拟同意/筛查 | DONE | `SYN-` 编号创建与列表、追加式同意/三态筛查、当前同意门禁、未知/待复核状态、权限和审计；本地测试、PostgreSQL 及页面烟测通过 |
 | S2-01 合成人工 SPPB 总分评估 | DONE | 基线/复评草稿、有效/缺失/无效总分、追加历史、更正理由与临床角色确认；权限、模拟同意、CSRF、幂等、审计；本地单测、迁移、PostgreSQL 和页面烟测通过。FR-003/AT-01/02 仅录入部分 |
+| S6-01 合成姿态演示壳 | DONE | 已授权对象可打开合成 SVG 预览页；“姿态识别算法尚未接入”；无摄像头、文件选择、上传、保存或评分。AT-12 仅合成部分；真实影像和浏览器手工 E2E 未验收 |
 | FR-004 至 FR-011 后续业务功能 | NOT_STARTED | 无分级、建议、训练、周期或导出 API；AT-01 导出与 AT-02 分级边界未实现；见 `TASKS.md` |
 | 真实数据/临床上线 | BLOCKED | Q-01 至 Q-13 待相应负责人签核；见 `OPEN_QUESTIONS.md` |
 
 ## 最近实测结果
 
+- S6-01 后端 Windows：`uv run ruff check .` → All checks passed；`uv run pytest -q` → 23 passed、Starlette TestClient 上游弃用警告 1 条。新增测试核对 OpenAPI 无图片/上传路由，两个图片 POST 均 404；没有数据库迁移或后端业务 API 变更。
+- S6-01 Node 26.13 / pnpm 10 容器：`pnpm lint`、`pnpm typecheck`、`pnpm test` → 12 passed；`pnpm build` 成功，包含 `/participants/[id]/pose-demo` 动态路由。DOM 交互测试验证生成/切换/清除合成 SVG、无摄像头/网络/存储调用。
+- S6-01 临时 tmpfs PostgreSQL 17 + FastAPI + Next HTTP：迁移至 `0004_manual_assessments` 并用 `app.seed_demo` 只建立合成账号与对象；未登录页面 307、已分配对象 200、跨研究对象 API 403/页面 404；页面有完整“姿态识别算法尚未接入”提示，没有文件输入/视频元素；图片 GET/POST 404；写入合成 `photo_scope=true` 后仍无上传端点。服务与临时容器已停止，原数据库卷未操作。
+- S6-01 失败/未运行：首次 DOM 测试在 Node 26 的 jsdom 环境中读取不可用的 `localStorage` 全局对象失败；改为注入存储监视器后通过。Windows 浏览器 UI 工具因无法可靠识别当前 Chrome URL 而停止，本轮未执行浏览器手工点击 E2E；使用 DOM 交互测试和本地 HTTP 流程分别验证交互与授权。远端 CI、真实照片准入未运行。
 - S2-01 Windows 后端：`uv run ruff check .` → All checks passed；`uv run pytest -q` → 22 passed，Starlette TestClient 上游弃用警告 1 条；`uv run python -m app.export_openapi` 已生成新快照。
 - S2-01 Node 26.13 / pnpm 10 容器：`pnpm lint`、`pnpm typecheck`、`pnpm test` → 11 passed；`pnpm build` 成功，动态路由包含 `/assessments/[id]`。本机仍无 pnpm。
 - S2-01 独立临时 PostgreSQL 17 `taiji_migration` 空库：`upgrade head → alembic check → downgrade 0003_synthetic_intake → upgrade head → current` 全通过，最终 `0004_manual_assessments`；回退只在空库执行。另一临时库的 API 烟测：无模拟同意和未分配对象写入均 403；创建与同键重放 201 且同 ID；有效零分草稿 200、确认 200；新 TestClient 中读取持久历史 `[3,2,1]`，审计 9 条。Next 开发容器代理：登录 200、对象页 200、复评创建 201、缺失草稿 200、确认 200，评估页 200 显示“缺失（拒测）”与历史版本。临时服务结束后停止，测试数据不随 Git 保存。
@@ -44,4 +49,4 @@
 
 ## 当前阻断与下一步
 
-S2-01 的合成人工总分路径已完成；Q-02 未决时不能自动计算 SPPB 分项。`S3-01` 按任务依赖暂为 `BLOCKED`：Q-03 适配模板/禁忌/剂量及 Q-09 审批/发布权限未签核，不能实现已批准规则和建议发布。下一可执行 Task ID 为 `S6-01` 的**纯合成本地拍照预览演示壳**：只做本地预览和“算法尚未接入”提示，不持久上传，不用真实图片；AT-12 的真实授权/留存部分仍待 Q-01/10。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
+S2-01 与 S6-01 的合成路径已完成；Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。台账当前没有依赖已满足的下一 Task ID：最靠前的 `S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；其后的 S4/S5/S7/S8 依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。

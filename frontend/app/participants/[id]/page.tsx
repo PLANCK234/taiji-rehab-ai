@@ -75,6 +75,11 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
           <CreateAssessmentForm participantId={participant.id} />
         ) : <p className="note">创建评估需要当前模拟同意及录入权限。</p>}
       </section>
+      <section aria-labelledby="pose-demo-heading">
+        <h2 id="pose-demo-heading">姿态演示</h2>
+        <p className="note">仅生成合成线条人物预览；摄像头、照片文件、上传和识别均未启用。</p>
+        <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
+      </section>
       {canWrite && consents && screenings ? <IntakeForms
         participantId={participant.id}
         consentCount={consents.records.length}
