@@ -13,3 +13,7 @@ Frozen snapshot is immutable and addressable by content checksum. Corrections af
 
 ## Consent, leakage and review
 Confirm consent for research/secondary algorithm use; any future reuse not covered by consent requires further approval. No direct name, telephone, address, unapproved video or free-text identifiers in modeling datasets. De-identification is not guaranteed anonymity; access remains controlled.
+
+## ENG-03A synthetic engineering subset
+
+`ml/offline_dataset.py` creates 18 fictitious `SYN-ENG03A-` participants with two example manual-total records each from a fixed seed. This is generated offline and does not query the application database, claim simulated consent as research consent, define a cycle endpoint, or become a frozen approved research snapshot. `records.jsonl` retains explicit validity and null values; `quality.json` counts validity, missing reasons, actual observed zero and duplicate record IDs. Structural defects fail generation. `splits.json` assigns complete participant IDs to train, validation and test; the verifier rejects overlap, omissions and extras. `manifest.json` records seed, schema, row counts and record/split hashes, with `target=null` and `clinical_use=false`. No treatment response or efficacy label is generated. Later consent-qualified extraction, time cutoff, immutable snapshot storage and target approval remain separate gates.

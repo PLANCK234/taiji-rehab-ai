@@ -3,10 +3,10 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "../../workspace/auth";
 import { getConsentHistory, getParticipant, getScreeningHistory } from "../../workspace/intake";
-import { getParticipantAssessments, measurementText } from "../../workspace/assessments";
+import { getAssessmentTrend, getParticipantAssessments, measurementText } from "../../workspace/assessments";
 import IntakeForms from "./intake-forms";
 import CreateAssessmentForm from "./create-assessment-form";
-import SyntheticPoseDemo from "./synthetic-pose-demo";
+import AssessmentTrendSection from "./assessment-trend";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +25,11 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments] = await Promise.all([
+  const [consents, screenings, assessments, trend] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
+    getAssessmentTrend(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
 
@@ -76,7 +77,12 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
           <CreateAssessmentForm participantId={participant.id} />
         ) : <p className="note">创建评估需要当前模拟同意及录入权限。</p>}
       </section>
-      <SyntheticPoseDemo />
+      <AssessmentTrendSection trend={trend} />
+      <section aria-labelledby="pose-demo-heading">
+        <h2 id="pose-demo-heading">姿态演示</h2>
+        <p className="note">仅生成合成线条人物预览；摄像头、照片文件、上传和识别均未启用。</p>
+        <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
+      </section>
       {canWrite && consents && screenings ? <IntakeForms
         participantId={participant.id}
         consentCount={consents.records.length}

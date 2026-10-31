@@ -189,3 +189,16 @@ class AssessmentSummary(BaseModel):
 
 class AssessmentDetail(AssessmentSummary):
     history: list[AssessmentRevisionView]
+
+
+class AssessmentTrendEntry(BaseModel):
+    assessment_id: uuid.UUID
+    visit_kind: Literal["baseline", "revisit"]
+    created_at: datetime
+    current: AssessmentRevisionView
+    latest_confirmed: AssessmentRevisionView | None
+
+
+class AssessmentTrend(BaseModel):
+    participant_id: uuid.UUID
+    entries: list[AssessmentTrendEntry]

@@ -10,5 +10,8 @@ Current proposals:
 - [ADR-0005](0005-synthetic-auth-boundary.md): synthetic-only staff access and explicit coded-participant scope.
 - [ADR-0006](0006-synthetic-intake-no-clearance.md): append-only simulated consent and screening without clinical clearance.
 - [ADR-0007](0007-synthetic-manual-total-revisions.md): append-only synthetic manual SPPB total with distinct draft, confirmation and missingness.
+- [ADR-0008](0008-synthetic-pose-preview-no-images.md): browser-local synthetic SVG pose shell without image collection.
+- [ADR-0009](0009-synthetic-confirmed-trend.md): separate latest confirmed manual totals from pending drafts in synthetic research trend reads.
+- [ADR-0010](0010-synthetic-offline-split.md): reproducible, synthetic-only offline QA and participant-level split without a target.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.

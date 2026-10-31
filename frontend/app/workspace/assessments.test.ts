@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
-  getParticipantAssessments, localTimeToUtc, measurementText, writeAssessment,
+  getAssessmentTrend, getParticipantAssessments, localTimeToUtc, measurementText, writeAssessment,
   type AssessmentRevision,
 } from "./assessments";
 
@@ -38,6 +38,18 @@ describe("manual assessment client", () => {
   it("does not present a denied list as an empty assessment history", async () => {
     const fetcher = vi.fn().mockResolvedValue({ ok: false, status: 403 });
     expect(await getParticipantAssessments("id", "taiji_session=token", fetcher)).toBeNull();
+  });
+
+  it("keeps denied trend reads distinct from an authorized empty trend", async () => {
+    const denied = vi.fn().mockResolvedValue({ ok: false, status: 403 });
+    expect(await getAssessmentTrend("id", "taiji_session=token", denied)).toBeNull();
+    const empty = { participant_id: "id", entries: [] };
+    const allowed = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => empty });
+    expect(await getAssessmentTrend("id", "taiji_session=token", allowed)).toEqual(empty);
+    expect(allowed.mock.calls[0][0]).toContain("/participants/id/assessment-trend");
+    expect(allowed.mock.calls[0][1]).toMatchObject({
+      headers: { cookie: "taiji_session=token" }, cache: "no-store",
+    });
   });
 
   it("serializes a valid local time with an explicit UTC offset", () => {
