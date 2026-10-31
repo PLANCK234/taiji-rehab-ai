@@ -11,10 +11,10 @@ REQUIRED = [
     "docs/SESSION_LOG.md", "docs/prompts/continue.md", "docs/prompts/handoff.md",
 ]
 HANDOFF_FIELDS = [
-    "Branch / HEAD", "最近完成任务", "本次改动", "已通过验证", "失败或未运行",
-    "已知问题", "尚未完成", "下一任务", "需阅读", "下一任务验收", "未提交修改",
+    "Branch / HEAD", "最近独立任务", "验证", "当前缺口", "临床与数据阻断",
+    "下一 Task ID", "下一步文件", "未提交/推送",
 ]
-TASK_ID = r"(?:S\d+-\d+|ENG-\d{2}[A-Z]?)"
+TASK_ID = r"(?:S\d+-\d+|ENG-\d{2}[A-Z]?|REAL-\d{2}[A-Z]?)"
 
 
 def main() -> int:
@@ -32,7 +32,7 @@ def main() -> int:
         if field not in handoff:
             errors.append(f"handoff field missing: {field}")
     ids = set(re.findall(rf"\b{TASK_ID}\b", tasks))
-    next_match = re.search(rf"\| 下一任务 \|[^\n]*?\b({TASK_ID})\b", handoff)
+    next_match = re.search(rf"\| 下一 Task ID \|[^\n]*?\b({TASK_ID})\b", handoff)
     if not next_match or next_match.group(1) not in ids:
         errors.append("next Task ID is missing from TASKS.md")
     for name in ["NOT_STARTED", "IN_PROGRESS", "BLOCKED", "IN_REVIEW", "DONE"]:

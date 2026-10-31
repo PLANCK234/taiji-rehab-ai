@@ -106,3 +106,11 @@
 - 测试：上次 ENG-02A 定向后端 3 passed/1 opt-in skipped，交接校验 22 ID；ML Ruff 与 4 项 pytest 通过，CLI 两次产出相同 36 行和 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`。首次 Ruff 格式失败，修正后通过。远端 CI 未运行；最终检查见 STATUS。
 - 提交/PR：本地分支 `feat/eng-03a-synthetic-offline-dataset`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
 - 接续：`ENG-04B` 在临时真实 PostgreSQL + API + Next 上补合成业务浏览器 E2E；`S3-01` 因 Q-03/09 未签核继续 `BLOCKED`。
+
+## 2026-10-31 UTC · REAL-01P
+
+- 目标：在 REAL-01 医疗研究工作台方向下，先建立 Demo 与未激活 Research 的数据库/配置/准入隔离；仅以合成数据验证。
+- 基线核对：起点 9ea36c8（origin/main 合并检查点）；旧 HANDOFF 指向 ENG-03A 已过时，ENG-04B 浏览器文件已合并但本次未证明浏览器通过；工作区原有 .vscode/ 未触碰。
+- 实施：新增 APP_PROFILE 门禁和独立 Research Compose/配置；Research 业务 API、ready、演示种子、Alembic 迁移保持关闭。Demo 旧流程仍可用。拆解 REAL-01P/A-F，S3-01/Q-03/Q-09 继续阻断。
+- 验证：后端 Ruff 通过、pytest 30 passed/2 opt-in skipped；临时 PostgreSQL 迁移/API 3 passed；两个 Compose config --quiet 通过。Research 数据库未启动或迁移，原有卷未修改；前端、浏览器和远端 CI 未在本切片运行。
+- 下一步：REAL-01D 非临床训练会话与反馈持久化；不得自动制定处方或解释风险。提交/检查点 SHA 以 git log 为准；未推送主分支。

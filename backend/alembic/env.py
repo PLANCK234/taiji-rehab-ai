@@ -14,6 +14,8 @@ if config.config_file_name:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+if os.environ.get("APP_PROFILE", "demo") != "demo":
+    raise RuntimeError("Research migrations require an approved deployment and rollback plan")
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     raise RuntimeError("DATABASE_URL is required for migrations")

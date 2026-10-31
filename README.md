@@ -1,5 +1,9 @@
 # 太极拳康复分级评估与科研数据平台
 
+> **REAL-01 工程目标（2026-10-31）**：逐步构建数据库持久化的医疗研究人员业务工作台。可先用合成数据开发真实业务字段与流程；真实患者数据接入须另行完成机构、伦理、同意、安全与部署批准。当前 Research 配置只是独立且关闭的准备环境，不能处理患者数据。详见 [REAL-01 台账](docs/TASKS.md)、[最新状态](docs/STATUS.md) 和 [ADR-0011](docs/decisions/0011-demo-research-profile-boundary.md)。
+
+Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
+
 [![Status](https://img.shields.io/badge/status-synthetic--demo-yellow)](docs/STATUS.md)
 
 **Researcher-facing Tai Chi Rehabilitation Assessment & Research Platform.**

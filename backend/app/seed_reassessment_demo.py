@@ -21,6 +21,7 @@ from app.models import (
     Study,
     User,
 )
+from app.runtime import demo_enabled
 from app.schemas import MeasurementWrite
 
 COHORT_CODES = ("SYN-ENG01A-001", "SYN-ENG01A-002")
@@ -206,7 +207,7 @@ def _add_assessment(
 
 
 def main() -> None:
-    if os.environ.get("APP_ENV") != "local" or os.environ.get("ALLOW_SYNTHETIC_ONLY") != "true":
+    if os.environ.get("APP_ENV") != "local" or not demo_enabled():
         raise RuntimeError("reassessment demo seed is restricted to synthetic local mode")
     if os.environ.get("RESET_DEMO_PASSWORD") == "true":
         raise RuntimeError("run the base demo password reset separately before this seed")

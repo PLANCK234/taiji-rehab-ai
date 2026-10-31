@@ -13,6 +13,7 @@ from app.api import router
 from app.assessment_api import router as assessment_router
 from app.intake_api import router as intake_router
 from app.research_api import router as research_router
+from app.runtime import require_demo
 
 app = FastAPI(title="太极康复研究平台 API", version="0.1.0")
 app.include_router(router)
@@ -72,6 +73,7 @@ def health() -> dict[str, str]:
 
 @app.get("/ready")
 def ready() -> dict[str, str]:
+    require_demo()
     database_url = os.environ.get("DATABASE_URL")
     if not database_url:
         raise HTTPException(status_code=503, detail="database not configured")

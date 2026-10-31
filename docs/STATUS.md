@@ -1,5 +1,18 @@
 # 实施状态
 
+## 2026-10-31 REAL-01 当前检查点（以下为最新状态）
+
+项目目标现为数据库驱动的医疗研究人员工作台；**开发和自动化验证仍仅使用合成数据**。真实患者数据接入、Research 业务访问及生产部署尚未获仓库内证据批准。REAL-01 纵向闭环尚未完成；旧版 Sprint/ENG 状态记录留在下方作为历史证据，涉及“下一步”的旧叙述已被本节及 [HANDOFF](HANDOFF.md) 取代。
+
+| 范围 | 状态 | 实际证据 / 缺口 |
+|---|---|---|
+| REAL-01P Demo/Research 准入隔离 | DONE | `APP_PROFILE` 白名单式 Demo 准入；Research 独立 Compose 项目、PostgreSQL 卷/账号/配置/私网；业务 API、ready、演示种子和 Alembic 迁移审批前拒绝。改 `ALLOW_SYNTHETIC_ONLY=false` 不会打开 Research。 |
+| REAL-01A/B/C | IN_PROGRESS | 现有 Demo 登录/RBAC/审计、编码建档/模拟同意、人工 SPPB 总分/历史为可复用子集；人员授权管理、档案结构/更正及其他量表未完成。 |
+| REAL-01D/E/F | NOT_STARTED | 训练反馈、研究周期/快照、完整研究工作台与编号化导出尚无完整业务实现；只有人工总分趋势子集。 |
+| S3-01 | BLOCKED | Q-03 适配模板/禁忌/剂量及 Q-09 发布责任人未获有权签核。不得把候选建议当临床处方。 |
+
+本检查点实测：`backend: uv run ruff check .` 通过，`uv run pytest -q` 30 passed / 2 opt-in skipped；`scripts/run_eng04_integration.py` 在临时 PostgreSQL 上迁移并通过 3 个真实 API 测试；Demo 与 Research Compose `config --quiet` 均通过。Research 数据库未启动/迁移，原有数据库卷未操作。前端、浏览器 E2E、远端 CI 在本切片未运行；旧 ENG-04B 浏览器测试虽已在合并代码中存在，本检查点未确认通过。下一任务见 [HANDOFF](HANDOFF.md)。
+
 更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳、S6-02 模拟 API 浏览器验收本地完成。开发负责人授权独立非临床工程任务 ENG-01 至 ENG-04；`ENG-04A` 临时 PostgreSQL/API 门禁、`ENG-01A` 合成复评夹具、`ENG-02A` 对象级人工总分趋势及 `ENG-03A` 离线合成质量/切分本地完成，ENG-01/02/03/04 父任务仍进行中。Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
 
 | 范围 | 状态 | 证据与限制 |
