@@ -33,6 +33,19 @@ export type AssessmentSummary = {
 
 export type AssessmentDetail = AssessmentSummary & { history: AssessmentRevision[] };
 
+export type AssessmentTrendEntry = {
+  assessment_id: string;
+  visit_kind: "baseline" | "revisit";
+  created_at: string;
+  current: AssessmentRevision;
+  latest_confirmed: AssessmentRevision | null;
+};
+
+export type AssessmentTrend = {
+  participant_id: string;
+  entries: AssessmentTrendEntry[];
+};
+
 async function readAssessment<T>(
   path: string,
   cookieHeader: string,
@@ -52,6 +65,12 @@ async function readAssessment<T>(
 export function getParticipantAssessments(id: string, cookieHeader: string, fetcher?: typeof fetch) {
   return readAssessment<AssessmentSummary[]>(
     `/participants/${encodeURIComponent(id)}/assessments`, cookieHeader, fetcher,
+  );
+}
+
+export function getAssessmentTrend(id: string, cookieHeader: string, fetcher?: typeof fetch) {
+  return readAssessment<AssessmentTrend>(
+    `/participants/${encodeURIComponent(id)}/assessment-trend`, cookieHeader, fetcher,
   );
 }
 

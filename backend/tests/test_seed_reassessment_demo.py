@@ -48,6 +48,13 @@ def _assert_api(client: TestClient) -> None:
         assert assessments["revisit"]["current"]["raw_value"] == revisit
         assert all(row["current"]["state"] == "confirmed" for row in assessments.values())
         assert all("grade" not in row for row in assessments.values())
+        trend = client.get(f"/api/v1/participants/{participant_id}/assessment-trend")
+        assert trend.status_code == 200, trend.text
+        by_kind = {row["visit_kind"]: row for row in trend.json()["entries"]}
+        assert set(by_kind) == {"baseline", "revisit"}
+        assert by_kind["baseline"]["latest_confirmed"]["raw_value"] == baseline
+        assert by_kind["revisit"]["latest_confirmed"]["raw_value"] == revisit
+        assert all(row["current"]["state"] == "confirmed" for row in by_kind.values())
     first_baseline_id = next(
         row["id"]
         for row in client.get(f"/api/v1/participants/{first}/assessments").json()

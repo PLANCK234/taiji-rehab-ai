@@ -21,3 +21,8 @@ button:disabled { opacity: .6; cursor: wait; }
 .pose-demo-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .pose-demo-frame { margin-top: 20px; }
 .pose-demo-frame svg { display: block; width: 100%; height: auto; border-radius: 12px; }
+.trend-table-wrap { overflow-x: auto; }
+.trend-table { width: 100%; border-collapse: collapse; text-align: left; }
+.trend-table caption { text-align: left; font-weight: 600; margin-bottom: 12px; }
+.trend-table th, .trend-table td { padding: 10px 8px; border-bottom: 1px solid #d6e4dc; vertical-align: top; }
+.trend-table meter { width: 90px; max-width: 100%; }

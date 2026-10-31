@@ -37,3 +37,7 @@
 ## 2026-10-31 ENG-01A 接续核对
 
 从 `feat/eng-01a-synthetic-reassessment` 的干净检查点核对 `ENG-01A` 两名合成编号对象、重复运行与拒绝覆盖逻辑、SQLite/临时 PostgreSQL API 测试，并重跑 `scripts/check_handoff.py`；下一任务应为 `ENG-02A`。该任务只读已确认的合成数据库评估记录，保持缺失、草稿及无效状态，不得把原始总分变化解释为疗效。`S3-01` 仍需 Q-03/09 有权签核。
+
+## 2026-10-31 ENG-02A 接续核对
+
+从 `feat/eng-02a-assessment-trends` 的干净检查点核对真实 HEAD、`backend/app/research_api.py` 的角色/研究/对象权限和审计、`research_trends.py` 的最新确认与当前草稿分离、对象页的有效零分/缺失/无效图示。运行后端常规测试及临时 PostgreSQL 集成、前端 lint/typecheck/test/build、`scripts/run_eng02a_smoke.py` 的临时数据库→API→Next 页面烟测和交接检查。下一任务为 `ENG-03A`，不得从训练反馈臆造疗效标签或修改 SPPB 分级；`S3-01` 仍需 Q-03/09 签核。

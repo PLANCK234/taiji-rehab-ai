@@ -35,6 +35,11 @@
 - Its client component creates only an inline synthetic SVG held in React state. It contains no camera permission request, file input, upload request, local storage or image persistence. Simulated consent `photo_scope=true` changes only the explanatory text and does not enable image collection.
 - The backend publishes no `/images` or `/uploads` route. Real photos, video, pose estimates, object storage and retention remain blocked by Q-01/Q-10 and the deployment gate.
 
+## ENG-02A synthetic trend read boundary
+
+- The read-only assessment trend route reuses server-side role, study assignment and explicit participant assignment checks. Analyst/admin roles cannot directly read a coded participant trend; denied reads are audited through the participant guard, and allowed reads add an `assessment_trend` audit event.
+- The response contains only the authorized coded participant ID and existing assessment revisions, with no identity mapping or export. Latest confirmed values and pending drafts remain distinct; missing, invalid and unconfirmed records do not become zero scores or a clinical conclusion. Responses retain `Cache-Control: no-store`.
+
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.
 - PI/clinical approver: approves clinical adaptation rules and significant changes.

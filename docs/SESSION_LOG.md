@@ -90,3 +90,11 @@
 - 测试：后端 Ruff 通过、普通 pytest 25 passed/2 skipped；临时 PostgreSQL 17 空库迁移升/check/降/升后，既有真实 API 工作流和夹具 SQLite/PostgreSQL 测试 3 passed；容器停止。`README.md` 给出本地命令。前端和远端 CI 未运行；pytest 有上游弃用警告 1 条。
 - 提交/PR：本地分支 `feat/eng-01a-synthetic-reassessment`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
 - 接续：`ENG-02A` 可基于真实数据库中的合成评估记录实现权限受控的已确认趋势与缺失视图；ENG-01 父任务仍缺候选状态、训练、周期和导出，临床候选仍受 S3-01/Q-03/09 阻断。
+
+## 2026-10-31 UTC · ENG-02A
+
+- 目标：从干净的 `888d2488c2e12bb47fa58367d256356b87bc2d84` 检查点恢复，完成现有人工 SPPB 总分的合成对象级只读趋势与缺失视图。
+- 完成：新增服务端授权/审计的趋势 API，按评估登记时间返回最新修订和最新已确认修订；对象页用可访问表格及总分图示展示已确认有效记录，将草稿、缺失、无效和实际零分分开。更新 OpenAPI、PRD/验收、数据字典、API/安全合同与 ADR-0009。没有新迁移、临床规则、疗效标签、训练或导出。
+- 测试：后端 Ruff/pytest 27 passed/2 opt-in skipped，临时 PostgreSQL 迁移升/check/降/升与真实 API 测试 3 passed；前端 Node 26/pnpm 10 lint/typecheck/test 15/build；独立 tmpfs PostgreSQL→FastAPI→Next 页面烟测显示两名合成对象的数据库总分/缺失，跨研究页面 404，临时容器/网络均停止。首轮 Ruff 一处过长行修复后通过。远端 CI、真实数据和临床人工验收未运行。
+- 提交/PR：本地分支 `feat/eng-02a-assessment-trends`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-03A` 为下一依赖已满足任务；只做合成离线数据质量和对象级切分。`S3-01` 仍因 Q-03/09 未签核 `BLOCKED`，ENG-01/02/04 父任务未完成。
