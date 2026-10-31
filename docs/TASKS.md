@@ -1,5 +1,7 @@
 # 任务台账
 
+> 本表是旧本地基线验收快照。2026-10-31 复核发现远端已新增 S6-02 和 ENG 台账；接续开发须先核定最新远端，不能根据本表判断全项目任务是否可执行。当前分支仅为 `codex/s6-01-local-acceptance-checkpoint`，不是主线台账；见[差异记录](testing/S6-01-REMOTE-RECONCILIATION.md)。
+
 状态仅使用 `NOT_STARTED`、`IN_PROGRESS`、`BLOCKED`、`IN_REVIEW`、`DONE`。`DONE` 必须附实际验证证据。临床与真实数据功能受 [待决问题](OPEN_QUESTIONS.md) 约束。
 
 | Task ID | Sprint | 目标 | 优先级 | 依赖 | 负责人/分支 | 状态 | 预计修改范围 | 验收与测试 | 完成证据 |
@@ -14,8 +16,10 @@
 | S3-01 | 3 | 已批准规则候选和人工审核 | P0 | Sprint 2；Q-03/09 | 未分配 | BLOCKED | `backend/`, `frontend/`, `ml/` | FR-004/005, AT-02/04/10 | Q-03 适配模板/禁忌/剂量及 Q-09 审批/发布责任人未签核；不得发布临床规则或建议 |
 | S4-01 | 4 | 训练会话、结构反馈和安全事件 | P0 | Sprint 3；Q-04/12 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migration | FR-006/007, AT-06/07/08 | — |
 | S5-01 | 5 | 周期复评、冻结与去标识导出 | P0 | Sprint 4；Q-05/06/07 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migration | FR-008/009/011, AT-01/05 导出部分/09 | — |
-| S6-01 | 6 | 可选拍照演示壳 | P1 | Q-01/10 或纯合成演示 | 未分配 | NOT_STARTED | `frontend/`, `backend/` | AT-12；明确未接入识别；仅本地预览，不持久上传 | — |
+| S6-01 | 6 | 可选拍照演示壳（纯合成回退范围） | P1 | Q-01/10 或纯合成演示 | `main` 本地工作区，未提交 | DONE | `frontend/app/participants/[id]/`, `frontend/app/style.css`, `frontend/app/workspace/page.tsx`；收尾验收文档 | AT-12 合成部分；明确未接入识别；仅程序绘制预览，不持久上传 | 2026-10-31：独立工具链前端 lint/typecheck、Vitest 12/build；后端 Ruff/pytest 22；浏览器 10/10；交接及 diff 检查。见[验收记录](testing/S6-01-VERIFICATION.md)。仅本地合成范围完成；PR/远端 CI/负责人审查待完成，真实照片流程仍待 Q-01/10 |
 | S7-01 | 7 | 冻结数据离线评估与发布门禁 | P1 | Sprint 5；Q-06/09 | 未分配 | NOT_STARTED | `ml/`, `backend/` | AT-10/11；审批与泄漏测试 | — |
 | S8-01 | 8 | 试点加固与部署演练 | P1 | 审批与前序阶段 | 未分配 | NOT_STARTED | `infra/`, `docs/` | AT-13/14；恢复与临床 UAT | — |
 
 下一可执行任务由 [HANDOFF.md](HANDOFF.md) 指定；开始前核对 Git 与真实代码。
+
+2026-10-31：S6-01 的实现和本地合成验收已完成，后续为审查及获准后的提交/PR；尚无依赖已满足的新业务任务。S3-01 仍因 Q-03/09 阻断，不能跳过审批直接进入 Sprint 3。`DONE` 不代表真实照片、临床研究准入或远端集成已获批准。

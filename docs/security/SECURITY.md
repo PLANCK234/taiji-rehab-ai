@@ -29,6 +29,10 @@
 - Clinician and research assistant can create/revise manual total drafts; clinician and clinical approver can confirm a recorded draft. Every measurement or confirmation appends an attributable snapshot. A correction after a recorded value requires a `SYN-` reason. Audit records allow/deny outcomes without raw values.
 - `SYN-MANUAL-V1` is a synthetic engineering marker. No approved SPPB item algorithm, grading, safety determination or treatment recommendation is inferred from a total; no real-data use is authorized. Downgrade `0004_manual_assessments` removes tables and is rehearsed only on a disposable empty database.
 
+## S6-01 synthetic pose preview boundary
+
+- The assigned participant page can display a program-drawn, fictional pose illustration. It has no file picker, camera request, image upload request, analysis or persistence. Simulated `photo_scope` does not authorize real photography. Q-01/Q-10 remain open.
+
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.
 - PI/clinical approver: approves clinical adaptation rules and significant changes.

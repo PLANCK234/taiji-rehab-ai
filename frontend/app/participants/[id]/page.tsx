@@ -6,6 +6,7 @@ import { getConsentHistory, getParticipant, getScreeningHistory } from "../../wo
 import { getParticipantAssessments, measurementText } from "../../workspace/assessments";
 import IntakeForms from "./intake-forms";
 import CreateAssessmentForm from "./create-assessment-form";
+import SyntheticPoseDemo from "./synthetic-pose-demo";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +76,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
           <CreateAssessmentForm participantId={participant.id} />
         ) : <p className="note">创建评估需要当前模拟同意及录入权限。</p>}
       </section>
+      <SyntheticPoseDemo />
       {canWrite && consents && screenings ? <IntakeForms
         participantId={participant.id}
         consentCount={consents.records.length}

@@ -18,3 +18,5 @@ a { color: #155b43; }
 button { font: inherit; background: #155b43; color: white; border: 0; border-radius: 6px; padding: 12px 18px; cursor: pointer; margin-top: 12px; }
 button:disabled { opacity: .6; cursor: wait; }
 [role="alert"] { color: #a72323; }
+.pose-preview { max-width: 280px; margin-top: 16px; padding: 12px; border: 1px solid #d6e4dc; border-radius: 10px; text-align: center; }
+.pose-preview svg { width: 100%; height: auto; display: block; }

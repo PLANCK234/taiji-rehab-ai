@@ -37,3 +37,32 @@
 - 测试：后端 Ruff/pytest 22；前端 Node 26/pnpm 10 容器 lint/typecheck/test 11/build；临时空 PostgreSQL 17 迁移升降升及 Alembic check；另一临时库 API 权限/同意/零分/幂等/重启持久化；Next 代理页面复评缺失流程。首次烟测脚本受本机 SOCKS 代理影响，直连后执行；React 数字节点注释造成的文本断言调整后通过。结果见 `STATUS.md`。
 - 提交/PR：本地分支 `feat/s2-01-manual-assessments`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：AT-01 CSV/周期、AT-02 分级、完整量表、远端 CI/Playwright、真实数据准入和所有临床审批均未完成。
+
+## 2026-10-31 UTC · S6-01
+
+- 目标：在现有合成编号对象页提供 AT-12 的纯合成姿态预览壳，不接触真实照片或临床规则。
+- 完成：可展开的程序绘制虚构站姿，直示“姿态识别算法尚未接入”；无文件选择、摄像、上传或持久化。对象页原有服务端登录及对象授权边界沿用。新增组件测试，并更新验收、安全、状态、追踪和交接文档。
+- 决策：Q-01/Q-10 未关闭，因此演示只使用内嵌 SVG 示意图；不把模拟照片范围视作采集授权。Git 合并提交 `a69aac8` 标题称 S6-01，但代码实际只有 S2-01，本次按代码补足合成演示。
+- 测试：`git diff --check`、PowerShell 静态边界检查、捆绑 Python 运行 `scripts/check_handoff.py` 通过。`uv` 缺失，后端 Ruff/pytest 未执行；前端 pnpm 先受沙箱 EPERM，随后获准环境中的安装因既有锁文件 `node-releases@2.0.62` 违反 minimumReleaseAge 策略中止，lint/typecheck/test/build 未执行。组件测试待依赖可用后运行，任务状态 `IN_REVIEW`。
+- 提交/PR：`main`，本次开始 HEAD `a69aac8673289101ffa761008060fe35c62e0001`；本次修改未提交，未创建 PR。
+- 遗留：复验前端质量门禁后再将 S6-01 标记 DONE；真实照片/摄像、AT-12 E2E 及临床/伦理批准仍未完成。下一功能 S3-01 受 Q-03/Q-09 阻断。
+
+## 2026-10-31 Asia/Shanghai · S6-01 验收与文档收尾
+
+- 目标：核对当前工作区，使用独立工具链完成版本及质量复验，把纯合成浏览器证据写回持久交接；不改源码、依赖或锁文件，不提交 Git。
+- 工具：独立 Node 26.13.0、pnpm 10.34.9、uv 0.13.6，项目 `backend/.venv` Python 3.14.8；仅调整当前 PowerShell 进程 PATH。uv 离线锁定 dry-run 无变更，`uv run --locked python --version` 正确识别项目环境。没有使用捆绑运行时。
+- 测试：前端 lint/typecheck、Vitest 12/12、build；后端 Ruff、pytest 22/22（1 条上游弃用警告）；交接脚本和 `git diff --check` 通过。沙箱 uv 缓存写入/Vitest rename 被拒，沙箱 pytest 无输出后中止；获准沙箱外复验通过。失败和限制详见[验收记录](testing/S6-01-VERIFICATION.md)，不改写早期失败历史。
+- 浏览器：真实 Next/FastAPI 路由、内存 SQLite 合成夹具，UAT 第 8 步纯合成范围及相关越权 URL 10/10 通过；三种同意状态、鼠标/键盘/刷新、算法不可用提示、无预览网络请求和无上传；服务已停止、夹具销毁。不是完整照片流程或 PostgreSQL 验证。
+- 文档：更新 STATUS、TASKS、HANDOFF、TRACEABILITY、ACCEPTANCE，追加本日志；新增可随仓库保存的验收摘要和合成截图。S6-01 标为 DONE 仅限已允许的纯合成任务范围，负责人审查、PR、远端 CI 未完成。没有架构或临床决策变更，无新增 ADR。
+- 保护：编辑前保存 9 个文件的可恢复副本、完整 tracked diff 和 126 文件哈希至 `test-results/s6-01-closeout-20261031/`；复验后、文档编辑前 126 文件无变化；本轮源码、既有组件测试和锁文件保持原字节。完整浏览器原始证据仍在本地忽略目录，验收摘要明确其交付限制。
+- 提交/PR：仍为 `main` / `a69aac8673289101ffa761008060fe35c62e0001`；原 12 个未提交文件保留，新增 2 个证据文件；没有提交、推送或创建 PR。
+- 下一步：负责人审阅最终 diff 与验收证据；获准后在任务分支提交/PR，验证远端 CI。S3-01 继续 BLOCKED（Q-03/Q-09），其他任务仍有前序依赖；真实照片采集/授权/留存待 Q-01/Q-10。不开启数据库或临床新功能。
+
+## 2026-10-31 Asia/Shanghai · 远端差异核对及本地检查点
+
+- 用户要求继续提交/PR 准备；先只读核对远端，发现 `origin/main` 已从旧本地 `a69aac8` 前进到 `1f1d977`，新增 10 个提交。远端已包含另一套 S6-01、S6-02 和 ENG 工程功能；原来“没有可执行新业务任务”的结论只适用于旧本地台账，不能延用于新版。
+- 实际代码核对：远端对象页链接独立 `/pose-demo` 页面，预览支持两帧生成/切换/清除，本地则在对象页展开固定 SVG；远端已增加 Playwright 套件、趋势/API/离线数据和不同前端依赖/锁文件。没有将远端文档中的测试声明当作本轮执行证据。
+- 处理：创建 `codex/s6-01-local-acceptance-checkpoint` 本地分支，保存现有实现、验收和差异记录；不推送，不创建重复 S6-01 PR，不合并或覆盖远端，不升级依赖或使用 Docker/PostgreSQL。当前源码保持原字节。Git fetch 只更新远端跟踪引用。
+- 文档：在 STATUS/TASKS/TRACEABILITY/HANDOFF/验收记录明确旧版本证据的适用边界，并新增[远端差异记录](testing/S6-01-REMOTE-RECONCILIATION.md)。本轮编辑前副本在 `test-results/s6-01-pr-20261031/`；此前恢复副本仍保留。
+- 验证：代码没有变更，沿用上一轮独立工具链 12 Vitest/22 pytest/浏览器 10 项及静态/构建结果；本次再运行交接与 Git diff 检查。未针对新远端代码执行测试，也没有远端 CI 通过声明。
+- 后续：先隔离阅读最新远端规则、台账和真实代码，再判断是否需要移植独立验收证据；旧本地分支不得直接合入最新 main。检查点 SHA 以包含本段的提交和 `git log` 为准。
