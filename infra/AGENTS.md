@@ -4,3 +4,7 @@
 - Restrict DB and object storage to private networks. Keep production migration and deletion behind manual approvals.
 - Every deployment has a versioned migration/backup/rollback plan and smoke tests.
 - Read `docs/security/SECURITY.md` and `docs/operations/DEPLOYMENT.md`.
+
+## Local Demo persistence
+- Use the existing Compose project and PostgreSQL volume; keep Demo and closed Research profiles isolated. Never run `docker compose down -v`, delete the PostgreSQL volume, or clear existing records without explicit authorization.
+- Demo seeds must be idempotent and only create/verify marked synthetic content. Keep rules separate from clinical publication. Local startup should work from Windows PowerShell without WSL2.

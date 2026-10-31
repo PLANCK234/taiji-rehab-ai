@@ -52,7 +52,7 @@ def test_training_session_feedback_event_persist_and_isolate() -> None:
     with engine.connect() as connection:
         assert connection.scalar(text("select current_database()")) == "taiji_eng04"
         assert connection.scalar(text("select version_num from alembic_version")) == (
-            "0005_training_observations"
+            "0007_demo_completed_actions"
         )
     suffix = uuid.uuid4().hex[:10]
     clinician_email = f"training-pg-{suffix}@example.org"

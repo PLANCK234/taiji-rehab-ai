@@ -40,7 +40,11 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await page.getByLabel("测量时间（设备本地时间，保存为 UTC）").fill("2026-10-30T10:00");
   await page.getByRole("button", { name: "保存新草稿版本" }).click();
   await expect(page.getByText("人工 SPPB 总分：0 分")).toBeVisible();
+  const baselineUrl = page.url();
   await page.getByRole("button", { name: "确认当前记录" }).click();
+  await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
+  await expect(page.getByText("功能等级：IV", { exact: false })).toBeVisible();
+  await page.goto(baselineUrl);
   await expect(page.getByText(/当前版本 3 ·已确认记录/)).toBeVisible();
   await page.reload();
   await expect(page.getByText("人工 SPPB 总分：0 分")).toBeVisible();
@@ -60,7 +64,10 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await page.getByLabel("缺失/无效原因").selectOption("declined");
   await page.getByRole("button", { name: "保存新草稿版本" }).click();
   await expect(page.getByText("人工 SPPB 总分：缺失（拒测）")).toBeVisible();
+  const revisitUrl = page.url();
   await page.getByRole("button", { name: "确认当前记录" }).click();
+  await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
+  await page.goto(revisitUrl);
   await expect(page.getByText(/当前版本 3 ·已确认记录/)).toBeVisible();
   await page.getByRole("link", { name: /返回编号对象/ }).click();
   await expect(page).toHaveURL(/\/participants\/[0-9a-f-]+$/);

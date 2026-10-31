@@ -40,3 +40,7 @@ Migration `0005_training_observations` implements a **bounded D0 subset**: `trai
 
 ## Migration rules
 Every schema PR includes Alembic migration + downgrade/rollback considerations + test data migration + dict update + privacy impact. Never silently change meaning of existing columns.
+
+## Physical extension `0006_demo_v2` (2026-10-31)
+
+The additive migration creates `demo_participant_profiles` (one optional synthetic display row per existing participant), `demo_grade_results` (unique confirmed `assessment_revision_id`, version, grade, separate mode and JSON evidence), `demo_actions` (marked local catalog), and `demo_runs` (participant/grade link, action IDs, progress/status, optional link to existing `training_sessions`). `0007_demo_completed_actions` adds nullable `completed_action_ids` so actual completed actions are not inferred from planned IDs. `training_feedback_revisions` and `safety_events` remain unchanged. No old rows are deleted or rewritten; an authorized plan read may create a missing Demo result for a preexisting confirmed assessment. The local existing volume was backed up before forward migration. No downgrade is authorized on a populated database.

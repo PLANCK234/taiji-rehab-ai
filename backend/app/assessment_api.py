@@ -19,9 +19,10 @@ from app.assessment import (
     summary,
 )
 from app.db import get_db
+from app.demo_rule import RULE_VERSION, demo_grade
 from app.intake import reserve_write
 from app.intake_api import READ_ROLES, WRITE_ROLES, idempotency_header
-from app.models import Assessment, AssessmentRevision
+from app.models import Assessment, AssessmentRevision, DemoGradeResult
 from app.schemas import (
     AssessmentConfirm,
     AssessmentCreate,
@@ -104,8 +105,13 @@ def create_assessment(
 ) -> AssessmentDetail:
     require_csrf(request, auth, db, "create", "assessment", payload.participant_id)
     authorized_participant(
-        db, auth, payload.participant_id, action="create", allowed_roles=WRITE_ROLES,
-        audit_success=False, lock_for_write=True,
+        db,
+        auth,
+        payload.participant_id,
+        action="create",
+        allowed_roles=WRITE_ROLES,
+        audit_success=False,
+        lock_for_write=True,
     )
     require_current_consent(db, auth, payload.participant_id, None)
     assessment_id, fresh = reserve_write(db, auth.user.id, "assessment:create", key, payload)
@@ -134,9 +140,7 @@ def get_assessment(
     auth: AuthContext = Depends(current_auth),
     db: Session = Depends(get_db),
 ) -> AssessmentDetail:
-    row = require_assessment(
-        db, auth, assessment_id, action="read", roles=READ_ROLES
-    )
+    row = require_assessment(db, auth, assessment_id, action="read", roles=READ_ROLES)
     result = detail(row, revisions(db, assessment_id))
     audit(db, "read", "assessment", "allowed", auth.user.id, assessment_id)
     db.commit()
@@ -206,6 +210,21 @@ def confirm_assessment(
         raise HTTPException(status_code=422, detail="measurement not recorded")
     revision = confirmed_copy(assessment_id, revision_id, prior, auth.user.id)
     db.add(revision)
+    functional_grade, mode = demo_grade(revision.raw_value, valid=revision.validity == "valid")
+    db.add(
+        DemoGradeResult(
+            assessment_revision_id=revision_id,
+            rule_version=RULE_VERSION,
+            functional_grade=functional_grade,
+            demo_training_mode=mode,
+            evidence={
+                "marker": "DEMO_RULE",
+                "validity": revision.validity,
+                "sppb_total": revision.raw_value if revision.validity == "valid" else None,
+                "assessment_id": str(assessment_id),
+            },
+        )
+    )
     audit(db, "confirm", "assessment", "allowed", auth.user.id, assessment_id)
     db.commit()
     return AssessmentRevisionView.model_validate(revision)

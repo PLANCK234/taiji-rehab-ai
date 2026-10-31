@@ -4,6 +4,21 @@
 
 状态仅使用 `NOT_STARTED`、`IN_PROGRESS`、`BLOCKED`、`IN_REVIEW`、`DONE`。`DONE` 必须附实际验证证据。临床与真实数据功能受 [待决问题](OPEN_QUESTIONS.md) 约束。
 
+## DEMO-V2 独立合成演示任务组（2026-10-31）
+
+不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。当前分支 `feat/real-01f0-coded-export`，任务组待最终检查点提交。
+
+| Task ID | 目标 | 状态 | 最小修改范围 | 验收 / 实测证据 |
+|---|---|---|---|---|
+| DEMO-V2-00 | 全仓 Agent 规则、PRD/流程/契约/追踪 | DONE | 全部现有 `AGENTS.md`、`docs/`、README | 文档链接与交接脚本；不改临床批准状态 |
+| DEMO-V2-01 | 统一暗色登录/工作台 | DONE | `frontend/app/login`, `workspace`, `style.css` | 前端 lint/typecheck/build；真实 Chromium 登录 |
+| DEMO-V2-02 | 编号对象查询与合成快速建档 | DONE | 既有 intake + 增量 Demo profile | PostgreSQL→浏览器建档、搜索、模拟同意；旧建档路径仍通过 |
+| DEMO-V2-03 | 人工评估后自动进入 Demo | DONE | 既有评估修订/API + 页面 | 8/5 分真实数据库浏览器；缺失/旧复评路径 |
+| DEMO-V2-04 | 后端版本化 Demo 规则 | DONE | `demo_rule.py`、`demo_grade_results`、确认 API | 0/3/4/6/7/9/10/12 和缺失边界单测；42 后端测试初轮通过 |
+| DEMO-V2-05 | 方案页、动作组合 | DONE | Demo API/Next 页面 | 数据库等级、刷新恢复、IV/缺失无自主组合；真实浏览器 |
+| DEMO-V2-06 | 12 条动作库、搜索/筛选/详情 | DONE | 种子、API、页面 | 幂等种子；真实 Chromium 卡片操作 |
+| DEMO-V2-07 | 训练状态、反馈、兼容与交接 | DONE | `demo_runs`、原训练/反馈、`0006`/`0007` 增量迁移、E2E/文档 | 后端 42 passed/4 opt-in skipped、临时 PostgreSQL 5 API、浏览器 7 passed；本机 `0007`、旧对象 4 条保留、动作 12 条；完成动作独立保存 |
+
 | Task ID | Sprint | 目标 | 优先级 | 依赖 | 负责人/分支 | 状态 | 预计修改范围 | 验收与测试 | 完成证据 |
 |---|---:|---|---|---|---|---|---|---|---|
 | S0-01 | 0 | 工程骨架、版本锁定和本地命令 | P0 | 文档基线 | `feat/s0-bootstrap-handoff` | DONE | `frontend/`, `backend/`, 根配置 | 前端构建/检查、后端 lint/pytest | 2026-10-30：前端 lint/typecheck/test 2/build；后端 Ruff/pytest 2；见 STATUS |

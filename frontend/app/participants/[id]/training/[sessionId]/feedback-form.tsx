@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import {
   trainingError, writeTraining, type TrainingFeedback,
 } from "../../../../workspace/training";
+import { writeDemo, type DemoRun } from "../../../../workspace/demo";
 
 export default function FeedbackForm({
-  sessionId, expectedRevision,
+  sessionId, expectedRevision, completeDemoRunId,
 }: {
   sessionId: string;
   expectedRevision: number;
+  completeDemoRunId?: string;
 }) {
   const router = useRouter();
   const key = useRef("");
@@ -44,6 +46,10 @@ export default function FeedbackForm({
     setPending(false);
     if (result.value) {
       key.current = "";
+      if (completeDemoRunId) {
+        const completed = await writeDemo<DemoRun>(`/demo-runs/${completeDemoRunId}/complete`, {}, document.cookie);
+        if (!completed.value) setError("反馈已保存，完成状态待确认；请刷新后再次确认。");
+      }
       router.refresh();
     } else setError(trainingError(result.status));
   }

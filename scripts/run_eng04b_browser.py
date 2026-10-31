@@ -68,6 +68,7 @@ def main() -> None:
         ]
         docker(*common, "uv", "run", "--no-dev", "alembic", "upgrade", "head")
         docker(*common, "uv", "run", "--no-dev", "python", "-m", "app.seed_demo")
+        docker(*common, "uv", "run", "--no-dev", "python", "-m", "app.seed_demo_actions")
         docker(
             "run", "--rm", "-d", "--name", backend, "--network", network,
             "--network-alias", "backend", "-p", f"127.0.0.1:{backend_port}:8000",

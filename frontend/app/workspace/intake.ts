@@ -1,4 +1,11 @@
 export type CodedParticipant = { id: string; study_id: string; study_code: string };
+export type DemoProfile = {
+  participant_id: string;
+  age: number | null;
+  sex: "female" | "male" | "other" | "unknown" | null;
+  needs_assistance: boolean | null;
+  note: string | null;
+};
 export type ConsentRecord = {
   id: string;
   participant_id: string;
@@ -51,6 +58,10 @@ export function getAssignedParticipants(cookieHeader: string, fetcher?: typeof f
 
 export function getParticipant(id: string, cookieHeader: string, fetcher?: typeof fetch) {
   return readScoped<CodedParticipant>(`/participants/${encodeURIComponent(id)}`, cookieHeader, fetcher);
+}
+
+export function getDemoProfile(id: string, cookieHeader: string, fetcher?: typeof fetch) {
+  return readScoped<DemoProfile>(`/participants/${encodeURIComponent(id)}/demo-profile`, cookieHeader, fetcher);
 }
 
 export function getConsentHistory(id: string, cookieHeader: string, fetcher?: typeof fetch) {

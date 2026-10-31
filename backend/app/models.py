@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
 
@@ -41,12 +41,8 @@ class Study(Base):
 class StudyAssignment(Base):
     __tablename__ = "study_assignments"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id"), primary_key=True
-    )
-    study_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("studies.id"), primary_key=True
-    )
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), primary_key=True)
+    study_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("studies.id"), primary_key=True)
 
 
 class Participant(Base):
@@ -64,12 +60,96 @@ class Participant(Base):
 class ParticipantAssignment(Base):
     __tablename__ = "participant_assignments"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("users.id"), primary_key=True
-    )
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), primary_key=True)
     participant_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("participants.id"), primary_key=True
     )
+
+
+class DemoParticipantProfile(Base):
+    """Synthetic display metadata; never a real identity mapping."""
+
+    __tablename__ = "demo_participant_profiles"
+    __table_args__ = (
+        CheckConstraint("age IS NULL OR age BETWEEN 0 AND 120", name="ck_demo_profile_age"),
+        CheckConstraint(
+            "sex IS NULL OR sex IN ('female','male','other','unknown')", name="ck_demo_profile_sex"
+        ),
+    )
+
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), primary_key=True
+    )
+    age: Mapped[int | None] = mapped_column()
+    sex: Mapped[str | None] = mapped_column(String(16))
+    needs_assistance: Mapped[bool | None] = mapped_column()
+    note: Mapped[str | None] = mapped_column(String(500))
+
+
+class DemoGradeResult(Base):
+    """Immutable, versioned display mapping for a confirmed assessment revision."""
+
+    __tablename__ = "demo_grade_results"
+    __table_args__ = (
+        UniqueConstraint("assessment_revision_id"),
+        CheckConstraint(
+            "functional_grade IN ('I','II','III','IV','UNASSESSED')", name="ck_demo_grade"
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    assessment_revision_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("assessment_revisions.id"), nullable=False
+    )
+    rule_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    functional_grade: Mapped[str] = mapped_column(String(16), nullable=False)
+    demo_training_mode: Mapped[str | None] = mapped_column(String(40))
+    evidence: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class DemoAction(Base):
+    __tablename__ = "demo_actions"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    name: Mapped[str] = mapped_column(String(80), nullable=False)
+    category: Mapped[str] = mapped_column(String(40), nullable=False)
+    demo_grade: Mapped[str] = mapped_column(String(8), nullable=False)
+    explanation: Mapped[str] = mapped_column(String(1000), nullable=False)
+    steps: Mapped[list] = mapped_column(JSON, nullable=False)
+    display_order: Mapped[int] = mapped_column(nullable=False)
+    enabled: Mapped[bool] = mapped_column(default=True, nullable=False)
+    marker: Mapped[str] = mapped_column(String(20), default="DEMO_ONLY", nullable=False)
+
+
+class DemoRun(Base):
+    __tablename__ = "demo_runs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('in_progress','paused','awaiting_feedback','completed','stopped')",
+            name="ck_demo_run_status",
+        ),
+        CheckConstraint("current_index >= 0", name="ck_demo_run_index"),
+        Index("ix_demo_runs_participant_started", "participant_id", "started_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    grade_result_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("demo_grade_results.id"), nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    action_ids: Mapped[list] = mapped_column(JSON, nullable=False)
+    completed_action_ids: Mapped[list | None] = mapped_column(JSON)
+    current_index: Mapped[int] = mapped_column(default=0, nullable=False)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    training_session_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("training_sessions.id")
+    )
+    created_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
 
 
 class WriteReceipt(Base):
@@ -269,9 +349,7 @@ class SafetyEvent(Base):
     participant_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("participants.id"), nullable=False
     )
-    session_id: Mapped[uuid.UUID | None] = mapped_column(
-        Uuid, ForeignKey("training_sessions.id")
-    )
+    session_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("training_sessions.id"))
     event_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     description: Mapped[str] = mapped_column(String(2000), nullable=False)
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)

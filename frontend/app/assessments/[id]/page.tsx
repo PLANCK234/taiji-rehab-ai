@@ -44,7 +44,8 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
       {assessment.current.state === "draft" ? "草稿" : "已确认记录"}</p>
     <p>人工 SPPB 总分：{measurementText(assessment.current)}</p>
     <p>测量时间（北京时间）：{localTime(assessment.current.performed_at)}</p>
-    <p className="note">方案标记 {assessment.protocol_version} 仅供合成演示；这里不生成分级、安全结论或训练建议。确认缺失或无效记录也不代表完成测量。</p>
+    <p className="note">方案标记 {assessment.protocol_version} 仅供合成演示；已确认总分可生成独立版本的 Demo 展示分级，不代表临床结论。确认缺失或无效记录仍不产生自主训练方案。</p>
+    {assessment.current.state === "confirmed" && <Link href={`/participants/${assessment.participant_id}/demo`}>查看 Demo 训练方案 →</Link>}
     {assessment.current.missing_reason ? <p>缺失/无效原因：{missingReasonText[assessment.current.missing_reason]}</p> : null}
     <section aria-labelledby="history-heading">
       <h2 id="history-heading">版本时间线</h2>
@@ -52,6 +53,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
     </section>
     {consentGranted ? <AssessmentEditor
       assessmentId={assessment.id}
+      participantId={assessment.participant_id}
       current={assessment.current}
       canWrite={canWrite}
       canConfirm={canConfirm}
