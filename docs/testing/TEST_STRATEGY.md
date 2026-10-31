@@ -1,6 +1,8 @@
 # Test strategy / quality gates
 
 ## Layers
+
+REAL-01D0 verification uses `backend/tests/test_training_observations.py` for feedback state/correction, idempotency, zero vs null, independent event and roles; `test_training_postgres.py` for committed rows after a new API session; `scripts/run_eng04_integration.py` for disposable PostgreSQL upgrade/check/downgrade/upgrade; and `frontend/e2e/training.real.ts` via `scripts/run_eng04b_browser.py` for real Chromium→Next→FastAPI→PostgreSQL persistence and scope. Browser test artifacts stay under ignored `exports/`. These cover D0 observation only, not protocol-bound training, clinical event disposition, cycles or export.
 - Unit: V0 score boundaries, rule statuses, missingness, feedback schema, symptom mutual exclusions, feature cutoff/leakage, immutable historical versions.
 - Integration: transaction/rollback, migrations, multi-role authorization, participant scoping, session idempotency, feedback revision, safety event without full form, frozen data integrity.
 - E2E: doctor logs in → creates synthetic patient → consent/screening → baseline → candidate grade → review → 3 sessions and feedback → cycle endpoint → trend → coded export.

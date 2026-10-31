@@ -14,7 +14,7 @@ HANDOFF_FIELDS = [
     "Branch / HEAD", "最近独立任务", "验证", "当前缺口", "临床与数据阻断",
     "下一 Task ID", "下一步文件", "未提交/推送",
 ]
-TASK_ID = r"(?:S\d+-\d+|ENG-\d{2}[A-Z]?|REAL-\d{2}[A-Z]?)"
+TASK_ID = r"(?:S\d+-\d+|ENG-\d{2}[A-Z]?|REAL-\d{2}(?:[A-Z]\d?)?)"
 
 
 def main() -> int:

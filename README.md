@@ -4,6 +4,8 @@
 
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
 
+**已可操作的合成纵向子流程**：工作人员登录→编码建档→模拟同意→人工 SPPB 总分及复评→对象页趋势→记录已发生训练观察→单独记录事件→录入/更正反馈。页面刷新后从 PostgreSQL 读取记录；入口在对象详情的“训练观察与反馈”。训练观察只记录事实，尚无周期/规则关联；周期快照和编号化导出仍待 REAL-01E0/F0，其他评估量表、人员管理与真实数据准入亦未完成。见 [ADR-0012](docs/decisions/0012-training-observation-before-cycle.md)。
+
 [![Status](https://img.shields.io/badge/status-synthetic--demo-yellow)](docs/STATUS.md)
 
 **Researcher-facing Tai Chi Rehabilitation Assessment & Research Platform.**

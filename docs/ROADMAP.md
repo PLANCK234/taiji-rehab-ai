@@ -2,6 +2,8 @@
 
 **Principle:** one bounded Codex task/PR at a time; do not ask a model to build the entire site in one message. Actual study deployment has separate institutional gates.
 
+REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01E0` and `REAL-01F0` will complete a synthetic database-backed cycle/export loop before any Research activation. See [TASKS](TASKS.md) and [ADR-0012](decisions/0012-training-observation-before-cycle.md).
+
 | Stage | Deliverable | Prerequisite | Exit gate |
 |---|---|---|---|
 | 0 | monorepo skeleton, package tooling, docker, CI, synthetic seed | docs reviewed | commands run, test DB boots |

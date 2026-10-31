@@ -28,6 +28,7 @@ def main() -> int:
         **os.environ,
         "DATABASE_URL": database_url,
         "ENG04_INTEGRATION": "1",
+        "APP_PROFILE": "demo",
         "APP_ENV": "test",
         "ALLOW_SYNTHETIC_ONLY": "true",
         "APP_PUBLIC_URL": "http://localhost:3000",
@@ -61,6 +62,7 @@ def main() -> int:
         run(
             "uv", "run", "pytest", "-q",
             "tests/test_postgres_workflow.py", "tests/test_seed_reassessment_demo.py",
+            "tests/test_training_postgres.py",
             env=env,
         )
         return 0

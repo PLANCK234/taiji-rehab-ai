@@ -7,6 +7,8 @@ import { getAssessmentTrend, getParticipantAssessments, measurementText } from "
 import IntakeForms from "./intake-forms";
 import CreateAssessmentForm from "./create-assessment-form";
 import AssessmentTrendSection from "./assessment-trend";
+import TrainingForms from "./training-forms";
+import { getSafetyEvents, getTrainingSessions } from "../../workspace/training";
 
 export const dynamic = "force-dynamic";
 
@@ -25,11 +27,13 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
     getAssessmentTrend(id, cookieHeader),
+    getTrainingSessions(id, cookieHeader),
+    getSafetyEvents(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
 
@@ -78,6 +82,30 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
         ) : <p className="note">创建评估需要当前模拟同意及录入权限。</p>}
       </section>
       <AssessmentTrendSection trend={trend} />
+      <section aria-labelledby="training-heading">
+        <h2 id="training-heading">训练观察与反馈</h2>
+        <p className="note">仅记录已发生的合成训练观察，不表示处方、疗效或临床安全结论。</p>
+        {sessions === null ? <p>训练记录暂不可用。</p> : sessions.length ? (
+          <ul>{sessions.map((row) => <li key={row.id}>
+            <Link href={`/participants/${participant.id}/training/${row.id}`}>
+              {new Date(row.session_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {row.action_label} ·
+              {row.actual_minutes === null ? "时长未记录" : `${row.actual_minutes} 分钟`}
+            </Link>
+          </li>)}</ul>
+        ) : <p>尚无训练记录。</p>}
+        <h3>事件记录</h3>
+        {safetyEvents === null ? <p>事件记录暂不可用。</p> : safetyEvents.length ? (
+          <ul>{safetyEvents.map((row) => <li key={row.id}>
+            {new Date(row.event_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {row.description} · 未配置平台内处置闭环
+          </li>)}</ul>
+        ) : <p>尚无事件记录。</p>}
+        <TrainingForms
+          participantId={participant.id}
+          canWrite={canWrite}
+          consentGranted={consents?.state === "granted"}
+          sessions={sessions ?? []}
+        />
+      </section>
       <section aria-labelledby="pose-demo-heading">
         <h2 id="pose-demo-heading">姿态演示</h2>
         <p className="note">仅生成合成线条人物预览；摄像头、照片文件、上传和识别均未启用。</p>

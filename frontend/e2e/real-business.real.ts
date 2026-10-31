@@ -47,6 +47,7 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await expect(page.getByRole("heading", { name: "版本时间线" })).toBeVisible();
   await expect(page.locator("ol li")).toHaveCount(3);
   await page.getByRole("link", { name: /返回编号对象/ }).click();
+  await expect(page).toHaveURL(/\/participants\/[0-9a-f-]+$/);
   let table = page.getByRole("table", { name: "编号对象的人工 SPPB 总分基线与复评序列" });
   await expect(table.locator("tbody tr")).toHaveCount(1);
   await expect(table.locator("meter")).toHaveCount(1);
@@ -62,6 +63,7 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await page.getByRole("button", { name: "确认当前记录" }).click();
   await expect(page.getByText(/当前版本 3 ·已确认记录/)).toBeVisible();
   await page.getByRole("link", { name: /返回编号对象/ }).click();
+  await expect(page).toHaveURL(/\/participants\/[0-9a-f-]+$/);
   await page.reload();
   table = page.getByRole("table", { name: "编号对象的人工 SPPB 总分基线与复评序列" });
   await expect(table.locator("tbody tr")).toHaveCount(2);

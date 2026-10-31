@@ -33,6 +33,15 @@
 | tug_seconds | decimal seconds | timed evaluation | optional by approved protocol |
 | grip_strength_kg | decimal kg | dynamometer | record side/device if used |
 | training_actual_minutes | decimal minutes | session observer | 0 observed is valid; missing is null |
+| training_sessions.session_at / action_label | UTC datetime / text | manual staff observation, D0 | actual activity only, not a planned dose or approved action code |
+| training_sessions.actual_minutes | integer minutes or null | manual staff observation, D0 | null unknown; 0 observed zero; no automatic completion inference |
+| training_sessions.completion_status | completed/partial/interrupted/not_started | manual staff observation, D0 | descriptive, no clinical clearance |
+| training_feedback_revisions.state | recorded/missing; no row = unfilled | manual staff entry, D0 | missing requires explicit reason and cannot contain observed values |
+| training_feedback_revisions.missing_reason | declined/interrupted/technical_failure/unknown or null | manual staff entry, D0 | null only for recorded state; not interpreted as no symptoms |
+| training_feedback_revisions.rpe | integer 6–20 or null | staff-recorded report, D0 | null unknown; no effectiveness/safety label |
+| training_feedback_revisions.difficulty / support / fatigue / discomfort / notes | free text or null | manual staff entry, D0 | no validated Q-12 categories, null = unrecorded; synthetic only |
+| training_feedback_revisions.revision_no / change_reason / recorded_by / recorded_at | version/text/UUID/UTC | audit trail, D0 | correction appends; prior versions retained |
+| safety_events.event_at / description / session_id | UTC/text/optional UUID | independent staff fact report, D0 | no severity/SAE classification, notification or clinical disposition |
 | training_completion | enum | clinician | completed/partial/aborted/not_observed |
 | support_type | enum | clinician | sitting/chair_supported/standing/other/unknown |
 | borg_rpe | integer 6–20 | participant-reported by staff | subjective, never AI-estimated |
