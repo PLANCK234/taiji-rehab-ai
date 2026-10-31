@@ -1,5 +1,7 @@
 # 任务台账
 
+> 本表是旧本地基线验收快照。2026-10-31 复核发现远端已新增 S6-02 和 ENG 台账；接续开发须先核定最新远端，不能根据本表判断全项目任务是否可执行。当前分支仅为 `codex/s6-01-local-acceptance-checkpoint`，不是主线台账；见[差异记录](testing/S6-01-REMOTE-RECONCILIATION.md)。
+
 状态仅使用 `NOT_STARTED`、`IN_PROGRESS`、`BLOCKED`、`IN_REVIEW`、`DONE`。`DONE` 必须附实际验证证据。临床与真实数据功能受 [待决问题](OPEN_QUESTIONS.md) 约束。
 
 | Task ID | Sprint | 目标 | 优先级 | 依赖 | 负责人/分支 | 状态 | 预计修改范围 | 验收与测试 | 完成证据 |
@@ -36,3 +38,5 @@
 | ENG-04B | 工程 | 现有合成建档至人工评估/趋势的真实数据库浏览器 E2E | P0 | S1-02/S2-01；ENG-01A/ENG-02A/ENG-04A | 未分配 | NOT_STARTED | `frontend/e2e/`, `scripts/`, tests, `docs/` | 临时 PostgreSQL + 实际 FastAPI/Next；浏览器覆盖登录、建档、模拟同意、人工评估/确认、复评缺失/趋势和越权拒绝；只用合成数据，失败可诊断，临时服务可清理 | — |
 
 下一可执行任务由 [HANDOFF.md](HANDOFF.md) 指定；开始前核对 Git 与真实代码。
+
+2026-10-31：S6-01 的实现和本地合成验收已完成，后续为审查及获准后的提交/PR；尚无依赖已满足的新业务任务。S3-01 仍因 Q-03/09 阻断，不能跳过审批直接进入 Sprint 3。`DONE` 不代表真实照片、临床研究准入或远端集成已获批准。

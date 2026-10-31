@@ -1,5 +1,7 @@
 # Requirements traceability
 
+> 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](testing/S6-01-REMOTE-RECONCILIATION.md)。
+
 | Requirement | Design | Tests | Sprint | State |
 |---|---|---|---|---|
 | Sprint 0 bootstrap | `frontend/`, `backend/`, `infra/compose.yaml`, README | frontend lint/typecheck/test/build; backend Ruff/pytest; migration up/down; HTTP smoke | 0 | local verified 2026-10-30; remote CI pending |
