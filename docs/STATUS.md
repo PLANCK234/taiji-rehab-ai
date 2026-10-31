@@ -17,6 +17,9 @@
 
 ## 最近实测结果
 
+- 2026-10-31 恢复审计：从干净的 `feat/s6-01-synthetic-pose-demo` 工作区与 HEAD `207d8896c295fbca090193198d6037d61d8a1419` 复核 HANDOFF、TASKS、Git 历史、S6-01 代码/测试及相关设计；`git show --check --stat HEAD` 通过。本轮仅更新交接文档，另建 `chore/recovery-audit-2026-10-31` 分支；任务状态不变。
+- 本轮实测：后端 `uv run ruff check .` 通过、`uv run pytest -q` → 23 passed（Starlette TestClient 上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 `pnpm lint`、`pnpm typecheck`、`pnpm test` → 12 passed、`pnpm build` 成功；Compose config 与 `scripts/check_handoff.py`（13 个 Task ID、本地链接）通过。S6-01 的临时 PostgreSQL/HTTP 烟测为上一检查点证据，本轮未重跑；浏览器手工 E2E 和远端 CI 仍未运行。
+- 依赖核对：S3-01 的 Q-03/09 未签核，保持 `BLOCKED`；S4/S5/S7/S8 均有未满足的前序或审批依赖。台账无下一可执行 Task ID；没有实施或修改任何临床规则。
 - S6-01 后端 Windows：`uv run ruff check .` → All checks passed；`uv run pytest -q` → 23 passed、Starlette TestClient 上游弃用警告 1 条。新增测试核对 OpenAPI 无图片/上传路由，两个图片 POST 均 404；没有数据库迁移或后端业务 API 变更。
 - S6-01 Node 26.13 / pnpm 10 容器：`pnpm lint`、`pnpm typecheck`、`pnpm test` → 12 passed；`pnpm build` 成功，包含 `/participants/[id]/pose-demo` 动态路由。DOM 交互测试验证生成/切换/清除合成 SVG、无摄像头/网络/存储调用。
 - S6-01 临时 tmpfs PostgreSQL 17 + FastAPI + Next HTTP：迁移至 `0004_manual_assessments` 并用 `app.seed_demo` 只建立合成账号与对象；未登录页面 307、已分配对象 200、跨研究对象 API 403/页面 404；页面有完整“姿态识别算法尚未接入”提示，没有文件输入/视频元素；图片 GET/POST 404；写入合成 `photo_scope=true` 后仍无上传端点。服务与临时容器已停止，原数据库卷未操作。

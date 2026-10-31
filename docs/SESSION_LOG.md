@@ -46,3 +46,12 @@
 - 测试：后端 Ruff/pytest 23、前端 Node 26/pnpm 10 容器 lint/typecheck/test 12/build；DOM 交互无摄像/网络/存储调用；临时 PostgreSQL + Next HTTP 登录/对象范围/照片范围及图片 API 404 烟测。首次 DOM 测试因 Node 26 `localStorage` 全局不可用失败，改用测试监视器后通过。浏览器 UI 工具因无法可靠识别当前 Chrome URL 而停止，本轮未运行浏览器手工 E2E。结果见 `STATUS.md`。
 - 提交/PR：本地分支 `feat/s6-01-synthetic-pose-demo`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：Q-01/10 真实影像审批、AT-12 真实影像/手工浏览器验收、远端 CI 均待后续；台账无依赖已满足的下一 Task ID，S3-01 待 Q-03/09 签核。
+
+## 2026-10-31 UTC · 无可执行 Task ID（恢复审计）
+
+- 目标：只依据仓库资料恢复检查点，复核 S6-01 的实际代码与测试，寻找依赖已满足的下一 Task ID。
+- 完成：确认起始工作区干净，HEAD `207d8896c295fbca090193198d6037d61d8a1419` 与 HANDOFF 一致；复核 AGENTS、继续 Prompt、STATUS/HANDOFF/TASKS、Git、S6-01 实现及相关设计。另建 `chore/recovery-audit-2026-10-31`，只更新交接文档；任务状态不变。
+- 决策：Q-03/09 仍未由有权负责人签核，S3-01 保持 BLOCKED；其他未完成任务依赖前序阶段或审批。未添加新 Task ID，未修改临床规则或真实影像处理。
+- 测试：后端 Ruff 通过、pytest 23 passed（上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 lint/typecheck/test 12/build 通过；Compose config、交接脚本（13 Task ID/链接）和上次提交 `git show --check --stat` 通过。上一检查点的临时 PostgreSQL/HTTP 烟测未重跑；浏览器手工 E2E 与远端 CI 未运行。
+- 提交/PR：本地文档分支 `chore/recovery-audit-2026-10-31`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：需 Q-03 的适配模板/禁忌/剂量及 Q-09 的审批/发布责任人与版本证据完成签核，方可启动 S3-01；浏览器手工 E2E、远端 CI 和其他审批仍待后续。
