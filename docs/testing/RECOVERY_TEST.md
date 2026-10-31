@@ -29,3 +29,7 @@
 ## 2026-10-31 S6-01 接续核对
 
 从干净的 `2bf72360c94244995fe078a01f4b5cc61a3f7a0e` 检查点只读仓库与 Git，确认 S2-01 代码与台账一致，S3-01 因 Q-03/09 未签核阻断；按 `TASKS.md` 选择允许纯合成回退的 S6-01。完成后核对 `feat/s6-01-synthetic-pose-demo` 的实际 HEAD、已授权对象页面和合成 SVG 状态、23 项后端与 12 项前端测试、本地 HTTP 范围/无图片 API 烟测及 `STATUS.md` 的未运行检查。此时台账没有下一项依赖已满足的任务；S3-01 需授权负责人按 `OPEN_QUESTIONS.md` 关闭 Q-03/09 后才能继续。真实影像仍受 Q-01/10 阻断。
+
+## 2026-10-31 ENG-04A 接续核对
+
+开发负责人授权 ENG-01 至 ENG-04 的独立非临床工作后，新增台账与 ENG-04A 检查点。新会话从 `feat/eng-04a-postgres-contract` 核对实际 HEAD、干净工作区、`ENG-04A` 的临时 PostgreSQL 迁移/API 测试与 OpenAPI 契约；运行 `uv run --no-project python scripts/check_handoff.py`，其下一任务引用须为存在于 TASKS 的 `ENG-01A`。S3-01 仍因 Q-03/09 未签核 `BLOCKED`。ENG-01A 只能造可重放的合成建档至人工复评夹具，不生成候选等级或临床建议。

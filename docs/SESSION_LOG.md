@@ -73,3 +73,12 @@
 - 测试：后端 Ruff/pytest 23、前端 Node 26/pnpm 10 lint/typecheck/test 12/build、Playwright/Chromium 3、Compose config、交接脚本 14 Task ID/链接及上次提交检查均通过；pytest 有上游弃用警告 1 条。真实 PostgreSQL/Next HTTP 烟测、手工浏览器 UAT 与远端 CI 未运行。
 - 提交/PR：本地文档分支 `docs/recovery-audit-post-s6-02`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：需 Q-03 的适配模板/禁忌/剂量与 Q-09 的审批/发布权限签核和版本证据，才可启动 S3-01；真实影像仍待 Q-01/10。
+
+## 2026-10-31 UTC · ENG-04A
+
+- 目标：依据开发负责人明确授权，在不改变临床规则的前提下登记 ENG-01 至 ENG-04，并交付首个独立的真实数据库自动化质量门禁。
+- 起点：从干净的 `e5d7a5865a0c6354c57ce857046da347e1aa75d3` 复核 AGENTS、继续 Prompt、HANDOFF/STATUS/TASKS、Git、代码和测试；确认 Q-03/09 仍未签核，`S3-01` 继续 `BLOCKED`。
+- 完成：`ENG-04A` 的临时 PostgreSQL 17 tmpfs 迁移/API 测试、OpenAPI 快照测试、CI 隔离库顺序与 ENG Task ID 交接校验；更新任务依赖与验收、测试策略、追踪和恢复演练。真实 API 覆盖合成建档、模拟同意/筛查、人工基线/复评、零分/缺失、追加更正、持久化、跨研究/同研究未分配对象和角色拒绝。无业务 API、临床阈值、建议或真实数据修改。
+- 测试：后端 Ruff 通过、普通 pytest 24 passed/1 skipped；临时库 `upgrade head → alembic check → downgrade base → upgrade head` 与 opt-in PostgreSQL 测试 1 passed；交接脚本与最终 Git 检查另在 STATUS 留痕。直接 `python` 在本机不可用，改用 `uv run --no-project python`。pytest 有上游弃用警告 1 条。远端 CI、前端与完整浏览器业务 E2E 未运行。
+- 提交/PR：本地分支 `feat/eng-04a-postgres-contract`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-01A` 可开始纯合成可重放夹具；ENG-01 全链路的候选分级仍受 S3-01/Q-03/09 阻断，训练/周期/导出另需非临床前置实现。

@@ -14,6 +14,7 @@ HANDOFF_FIELDS = [
     "Branch / HEAD", "最近完成任务", "本次改动", "已通过验证", "失败或未运行",
     "已知问题", "尚未完成", "下一任务", "需阅读", "下一任务验收", "未提交修改",
 ]
+TASK_ID = r"(?:S\d+-\d+|ENG-\d{2}[A-Z]?)"
 
 
 def main() -> int:
@@ -30,8 +31,8 @@ def main() -> int:
     for field in HANDOFF_FIELDS:
         if field not in handoff:
             errors.append(f"handoff field missing: {field}")
-    ids = set(re.findall(r"\bS\d+-\d+\b", tasks))
-    next_match = re.search(r"\| 下一任务 \|[^\n]*?\b(S\d+-\d+)\b", handoff)
+    ids = set(re.findall(rf"\b{TASK_ID}\b", tasks))
+    next_match = re.search(rf"\| 下一任务 \|[^\n]*?\b({TASK_ID})\b", handoff)
     if not next_match or next_match.group(1) not in ids:
         errors.append("next Task ID is missing from TASKS.md")
     for name in ["NOT_STARTED", "IN_PROGRESS", "BLOCKED", "IN_REVIEW", "DONE"]:

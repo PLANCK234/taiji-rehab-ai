@@ -1,6 +1,6 @@
 # 实施状态
 
-更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳、S6-02 模拟 API 浏览器验收本地完成；Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
+更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳、S6-02 模拟 API 浏览器验收本地完成。开发负责人授权独立非临床工程任务 ENG-01 至 ENG-04；`ENG-04A` 的临时 PostgreSQL/API/契约门禁本地完成，`ENG-04` 父任务仍进行中。Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
 
 | 范围 | 状态 | 证据与限制 |
 |---|---|---|
@@ -13,11 +13,14 @@
 | S2-01 合成人工 SPPB 总分评估 | DONE | 基线/复评草稿、有效/缺失/无效总分、追加历史、更正理由与临床角色确认；权限、模拟同意、CSRF、幂等、审计；本地单测、迁移、PostgreSQL 和页面烟测通过。FR-003/AT-01/02 仅录入部分 |
 | S6-01 合成姿态演示壳 | DONE | 已授权对象可打开合成 SVG 预览页；“姿态识别算法尚未接入”；无摄像头、文件选择、上传、保存或评分。AT-12 仅合成部分；真实影像和浏览器手工 E2E 未验收 |
 | S6-02 合成姿态页浏览器验收 | DONE | Playwright/Chromium 3 场景通过，覆盖未登录、模拟 API 拒绝未分配对象、合成 SVG 交互和无摄像头/写请求；模拟 API 非真实 PostgreSQL 集成验收 |
+| ENG-04A 真实数据库测试门禁 | DONE | 临时 tmpfs PostgreSQL 17 迁移升/check/降/升，合成建档至人工复评真实数据库 API 测试；OpenAPI 快照比较；CI 配置同等隔离数据库序列；交接脚本识别 ENG ID。远端 CI 待 PR |
+| ENG-01/02/03 与 ENG-04 其余范围 | NOT_STARTED / IN_PROGRESS | 完整 Demo、研究可视化、算法研究框架尚未实现；ENG-04 父任务仍需前端、完整业务 E2E 与新会话实际恢复，详见 TASKS |
 | FR-004 至 FR-011 后续业务功能 | NOT_STARTED | 无分级、建议、训练、周期或导出 API；AT-01 导出与 AT-02 分级边界未实现；见 `TASKS.md` |
 | 真实数据/临床上线 | BLOCKED | Q-01 至 Q-13 待相应负责人签核；见 `OPEN_QUESTIONS.md` |
 
 ## 最近实测结果
 
+- 2026-10-31 ENG-04A：从干净的 `e5d7a5865a0c6354c57ce857046da347e1aa75d3` 和仓库资料恢复，新增 ENG-01 至 ENG-04 及非临床可验收子任务。临时 PostgreSQL 17 容器使用独立 `taiji_eng04` 库与 tmpfs，`upgrade head → alembic check → downgrade base → upgrade head` 通过；真实 PostgreSQL API 测试通过合成建档、模拟同意/筛查、人工基线/复评、零分与缺失区分、修订持久化、跨研究/同研究未分配对象及分析员拒绝、审计。容器已停止，未触碰原合成数据卷。后端 Ruff 通过（新增同研究权限断言后曾报 1 处过长行，修复后复跑通过）；普通 pytest 24 passed、1 skipped（隔离库测试仅显式启用）；单独 PostgreSQL 测试 1 passed；OpenAPI 快照比较包含于常规 pytest。交接脚本通过：22 Task ID、本地 Markdown 链接完整；`git diff --check` 通过。远端 CI、前端测试、浏览器完整业务 E2E 本任务未运行；pytest 有 Starlette TestClient 上游弃用警告 1 条。
 - 2026-10-31 S6-02 后恢复复核：起始工作区干净、HEAD `bf85e3c21f5cfe723be93573ed3c841c713ca781` 与 HANDOFF 一致；核对 AGENTS、继续 Prompt、任务台账、S6-02 浏览器代码/合成夹具、S3-01 相关设计与未决问题。Q-03/09 无签核证据；现有未完成 Task ID 均有未满足依赖。仅在 `docs/recovery-audit-post-s6-02` 分支更新交接文档，不新增任务或临床规则。
 - 本轮实测：后端 `uv run ruff check .` 通过、`uv run pytest -q` → 23 passed（Starlette TestClient 上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 lint、typecheck、test → 12 passed、build 成功；`Dockerfile.e2e` 镜像重建、Playwright/Chromium → 3 passed（本地模拟 API）；Compose config 与交接脚本（14 Task ID、本地链接）通过。真实 PostgreSQL/Next HTTP 烟测、手工浏览器 UAT、远端 CI 本轮未运行。
 - S6-02：从干净的 `692971f35f585dcfe4eaa3c3309746b5e4dcbf29` 恢复；原台账无可执行 ID，登记独立合成浏览器验收任务 `S6-02`，依赖已完成的 S6-01，未更改产品代码或临床规则。`frontend/e2e/synthetic-pose.pw.ts` 在 Next + 本地模拟 API 的 Chromium 中 3 passed：未登录跳转、未分配对象 404、算法提示/模拟照片范围/合成 SVG 生成切换清除、无摄像头调用或非 GET 请求。模拟 API 只含合成编号数据，不是 PostgreSQL 全链路或真实影像验收。
@@ -58,4 +61,4 @@
 
 ## 当前阻断与下一步
 
-S2-01、S6-01 与 S6-02 的合成路径已完成；Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。台账当前没有依赖已满足的下一 Task ID：最靠前的 `S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；其后的 S4/S5/S7/S8 依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
+S2-01、S6-01、S6-02 和非临床 `ENG-04A` 的限定范围已完成；下一项依赖已满足的任务是 `ENG-01A`，为现有合成建档至人工复评链路提供可重放夹具，不得生成候选等级或建议。Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。`S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；S4/S5/S7/S8 仍依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
