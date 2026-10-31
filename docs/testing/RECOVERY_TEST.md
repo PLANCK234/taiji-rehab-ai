@@ -33,3 +33,7 @@
 ## 2026-10-31 ENG-04A 接续核对
 
 开发负责人授权 ENG-01 至 ENG-04 的独立非临床工作后，新增台账与 ENG-04A 检查点。新会话从 `feat/eng-04a-postgres-contract` 核对实际 HEAD、干净工作区、`ENG-04A` 的临时 PostgreSQL 迁移/API 测试与 OpenAPI 契约；运行 `uv run --no-project python scripts/check_handoff.py`，其下一任务引用须为存在于 TASKS 的 `ENG-01A`。S3-01 仍因 Q-03/09 未签核 `BLOCKED`。ENG-01A 只能造可重放的合成建档至人工复评夹具，不生成候选等级或临床建议。
+
+## 2026-10-31 ENG-01A 接续核对
+
+从 `feat/eng-01a-synthetic-reassessment` 的干净检查点核对 `ENG-01A` 两名合成编号对象、重复运行与拒绝覆盖逻辑、SQLite/临时 PostgreSQL API 测试，并重跑 `scripts/check_handoff.py`；下一任务应为 `ENG-02A`。该任务只读已确认的合成数据库评估记录，保持缺失、草稿及无效状态，不得把原始总分变化解释为疗效。`S3-01` 仍需 Q-03/09 有权签核。

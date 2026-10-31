@@ -25,8 +25,8 @@
 
 | Task ID | Sprint | 目标 | 优先级 | 依赖 | 负责人/分支 | 状态 | 预计修改范围 | 验收与测试 | 完成证据 |
 |---|---:|---|---|---|---|---|---|---|---|
-| ENG-01 | 工程 | 合成数据 Demo 全链路：建档、评估、候选状态、训练反馈、复评、导出 | P0 | S1-02/S2-01；ENG-04A；非临床会话/周期/导出子任务；临床候选分级仍受 S3-01/Q-03/09 阻断 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, `database/seed/`, `docs/` | 仅合成对象端到端；未实现项按现有需求补齐并单独验收；任何训练适配建议仅明确标注为不生效的演示草稿；不能把缺失当零或生成临床处方 | — |
-| ENG-01A | 工程 | 可重放的合成建档至人工复评 Demo 夹具 | P0 | S1-02/S2-01；ENG-04A | 未分配 | NOT_STARTED | `database/seed/`, `backend/tests/`, `docs/` | 基于真实迁移库创建编码对象、同意/筛查、基线与复评；可重复、可隔离，展示缺失和历史；不生成候选等级 | — |
+| ENG-01 | 工程 | 合成数据 Demo 全链路：建档、评估、候选状态、训练反馈、复评、导出 | P0 | S1-02/S2-01；ENG-04A；非临床会话/周期/导出子任务；临床候选分级仍受 S3-01/Q-03/09 阻断 | `feat/eng-01a-synthetic-reassessment` | IN_PROGRESS | `backend/`, `frontend/`, `database/seed/`, `docs/` | 仅合成对象端到端；未实现项按现有需求补齐并单独验收；任何训练适配建议仅明确标注为不生效的演示草稿；不能把缺失当零或生成临床处方 | ENG-01A 子范围完成；候选/训练/周期/导出未实现 |
+| ENG-01A | 工程 | 可重放的合成建档至人工复评 Demo 夹具 | P0 | S1-02/S2-01；ENG-04A | `feat/eng-01a-synthetic-reassessment` | DONE | `backend/app/seed_reassessment_demo.py`, `backend/tests/`, `README.md`, `docs/` | 基于真实迁移库创建编码对象、同意/筛查、基线与复评；可重复、可隔离，展示缺失和历史；不生成候选等级 | 2026-10-31：普通 pytest 25 passed/2 opt-in skipped；临时 PostgreSQL 升降升和相关 3 passed；Ruff；见 STATUS |
 | ENG-02 | 工程 | 研究工作台指标与周期趋势 | P0 | ENG-02A；训练完成率/RPE 依赖 ENG-01 的非临床会话记录；周期汇总依赖非临床周期数据 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, `docs/` | 按研究/对象服务端权限，从数据库记录展示功能指标、完成率、RPE、缺失及复评趋势；不硬编码科研结果 | — |
 | ENG-02A | 工程 | 已有人工 SPPB 记录的研究趋势与缺失视图 | P0 | S1-02/S2-01；ENG-04A | 未分配 | NOT_STARTED | `backend/`, `frontend/`, tests | 只读、按对象授权、从已确认数据库版本计算基线/复评序列；草稿和缺失分别呈现，缺失不当零；数据库/API/页面测试 | — |
 | ENG-03 | 工程 | 离线数据质量、患者级隔离、V0 基线及候选评估框架 | P1 | ENG-03A；真实疗效标签/发布仍受 Q-06/09 和 S7-01 阻断 | 未分配 | NOT_STARTED | `ml/`, `docs/`, tests | 合成数据集可复现；同一对象不得跨 train/val/test；V0/候选评估有版本、泄漏检查及缺失报告；无已确认标签时仅描述分析或显著标注的合成演示标签；SPPB 官方标准不改 | — |

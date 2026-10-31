@@ -36,7 +36,9 @@ Invoke-RestMethod http://127.0.0.1:8000/ready
 Start-Process http://localhost:3000/login
 ```
 
-演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。它只创建虚构研究编号、编码对象和权限分配。
+演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。基础种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。基础种子只创建虚构研究编号、编码对象和权限分配。
+
+可选的人工复评合成夹具：在已配置的本地合成环境运行 `docker compose -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_reassessment_demo`。它先确认基础种子，再创建 `SYN-ENG01A-001/002` 两名虚构编号对象的模拟同意、未知/未记录筛查、人工基线与复评（含缺失和更正历史）。重复运行只核对既有记录；如果夹具被改动会报错，不覆盖记录。密码重置须先单独运行基础种子。夹具原始值不是疗效结果，不生成等级、训练计划或临床建议。
 
 登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；进入对象页追加模拟同意记录，再填写合成项目代码和 `yes`/`no`/`unknown` 三态筛查。无当前模拟同意时筛查写入关闭；所有筛查结果都保持“待复核”，绝不表示安全或入组资格。当前模拟同意下可创建基线/复评草稿，仅由工作人员录入 SPPB 人工总分、缺失或无效状态，按权限确认并查看追加版本。零分与缺失分开显示；不自动计算分项、等级或训练建议。对象页的姿态演示仅生成合成线条图，明确标示识别算法尚未接入；没有摄像、文件选择、上传或保存。真实照片、身份和导出均未开放。
 

@@ -226,12 +226,22 @@ def test_migrated_postgres_synthetic_workflow() -> None:
 
     with Session(engine) as db:
         assert db.scalar(select(Participant).where(Participant.id == uuid.UUID(participant_id)))
-        assert len(db.scalars(select(Assessment)).all()) == 2
-        assert len(db.scalars(select(AssessmentRevision)).all()) == 8
+        assessments = db.scalars(
+            select(Assessment).where(Assessment.participant_id == uuid.UUID(participant_id))
+        ).all()
+        assert len(assessments) == 2
+        assert len(
+            db.scalars(
+                select(AssessmentRevision).where(
+                    AssessmentRevision.assessment_id.in_([row.id for row in assessments])
+                )
+            ).all()
+        ) == 8
         events = db.scalars(select(AuditEvent)).all()
         assert any(
             row.actor_id == clinician_id and row.action == "confirm" and row.outcome == "allowed"
             for row in events
         )
         assert any(row.outcome == "denied" for row in events)
+    engine.dispose()
     get_engine.cache_clear()

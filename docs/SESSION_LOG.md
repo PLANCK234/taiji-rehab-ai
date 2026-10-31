@@ -82,3 +82,11 @@
 - 测试：后端 Ruff 通过、普通 pytest 24 passed/1 skipped；临时库 `upgrade head → alembic check → downgrade base → upgrade head` 与 opt-in PostgreSQL 测试 1 passed；交接脚本与最终 Git 检查另在 STATUS 留痕。直接 `python` 在本机不可用，改用 `uv run --no-project python`。pytest 有上游弃用警告 1 条。远端 CI、前端与完整浏览器业务 E2E 未运行。
 - 提交/PR：本地分支 `feat/eng-04a-postgres-contract`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
 - 接续：`ENG-01A` 可开始纯合成可重放夹具；ENG-01 全链路的候选分级仍受 S3-01/Q-03/09 阻断，训练/周期/导出另需非临床前置实现。
+
+## 2026-10-31 UTC · ENG-01A
+
+- 目标：从干净的 ENG-04A 检查点 `2357fe7` 接续，交付现有合成建档至人工复评能力的可重放 Demo 夹具。
+- 完成：新增可选 `app.seed_reassessment_demo`，基于本地基础合成账号/研究创建两名 SYN-ENG01A 编号对象、模拟同意、未知或未记录筛查、人工总分基线/复评、缺失及有原因的更正历史；记录种子审计。二次运行核验已有夹具，不增加记录；遇部分或被改动的夹具拒绝覆盖。无新 API、迁移、临床等级、疗效标签或训练建议。
+- 测试：后端 Ruff 通过、普通 pytest 25 passed/2 skipped；临时 PostgreSQL 17 空库迁移升/check/降/升后，既有真实 API 工作流和夹具 SQLite/PostgreSQL 测试 3 passed；容器停止。`README.md` 给出本地命令。前端和远端 CI 未运行；pytest 有上游弃用警告 1 条。
+- 提交/PR：本地分支 `feat/eng-01a-synthetic-reassessment`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-02A` 可基于真实数据库中的合成评估记录实现权限受控的已确认趋势与缺失视图；ENG-01 父任务仍缺候选状态、训练、周期和导出，临床候选仍受 S3-01/Q-03/09 阻断。

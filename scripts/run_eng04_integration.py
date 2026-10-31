@@ -58,7 +58,11 @@ def main() -> int:
         run("uv", "run", "alembic", "check", env=env)
         run("uv", "run", "alembic", "downgrade", "base", env=env)
         run("uv", "run", "alembic", "upgrade", "head", env=env)
-        run("uv", "run", "pytest", "-q", "tests/test_postgres_workflow.py", env=env)
+        run(
+            "uv", "run", "pytest", "-q",
+            "tests/test_postgres_workflow.py", "tests/test_seed_reassessment_demo.py",
+            env=env,
+        )
         return 0
     finally:
         if started:
