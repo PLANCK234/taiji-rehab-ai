@@ -32,6 +32,8 @@ ENG-01A adds an opt-in local seed `python -m app.seed_reassessment_demo` after t
 
 ENG-02A adds `backend/tests/test_research_trends.py` for latest-confirmed versus pending-draft semantics, zero/missing/invalid/unconfirmed separation, role/study/object denies and read audit. The existing ENG-01A seed test also reads the new trend route against disposable PostgreSQL. `frontend/app/participants/[id]/assessment-trend.test.tsx` checks the accessible table and `meter` values, while the typed API client test keeps denied reads distinct from an empty history. From the repository root, `uv run --no-project python scripts/run_eng02a_smoke.py` builds the current backend and frontend images, starts uniquely named Docker containers on a temporary network with tmpfs PostgreSQL, seeds only synthetic records, reads both rendered Next pages and checks a cross-study page 404, then stops all containers. It needs Docker and locally available build dependencies; it does not touch a shared database volume or host frontend build outputs. This is a descriptive per-object view, not an approved cycle endpoint or clinical efficacy test.
 
+ENG-03A adds an independent `ml/` uv project. Run `cd ml && uv run ruff check . && uv run pytest -q`; `ml/tests/test_offline_dataset.py` checks deterministic bytes/hash and replay refusal, observed zero versus null/missing reasons, duplicate/invalid/non-synthetic rejection, and participant split overlap/omission refusal. From the repository root, `uv run --project ml python -m ml.offline_dataset --output exports/eng03a-demo` is the CLI smoke; the ignored output is synthetic only. This does not test a trained model, prediction-time cutoff or approved research export.
+
 PowerShell fallback from `frontend/`:
 
 ```powershell

@@ -1,6 +1,6 @@
 # 实施状态
 
-更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳、S6-02 模拟 API 浏览器验收本地完成。开发负责人授权独立非临床工程任务 ENG-01 至 ENG-04；`ENG-04A` 临时 PostgreSQL/API 门禁、`ENG-01A` 合成复评夹具及 `ENG-02A` 对象级人工总分趋势本地完成，ENG-01/02/04 父任务仍进行中。Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
+更新：2026-10-31；当前阶段：Sprint 2 合成手工评估范围 `IN_PROGRESS`，S2-01 与独立 P1 的 S6-01 合成演示壳、S6-02 模拟 API 浏览器验收本地完成。开发负责人授权独立非临床工程任务 ENG-01 至 ENG-04；`ENG-04A` 临时 PostgreSQL/API 门禁、`ENG-01A` 合成复评夹具、`ENG-02A` 对象级人工总分趋势及 `ENG-03A` 离线合成质量/切分本地完成，ENG-01/02/03/04 父任务仍进行中。Sprint 1 完整受试者 CRUD、真实同意和获批准筛查流程仍未完成。本仓库只可用于合成数据开发；临床、伦理、真实数据和生产部署均未获本仓库文件证明批准。
 
 | 范围 | 状态 | 证据与限制 |
 |---|---|---|
@@ -16,12 +16,14 @@
 | ENG-04A 真实数据库测试门禁 | DONE | 临时 tmpfs PostgreSQL 17 迁移升/check/降/升，合成建档至人工复评真实数据库 API 测试；OpenAPI 快照比较；CI 配置同等隔离数据库序列；交接脚本识别 ENG ID。远端 CI 待 PR |
 | ENG-01A 合成复评夹具 | DONE | 两名 SYN-ENG01A 编号对象的模拟同意、未知/未记录筛查、人工基线/复评、缺失和更正历史；重复运行不添加、更改夹具时拒绝覆盖；SQLite 和临时 PostgreSQL API 验证 |
 | ENG-02A 人工总分趋势 | DONE | 按对象授权的只读数据库投影，最新已确认与待确认草稿分开；页面显示基线/复评登记顺序、零分、缺失/无效且不画虚假分值；真实 PostgreSQL→API→Next 页面烟测通过 |
-| ENG-01/02/04 其余范围与 ENG-03 | IN_PROGRESS / NOT_STARTED | 完整 Demo、训练完成率/RPE/周期趋势和算法研究框架尚未实现；ENG-04 父任务仍需完整业务浏览器 E2E 与新会话实际恢复，详见 TASKS |
+| ENG-03A 合成离线质量/切分 | DONE | 固定种子 18 名虚构对象、36 条原始记录；质量报告区分零/空值与缺失原因、拒绝重复/非合成结构错误；对象级三集合隔离、哈希清单与拒绝覆盖；无疗效标签/模型 |
+| ENG-01/02/03/04 其余范围 | IN_PROGRESS | 完整 Demo、训练完成率/RPE/周期趋势、V0/候选评估仍未实现；ENG-04 父任务仍需完整业务浏览器 E2E 与新会话实际恢复，详见 TASKS |
 | FR-004 至 FR-011 后续业务功能 | NOT_STARTED | 无分级、建议、训练、周期或导出 API；AT-01 导出与 AT-02 分级边界未实现；见 `TASKS.md` |
 | 真实数据/临床上线 | BLOCKED | Q-01 至 Q-13 待相应负责人签核；见 `OPEN_QUESTIONS.md` |
 
 ## 最近实测结果
 
+- 2026-10-31 ENG-03A：从干净的 `e8eaca1ebdc354e117c7681b3585197de4679a3d` 检查点复核 Git、交接、ENG-02A 趋势代码与设计；该任务相关后端 pytest 3 passed/1 opt-in skipped、交接校验 22 ID 通过。新增独立 `ml/` 锁定项目和纯合成离线生成器，不读取业务数据库；固定种子输出 18 个虚构对象的 36 条记录，`quality.json` 报告 29 valid、3 missing、2 invalid、2 unrecorded，空值 7、确有零分 3、重复 ID 0；`manifest.json` 明示 `target=null`、`clinical_use=false`，记录 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`。命令行重复导出哈希一致；单测覆盖不同内容拒绝覆盖、缺失/重复/非合成错误和对象跨 train/validation/test 泄漏拒绝。首轮 ML Ruff 有格式问题，修复后 `uv sync --frozen`、`uv run ruff check .` 与 pytest 4 passed；后端 Ruff/pytest 27 passed/2 opt-in skipped；交接脚本 23 ID/仓库链接与 `git diff --check` 通过。新增 CI 作业，远端 CI 尚未运行。无模型训练、真实数据快照、疗效标签、临床规则或数据库迁移。
 - 2026-10-31 ENG-02A：从干净的 `888d2488c2e12bb47fa58367d256356b87bc2d84` 检查点复核 Git、交接、现有种子/API 和未决问题后实施。只读 API 在服务端检查角色、研究及对象分配并审计；每项评估同时返回最新版本与最新已确认版本，页面只为确认且有效的人工总分绘制 0–12 图示，草稿、缺失、无效及零分分别显示；按登记时间排序，不推断疗效或批准的周期。首轮 Ruff 有 1 处过长行，修复后 `uv run ruff check .` 通过；`uv run pytest -q` → 27 passed/2 opt-in skipped；独立临时 PostgreSQL 17 迁移升/check/降/升与 API 3 passed；前端 Node 26/pnpm 10 容器 lint/typecheck/test 15/build 通过。独立 tmpfs PostgreSQL→FastAPI→Next 全栈烟测（最终加强图示断言后复跑）：`SYN-ENG01A-001/002` 页面实际显示数据库总分、缺失及 `meter`，跨研究页面 404；所有临时容器/网络已停止，原合成卷未操作。交接脚本通过（22 Task ID、仓库内链接），`git diff --check` 通过。远端 CI、临床人工验收未运行；pytest 有上游 TestClient 弃用警告 1 条。
 - 2026-10-31 ENG-01A：从干净的 ENG-04A 检查点 `2357fe7` 接续；新增仅 `local` 且合成模式可运行的可选种子。`SYN-ENG01A-001/002` 两名虚构编号对象含已授予的模拟同意，一人筛查 `unknown`、另一人未筛查；人工基线/复评含有效零分、缺失、追加更正。种子二次运行核验完整既有数据，任何夹具偏离或部分存在均拒绝覆盖；不生成等级、疗效结论或训练建议。后端 Ruff 通过、普通 pytest 25 passed/2 skipped；独立 tmpfs PostgreSQL 17 迁移升→check→降→升后 3 passed（现有工作流 1、夹具 SQLite 1、夹具 PostgreSQL 1），容器停止，未操作原卷。交接脚本通过（22 Task ID、本地链接），`git diff --check` 通过。前端与远端 CI 本任务未运行；Starlette TestClient 上游弃用警告 1 条。
 - 2026-10-31 ENG-04A：从干净的 `e5d7a5865a0c6354c57ce857046da347e1aa75d3` 和仓库资料恢复，新增 ENG-01 至 ENG-04 及非临床可验收子任务。临时 PostgreSQL 17 容器使用独立 `taiji_eng04` 库与 tmpfs，`upgrade head → alembic check → downgrade base → upgrade head` 通过；真实 PostgreSQL API 测试通过合成建档、模拟同意/筛查、人工基线/复评、零分与缺失区分、修订持久化、跨研究/同研究未分配对象及分析员拒绝、审计。容器已停止，未触碰原合成数据卷。后端 Ruff 通过（新增同研究权限断言后曾报 1 处过长行，修复后复跑通过）；普通 pytest 24 passed、1 skipped（隔离库测试仅显式启用）；单独 PostgreSQL 测试 1 passed；OpenAPI 快照比较包含于常规 pytest。交接脚本通过：22 Task ID、本地 Markdown 链接完整；`git diff --check` 通过。远端 CI、前端测试、浏览器完整业务 E2E 本任务未运行；pytest 有 Starlette TestClient 上游弃用警告 1 条。
@@ -65,4 +67,4 @@
 
 ## 当前阻断与下一步
 
-S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A` 和 `ENG-02A` 的限定范围已完成；下一项依赖已满足的独立任务是 `ENG-03A`，仅从合成数据建立可复现的离线质量报告与对象级数据切分，不定义疗效标签或 SPPB 分级阈值。ENG-01 的训练/周期/导出仍需安全的非临床前置任务另行拆解。Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。`S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；S4/S5/S7/S8 仍依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
+S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A`、`ENG-02A` 和 `ENG-03A` 的限定范围已完成；下一项依赖已满足的独立任务是 `ENG-04B`，在临时 PostgreSQL 和实际 API/Next 上做现有合成建档、人工评估与趋势浏览器 E2E，不扩展临床业务。ENG-01 的训练/周期/导出仍需安全的非临床前置任务另行拆解。Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。`S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；S4/S5/S7/S8 仍依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。

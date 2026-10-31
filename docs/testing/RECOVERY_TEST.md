@@ -41,3 +41,7 @@
 ## 2026-10-31 ENG-02A 接续核对
 
 从 `feat/eng-02a-assessment-trends` 的干净检查点核对真实 HEAD、`backend/app/research_api.py` 的角色/研究/对象权限和审计、`research_trends.py` 的最新确认与当前草稿分离、对象页的有效零分/缺失/无效图示。运行后端常规测试及临时 PostgreSQL 集成、前端 lint/typecheck/test/build、`scripts/run_eng02a_smoke.py` 的临时数据库→API→Next 页面烟测和交接检查。下一任务为 `ENG-03A`，不得从训练反馈臆造疗效标签或修改 SPPB 分级；`S3-01` 仍需 Q-03/09 签核。
+
+## 2026-10-31 ENG-03A 接续核对
+
+从 `feat/eng-03a-synthetic-offline-dataset` 的干净检查点确认 HEAD、`ml/offline_dataset.py` 与锁定依赖；重跑 `ml/` Ruff/pytest 和命令行合成快照重放，检查清单的 `target=null`、哈希与对象不交叉。下一项 `ENG-04B` 只覆盖已有合成业务的真实数据库浏览器 E2E。ENG-03 的 V0/候选评估、真实研究数据导出、时点特征和模型发布均未完成；`S3-01` 保持 Q-03/09 阻断。

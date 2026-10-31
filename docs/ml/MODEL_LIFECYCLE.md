@@ -26,3 +26,5 @@ An ~60-person initial study is generally exploratory. Do not assert clinical uti
 - Retraining and changing live thresholds after each visit without approved evaluation.
 - Retrofitting original SPPB official scoring cutoffs based on one small study.
 - Public GPT inference over identifiable or unapproved patient data.
+
+ENG-03A is limited to offline synthetic QA and participant-level split verification. Its train/validation/test names are split-index infrastructure, not evidence that a model has been fitted or evaluated. The generated manifest has no target. V0 comparison, temporal feature cutoff, signed clinical review, model registry and release gates above remain unimplemented.

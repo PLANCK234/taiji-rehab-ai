@@ -57,6 +57,18 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+  ml:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+
   docs:
     runs-on: ubuntu-latest
     steps:

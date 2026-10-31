@@ -98,3 +98,11 @@
 - 测试：后端 Ruff/pytest 27 passed/2 opt-in skipped，临时 PostgreSQL 迁移升/check/降/升与真实 API 测试 3 passed；前端 Node 26/pnpm 10 lint/typecheck/test 15/build；独立 tmpfs PostgreSQL→FastAPI→Next 页面烟测显示两名合成对象的数据库总分/缺失，跨研究页面 404，临时容器/网络均停止。首轮 Ruff 一处过长行修复后通过。远端 CI、真实数据和临床人工验收未运行。
 - 提交/PR：本地分支 `feat/eng-02a-assessment-trends`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
 - 接续：`ENG-03A` 为下一依赖已满足任务；只做合成离线数据质量和对象级切分。`S3-01` 仍因 Q-03/09 未签核 `BLOCKED`，ENG-01/02/04 父任务未完成。
+
+## 2026-10-31 UTC · ENG-03A
+
+- 目标：从干净的 ENG-02A 检查点 `e8eaca1` 接续，交付纯合成离线质量报告与对象级划分（AT-11 切分部分）。
+- 完成：独立锁定的 `ml/` 项目固定生成 18 个虚构编号对象、36 条人工总分示例；报告缺失/无效/未记录、真实零分和重复；拒绝非合成或结构错误；按对象分配 train/validation/test，阻止交叉/遗漏；导出 JSONL/质量/划分/哈希清单，同种子可重放、异内容拒绝覆盖。CI 加入 ML 检查；ADR-0010、数据集规格、验收与交接同步。没有业务数据库读取、疗效标签、模型训练或临床规则变更。
+- 测试：上次 ENG-02A 定向后端 3 passed/1 opt-in skipped，交接校验 22 ID；ML Ruff 与 4 项 pytest 通过，CLI 两次产出相同 36 行和 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`。首次 Ruff 格式失败，修正后通过。远端 CI 未运行；最终检查见 STATUS。
+- 提交/PR：本地分支 `feat/eng-03a-synthetic-offline-dataset`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
+- 接续：`ENG-04B` 在临时真实 PostgreSQL + API + Next 上补合成业务浏览器 E2E；`S3-01` 因 Q-03/09 未签核继续 `BLOCKED`。

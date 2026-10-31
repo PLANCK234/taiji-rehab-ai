@@ -23,6 +23,7 @@
 | assessment_revision.missing_reason | enum below or null | synthetic staff entry | required for missing/invalid; valid and unrecorded null |
 | assessment_revision.performed_at | timezone-aware UTC instant or null | synthetic staff entry | required for valid; no invented measurement time for missing |
 | assessment_revision.recorded_by/at | staff UUID / UTC instant | assessment API | attributable append-only version; `SYN-` correction reason required after first measurement |
+| ENG-03A offline row | synthetic coded ID, visit label, state, validity, raw_value, missing_reason, performed_at | `ml/offline_dataset.py` | fictitious generated examples only; null is unknown, observed zero stays zero; no endpoint or efficacy label |
 | age_years | integer years | clinician | scoped by protocol; no guessed age |
 | sppb_total | integer 0–12 | clinician-confirmed evaluation | missing ≠ 0; score algorithm only after SOP approval |
 | sppb_balance | source-defined score | evaluation | unit/formula to approve |
