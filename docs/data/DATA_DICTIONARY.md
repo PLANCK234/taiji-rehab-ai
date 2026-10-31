@@ -55,3 +55,7 @@
 For every measurement save `source`, `performed_at`, `recorded_at`, `validity`, `missing_reason`, `reviewer`, `unit`, `protocol_version`, and as applicable instrument/assistive device. Proposed missing reasons: `not_scheduled`, `not_attempted`, `declined`, `unsafe_to_attempt`, `technical_failure`, `lost_followup`, `unknown`. Preserve raw original and later corrections as distinct revisions.
 
 **Label/feature policy**: training feedback is candidate feature; objective cycle endpoint or verified expert assessment is target only when precisely defined. See `../research/DATASET_SPEC.md`.
+
+## REAL-01F0 单对象实时 CSV（Demo only）
+
+`study_code,participant_code` 为合成研究/对象编码；`record_type` 为 `assessment_revision|training_session|training_feedback_revision|safety_event`；`record_id,parent_id,revision_no` 保留记录与修订关联；`event_at_utc,recorded_at_utc,recorded_by` 为 UTC ISO 时间及员工 UUID。评估列为 `visit_kind,protocol_version,measurement_state,metric_code,metric_value,metric_unit,validity,missing_reason`；训练/反馈列为 `completion_status,actual_minutes,rpe,feedback_state`。非适用或未知值为空单元格，确实观测到的 0 输出 `0`。所有评估/反馈修订均分行导出；无身份映射、员工邮箱、自由文本、疗效或临床等级。响应行数和 SHA-256 仅验证本次 UTF-8 文件，不构成冻结数据集。真实导出策略待 Q-07/Q-09。

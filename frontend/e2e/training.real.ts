@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 const password = process.env.E2E_PASSWORD;
 if (!password) throw new Error("REAL-01D0 requires a synthetic E2E password");
@@ -60,6 +61,20 @@ test("synthetic training observation, early event and revised feedback survive r
   await expect(page.getByText("第 1 版", { exact: false })).toBeVisible();
   await expect(page.getByText("第 2 版", { exact: false })).toBeVisible();
 
+  await page.goto(participantPath);
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: "下载编号化 CSV" }).click(),
+  ]);
+  const downloadPath = await download.path();
+  expect(downloadPath).toBeTruthy();
+  const csv = await readFile(downloadPath!, "utf8");
+  expect(csv).toContain(code);
+  expect(csv).toContain("training_session");
+  expect(csv).toContain("training_feedback_revision");
+  expect(csv).toContain("safety_event");
+  expect(csv).not.toContain("合成测试事件：训练中断");
+
   const other = await browser.newPage();
   await other.goto("/login");
   await other.locator('input[name="email"]').fill("demo-clinician-b@example.org");
@@ -70,6 +85,10 @@ test("synthetic training observation, early event and revised feedback survive r
     `/api/v1/training-sessions/${sessionPath.split("/").at(-1)}/feedback`,
   );
   expect(denied.status()).toBe(403);
+  const deniedExport = await other.request.get(
+    `/api/v1/participants/${participantPath.split("/").at(-1)}/research-export.csv`,
+  );
+  expect(deniedExport.status()).toBe(403);
   await other.goto(sessionPath);
   await expect(other).toHaveURL(/\/training\/[0-9a-f-]+$/);
   await expect(other.getByText("合成测试补录")).toHaveCount(0);

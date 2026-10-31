@@ -121,3 +121,10 @@
 - 实施：Alembic 0005 建训练会话、追加式反馈修订和无严重度分类的独立事件表；后端 API 采用角色/研究/对象隔离、模拟同意、CSRF、幂等、审计和更正版本；前端对象页/反馈页可实际录入与查看。事件可在无反馈时独立记录，平台不发通知或处置建议。OpenAPI、数据字典/API/安全/验收/ADR-0012 更新。
 - 测试：后端 Ruff 通过、pytest 32 passed/3 opt-in skipped；临时 PostgreSQL 迁移升/降/升、Alembic check、API 4 passed；前端 Node 容器 lint/typecheck/21 tests/build；真实 Chromium→Next→FastAPI→PostgreSQL 浏览器测试 4 passed。首轮旧 ENG-04B 用例因点击返回后未等导航就 reload 失败；加 URL 等待后复测 4 passed。未触碰原有数据库卷，未接入真实数据。
 - 取舍：D0 不伪造周期/规则版本，不对 RPE/疲劳推断疗效或安全。事件仅存事实，不能替代机构处置流程。下个 Task ID 为 REAL-01E0（手工周期容器与复评关联），随后 REAL-01F0 合成编号化导出。检查点 SHA 以 git log 为准；未推送 main。
+
+## 2026-10-31 UTC · REAL-01F0
+
+- 目标：利用既有合成人工评估/复评/训练反馈完成纵向浏览器链路中的编号化导出；不依赖尚未批准的研究周期日程。
+- 实施：新增单对象实时 Demo CSV API 和对象页下载链接。服务器按角色、研究和对象范围授权，输出评估与反馈全部修订、训练会话和事件存在记录，显式保留零/空/缺失/版本；排除身份、邮箱和自由文本。响应有行数、SHA-256、no-store、live-demo 标记，允许/拒绝下载留审计。ADR-0013 和 API/字典/安全/验收/追踪更新。
+- 验证：后端 Ruff/pytest 32 passed/4 opt-in skipped；临时 PostgreSQL 迁移升降升、Alembic check、5 API passed，核对 CSV 行数/哈希/内容、跨对象及分析员 403、审计；真实 Chromium 4 passed，包含对象页下载与越权拒绝。前端最终 lint/typecheck/unit/build 和交接检查以本次最终执行记录为准。无真实数据、批量导出或原有卷操作。
+- 取舍：实时文件不是冻结快照；Q-07/Q-09 的真实字段/发布权限未签核。下个 Task ID 为 REAL-01E0：手工周期容器、复评/训练关联和缺失历史；随后扩展指标与冻结数据集。检查点 SHA 以 git log 为准；未推送 main。

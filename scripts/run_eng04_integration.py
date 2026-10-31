@@ -63,6 +63,7 @@ def main() -> int:
             "uv", "run", "pytest", "-q",
             "tests/test_postgres_workflow.py", "tests/test_seed_reassessment_demo.py",
             "tests/test_training_postgres.py",
+            "tests/test_export_postgres.py",
             env=env,
         )
         return 0

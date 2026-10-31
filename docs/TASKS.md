@@ -52,7 +52,7 @@
 | REAL-01D | 工程 | 正式周期/规则版本关联的训练会话与反馈 | P0 | REAL-01D0、REAL-01E；Q-03/09 未签核时不发布适配处方 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migrations/tests | 与已确认周期/版本关联，保留 D0 原始观察与事件历史；任何建议需临床审批 | — |
 | REAL-01E0 | 工程 | 非临床研究周期容器与人工复评关联 | P0 | REAL-01D0；既有 S2-01/ENG-02A；Q-05 未决不自动生成访视日程 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migration/tests/docs | 手工命名周期/访视、关联现有评估和训练观察、未到/拒测/未测分离、历史/趋势刷新持久；研究方案字段明确待批准；合成 PostgreSQL/浏览器验证 | — |
 | REAL-01E | 工程 | 可配置研究周期、访视复评与冻结快照 | P0 | REAL-01E0、REAL-01C；Q-05/06 决定实际方案/终点 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migrations/tests | 周期/访视持久、缺失和更正、描述性趋势、不可变数据快照；默认无真实研究日程 | — |
-| REAL-01F0 | 工程 | 合成闭环编号化数据导出与基础质量报告 | P0 | REAL-01E0、REAL-01D0、既有 S2-01/ENG-02A；Q-07 待真实导出批准 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, tests/docs | 限定研究/对象范围、无身份字段、CSV 字典与审计、缺失/版本/行数/哈希可复核；仅 Demo 合成数据 | — |
+| REAL-01F0 | 工程 | 合成纵向记录的单对象编号化实时导出 | P0 | REAL-01D0、既有 S2-01/ENG-02A；Q-07 待真实导出批准，周期冻结另属 E | `feat/real-01f0-coded-export` | DONE | `backend/`, `frontend/`, tests/docs | 限定研究/对象范围、无身份/自由文本、CSV 字典与审计、零/缺失/版本/行数/哈希可复核；仅 Demo 合成数据、非冻结快照 | 2026-10-31：临时 PostgreSQL 5 API passed，后端 32 passed/4 opt-in skipped，真实 Chromium 下载及越权 4 passed；见 ADR-0013/STATUS |
 | REAL-01F | 工程 | 研究工作台、质量检查、纵向趋势与编号化导出 | P0 | REAL-01B/C/D/E；Q-07/09 决定真实导出/冻结审批 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migrations/tests | 服务器端研究/角色/对象范围；CSV 字典、审计、缺失/版本/行数/hash；合成数据库与浏览器 E2E | — |
 
 下一可执行 Task ID 及限制以 [HANDOFF.md](HANDOFF.md) 的实际检查点为准。

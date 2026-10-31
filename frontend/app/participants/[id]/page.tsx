@@ -36,6 +36,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
     getSafetyEvents(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
+  const canExport = canWrite || user.role === "clinical_approver";
 
   return (
     <main>
@@ -81,6 +82,13 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
           <CreateAssessmentForm participantId={participant.id} />
         ) : <p className="note">创建评估需要当前模拟同意及录入权限。</p>}
       </section>
+      {canExport ? <section aria-labelledby="export-heading">
+        <h2 id="export-heading">编号化数据导出</h2>
+        <p className="note">仅导出此合成编号对象的实时结构化记录与修订版本；不含自由文本、身份映射或已冻结研究数据集。</p>
+        <a href={`/api/v1/participants/${participant.id}/research-export.csv`}>
+          下载编号化 CSV
+        </a>
+      </section> : null}
       <AssessmentTrendSection trend={trend} />
       <section aria-labelledby="training-heading">
         <h2 id="training-heading">训练观察与反馈</h2>

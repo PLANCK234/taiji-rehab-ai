@@ -1970,6 +1970,44 @@
         "summary": "Record Consent"
       }
     },
+    "/api/v1/participants/{participant_id}/research-export.csv": {
+      "get": {
+        "operationId": "export_participant_demo_api_v1_participants__participant_id__research_export_csv_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Participant Demo"
+      }
+    },
     "/api/v1/participants/{participant_id}/safety-events": {
       "get": {
         "operationId": "list_safety_events_api_v1_participants__participant_id__safety_events_get",

@@ -15,5 +15,6 @@ Current proposals:
 - [ADR-0010](0010-synthetic-offline-split.md): reproducible, synthetic-only offline QA and participant-level split without a target.
 - [ADR-0011](0011-demo-research-profile-boundary.md): separate Demo/Research database resources and fail-closed Research admission.
 - [ADR-0012](0012-training-observation-before-cycle.md): append-only observed activity and feedback before approved cycles/rules, without prescription or clinical triage.
+- [ADR-0013](0013-live-coded-demo-export.md): audited single-participant live Demo CSV, excluding identity and free text; not a frozen research snapshot.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.
