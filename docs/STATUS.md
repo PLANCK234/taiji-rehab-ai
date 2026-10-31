@@ -6,7 +6,7 @@
 |---|---|---|
 | Sprint 0 前后端骨架 | DONE | Next.js 构建、lint/typecheck、Vitest 2 tests；FastAPI Ruff、pytest 2 tests；容器 HTTP 冒烟 200 |
 | PostgreSQL / Alembic / Compose | DONE | PostgreSQL 17 健康；空库 `upgrade head → current → downgrade base → upgrade head` 成功；`/ready` 返回 ready；Compose config 成功 |
-| CI 配置 | DONE | `.github/workflows/ci.yaml` 已配置；同等本地命令已执行。GitHub Actions 远端运行尚未发生，待 PR 验证 |
+| CI 配置 | DONE | `.github/workflows/ci.yaml` 已配置；PR #2 的提交 `552bc68` 与当前合并树一致，其 GitHub Actions [run 41182109102](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/41182109102) 后端、前端、文档、ML 四个作业均成功。现有 CI 没有执行 ENG-04B 真实数据库浏览器脚本 |
 | 持久交接 | DONE | 任务台账、HANDOFF、追加日志、Prompt、ADR、恢复演练；`scripts/check_handoff.py` 通过 |
 | S1-01 身份和编码只读授权 | DONE | Argon2 员工登录、持久会话、CSRF 注销、限流、研究及对象双重分配、审计；本地测试与容器烟测通过 |
 | S1-02 合成建档/模拟同意/筛查 | DONE | `SYN-` 编号创建与列表、追加式同意/三态筛查、当前同意门禁、未知/待复核状态、权限和审计；本地测试、PostgreSQL 及页面烟测通过 |
@@ -22,6 +22,8 @@
 | 真实数据/临床上线 | BLOCKED | Q-01 至 Q-13 待相应负责人签核；见 `OPEN_QUESTIONS.md` |
 
 ## 最近实测结果
+
+- 2026-10-31 最新主线 `1f1d977` 复核：PR #2 已合入 `frontend/e2e/real-business.real.ts`、`frontend/playwright.real.config.ts`、`scripts/run_eng04b_browser.py`，而 TASKS/HANDOFF 仍写 ENG-04B 未开始。实际测试代码覆盖合成登录、建档、模拟同意/筛查、人工零分基线确认与刷新、缺失复评、趋势和跨研究拒绝；脚本设计为临时 PostgreSQL + FastAPI + Next + Chromium，结束时停止独立容器/网络。PR #2 的 CI 四个基础作业成功，且 CI 提交与合并树相同；该 CI **没有运行** ENG-04B 浏览器脚本。本轮使用现有项目 `.venv` Python 运行 Ruff 通过、普通 pytest **27 passed / 2 skipped**（两项数据库 opt-in 未跑）、交接脚本 23 Task ID 通过。依据代码与证据，ENG-04B 为 `IN_REVIEW`，不是 `NOT_STARTED` 或 `DONE`；真实 PostgreSQL 浏览器验收仍待获准环境实测。没有安装依赖、启动 Docker/PostgreSQL 或运行迁移。
 
 - 2026-10-31 ENG-03A：从干净的 `e8eaca1ebdc354e117c7681b3585197de4679a3d` 检查点复核 Git、交接、ENG-02A 趋势代码与设计；该任务相关后端 pytest 3 passed/1 opt-in skipped、交接校验 22 ID 通过。新增独立 `ml/` 锁定项目和纯合成离线生成器，不读取业务数据库；固定种子输出 18 个虚构对象的 36 条记录，`quality.json` 报告 29 valid、3 missing、2 invalid、2 unrecorded，空值 7、确有零分 3、重复 ID 0；`manifest.json` 明示 `target=null`、`clinical_use=false`，记录 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`。命令行重复导出哈希一致；单测覆盖不同内容拒绝覆盖、缺失/重复/非合成错误和对象跨 train/validation/test 泄漏拒绝。首轮 ML Ruff 有格式问题，修复后 `uv sync --frozen`、`uv run ruff check .` 与 pytest 4 passed；后端 Ruff/pytest 27 passed/2 opt-in skipped；交接脚本 23 ID/仓库链接与 `git diff --check` 通过。新增 CI 作业，远端 CI 尚未运行。无模型训练、真实数据快照、疗效标签、临床规则或数据库迁移。
 - 2026-10-31 ENG-02A：从干净的 `888d2488c2e12bb47fa58367d256356b87bc2d84` 检查点复核 Git、交接、现有种子/API 和未决问题后实施。只读 API 在服务端检查角色、研究及对象分配并审计；每项评估同时返回最新版本与最新已确认版本，页面只为确认且有效的人工总分绘制 0–12 图示，草稿、缺失、无效及零分分别显示；按登记时间排序，不推断疗效或批准的周期。首轮 Ruff 有 1 处过长行，修复后 `uv run ruff check .` 通过；`uv run pytest -q` → 27 passed/2 opt-in skipped；独立临时 PostgreSQL 17 迁移升/check/降/升与 API 3 passed；前端 Node 26/pnpm 10 容器 lint/typecheck/test 15/build 通过。独立 tmpfs PostgreSQL→FastAPI→Next 全栈烟测（最终加强图示断言后复跑）：`SYN-ENG01A-001/002` 页面实际显示数据库总分、缺失及 `meter`，跨研究页面 404；所有临时容器/网络已停止，原合成卷未操作。交接脚本通过（22 Task ID、仓库内链接），`git diff --check` 通过。远端 CI、临床人工验收未运行；pytest 有上游 TestClient 弃用警告 1 条。
@@ -67,4 +69,4 @@
 
 ## 当前阻断与下一步
 
-S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A`、`ENG-02A` 和 `ENG-03A` 的限定范围已完成；下一项依赖已满足的独立任务是 `ENG-04B`，在临时 PostgreSQL 和实际 API/Next 上做现有合成建档、人工评估与趋势浏览器 E2E，不扩展临床业务。ENG-01 的训练/周期/导出仍需安全的非临床前置任务另行拆解。Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。`S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；S4/S5/S7/S8 仍依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
+S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A`、`ENG-02A` 和 `ENG-03A` 的限定范围已完成；`ENG-04B` 的浏览器测试及隔离运行脚本已随 PR #2 合入，仍需在获准的临时 PostgreSQL 环境实际执行并核对截图/trace/退出码，才可标记 DONE；当前 Windows 原生环境未准备 PostgreSQL，且本轮未获准启动 Docker，因此不能把代码存在或基础 CI 当作该 E2E 通过。ENG-01 的训练/周期/导出仍需安全的非临床前置任务另行拆解。Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。`S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；S4/S5/S7/S8 仍依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。

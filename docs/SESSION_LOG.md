@@ -106,3 +106,11 @@
 - 测试：上次 ENG-02A 定向后端 3 passed/1 opt-in skipped，交接校验 22 ID；ML Ruff 与 4 项 pytest 通过，CLI 两次产出相同 36 行和 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`。首次 Ruff 格式失败，修正后通过。远端 CI 未运行；最终检查见 STATUS。
 - 提交/PR：本地分支 `feat/eng-03a-synthetic-offline-dataset`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
 - 接续：`ENG-04B` 在临时真实 PostgreSQL + API + Next 上补合成业务浏览器 E2E；`S3-01` 因 Q-03/09 未签核继续 `BLOCKED`。
+
+## 2026-10-31 Asia/Shanghai · ENG-04B 远端合并后交接核对
+
+- 基点：隔离检出 `origin/main` 的 `1f1d977`，原 D 盘 `codex/s6-01-local-acceptance-checkpoint` 保留不动。PR #2 已合入 ENG-04B 的真实业务浏览器测试和临时 PostgreSQL/FastAPI/Next/Chromium 运行脚本；原台账 `NOT_STARTED`、交接仍指 ENG-04B 开始，与代码不符。
+- 执行与证据：只读检查实际测试、运行脚本和 CI workflow。PR #2 的 `552bc68` 与合并树相同；[GitHub Actions run 41182109102](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/41182109102) 后端、前端、文档、ML 均成功，但 CI 不执行 ENG-04B 浏览器脚本。本轮独立项目 Python 执行 Ruff 通过、普通 pytest 27 passed/2 opt-in skipped（1 条上游弃用警告）、交接脚本 23 Task ID 通过；未运行真实数据库浏览器 E2E。
+- 处理：将 ENG-04B 从 `NOT_STARTED` 更正为 `IN_REVIEW`，更新 STATUS、TASKS、HANDOFF、TRACEABILITY；不把代码存在或基础 CI 视为完整验收。编辑前五份文档副本保存在忽略目录 `test-results/eng04b-reconcile-20261031/`。
+- 边界：Windows 原生环境仍未准备 PostgreSQL，本轮没有启动 Docker/数据库、安装依赖、迁移或修改临床/安全规则。下一步在获准临时数据库环境实际运行现有脚本并保留退出码、测试结果、trace/截图和资源清理证据；S3-01 仍受 Q-03/09 阻断。
+- 分支：`codex/eng-04b-handoff-reconcile`；检查点 SHA 以本文件所在提交的 `git log` 为准。
