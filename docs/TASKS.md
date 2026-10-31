@@ -1,6 +1,6 @@
 # 任务台账
 
-> 本表是旧本地基线验收快照。2026-10-31 复核发现远端已新增 S6-02 和 ENG 台账；接续开发须先核定最新远端，不能根据本表判断全项目任务是否可执行。当前分支仅为 `codex/s6-01-local-acceptance-checkpoint`，不是主线台账；见[差异记录](testing/S6-01-REMOTE-RECONCILIATION.md)。
+> 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
 
 状态仅使用 `NOT_STARTED`、`IN_PROGRESS`、`BLOCKED`、`IN_REVIEW`、`DONE`。`DONE` 必须附实际验证证据。临床与真实数据功能受 [待决问题](OPEN_QUESTIONS.md) 约束。
 
@@ -35,8 +35,26 @@
 | ENG-03A | 工程 | 合成离线数据集、质量报告及对象级划分基础 | P1 | S1-02/S2-01 | `feat/eng-03a-synthetic-offline-dataset` | DONE | `ml/`, tests, `docs/` | 固定合成种子可重复；校验缺失/重复/跨对象泄漏；不推导临床疗效标签或阈值 | 2026-10-31：ml Ruff/pytest 4、CLI 导出/重复运行、单测异内容拒绝覆盖；见 STATUS |
 | ENG-04 | 工程 | 自动化质量门禁与可恢复交接 | P0 | S1-02/S2-01/S6-02；完整业务 E2E 随 ENG-01/02 能力完成 | `feat/eng-04a-postgres-contract` | IN_PROGRESS | `backend/tests/`, `frontend/e2e/`, `.github/`, `scripts/`, `docs/` | 后端/前端、权限与隔离、迁移、API 契约、核心业务浏览器流程和新会话恢复均有可执行证据；每个子任务单独验证 | — |
 | ENG-04A | 工程 | 临时 PostgreSQL 核心 API、迁移和契约门禁及 ENG ID 交接校验 | P0 | S1-02/S2-01/S6-02 | `feat/eng-04a-postgres-contract` | DONE | `backend/tests/`, `.github/workflows/`, `scripts/`, `docs/` | 临时数据库升降升/check；真实 PostgreSQL 合成建档、同意、筛查、人工基线/复评、缺失/历史和跨对象/角色拒绝；OpenAPI 快照一致；交接脚本接受 ENG Task ID；本地与 CI 可复现 | 2026-10-31：临时 tmpfs PostgreSQL 17 升→check→降→升与真实 API 测试通过；后端 Ruff/pytest 24 + 1 opt-in；交接校验通过；远端 CI 待 PR，详见 STATUS |
-| ENG-04B | 工程 | 现有合成建档至人工评估/趋势的真实数据库浏览器 E2E | P0 | S1-02/S2-01；ENG-01A/ENG-02A/ENG-04A | 未分配 | NOT_STARTED | `frontend/e2e/`, `scripts/`, tests, `docs/` | 临时 PostgreSQL + 实际 FastAPI/Next；浏览器覆盖登录、建档、模拟同意、人工评估/确认、复评缺失/趋势和越权拒绝；只用合成数据，失败可诊断，临时服务可清理 | — |
+| ENG-04B | 工程 | 现有合成建档至人工评估/趋势的真实数据库浏览器 E2E | P0 | S1-02/S2-01；ENG-01A/ENG-02A/ENG-04A | `feat/real-01-profile-isolation` | DONE | `frontend/e2e/`, `scripts/`, tests, `docs/` | 临时 PostgreSQL + 实际 FastAPI/Next；浏览器覆盖登录、建档、模拟同意、人工评估/确认、复评缺失/趋势和越权拒绝；只用合成数据，失败可诊断，临时服务可清理 | 2026-10-31：修复已有测试返回链接导航竞态；`scripts/run_eng04b_browser.py` Chromium 4 passed（其中 3 项 ENG-04B 原场景），临时容器已停止 |
 
-下一可执行任务由 [HANDOFF.md](HANDOFF.md) 指定；开始前核对 Git 与真实代码。
+## REAL-01 真实业务工程目标（功能开发使用合成数据）
+
+真实业务代码可先实现并用合成数据验证；Research 环境、真实数据导入和正式运行均需独立机构、伦理、同意、安全与部署签核。旧 S1/S2/ENG 证据只能算这些任务的子范围，不能直接升级为 REAL 完成状态。
+
+| Task ID | Sprint | 目标 | 优先级 | 依赖 | 负责人/分支 | 状态 | 预计修改范围 | 验收与测试 | 完成证据 |
+|---|---:|---|---|---|---|---|---|---|---|
+| REAL-01 | 工程 | 医护登录→档案→多指标评估→训练反馈→复评→趋势→编号化导出纵向闭环 | P0 | REAL-01P/A/B/C/D/E/F | `feat/real-01-profile-isolation` | IN_PROGRESS | `backend/`, `frontend/`, `infra/`, `docs/` | 所有业务写读走 API/PostgreSQL；合成 E2E、权限/更正/缺失/导出核验；真实数据上线单独批准 | 分项按下列任务独立验收 |
+| REAL-01P | 工程 | Demo/Research 配置、数据库和准入隔离 | P0 | 既有 S1/S2 合成骨架 | `feat/real-01-profile-isolation` | DONE | `backend/app/runtime.py`, `infra/`, config/tests/docs | Demo 仍可用独立合成库；Research 独立 DB/凭据/网络且无演示种子，审批前 API 503；改 `ALLOW_SYNTHETIC_ONLY` 不能解锁；配置与临时 DB 测试 | 2026-10-31：后端 Ruff/pytest 30 passed/2 opt-in skipped，临时 PostgreSQL 迁移/API 3 passed，双 Compose config；见 STATUS |
+| REAL-01A | 工程 | 医疗人员账号、角色授权与操作审计管理 | P0 | REAL-01P；既有 S1-01 | 未分配 | IN_PROGRESS | `backend/`, `frontend/`, migrations/tests | 授权管理员可审计地配置人员、研究和对象权限；登录/撤权/跨角色拒绝；Research 身份导入须批准 | 既有合成登录/RBAC/审计可复用，人员与授权管理尚无界面/API |
+| REAL-01B | 工程 | 研究对象档案、基础字段、同意状态和可追溯更正 | P0 | REAL-01P；既有 S1-02 | 未分配 | IN_PROGRESS | `backend/`, `frontend/`, migrations/tests | 编码档案、查询/更正与同意历史持久化；字段最小化、权限隔离；真实身份映射与同意签署须审批 | 既有合成编码档案、模拟同意和筛查可复用，真实业务字段/更正未完成 |
+| REAL-01C | 工程 | SPPB、FRAIL、步速、坐站、握力等结构化评估 | P0 | REAL-01B；Q-02 未决只可人工录入、不自动计分 | 未分配 | IN_PROGRESS | `backend/`, `frontend/`, migrations/tests | 原始值/单位/有效性/缺失原因/人员时间/更正版本；刷新持久；无未经批准的自动分项规则 | 既有合成人工 SPPB 总分可复用，其他指标未实现 |
+| REAL-01D0 | 工程 | 独立的非临床“已发生训练观察”会话、反馈与事件入口 | P0 | REAL-01P；既有 S1-02/S2-01；无获批处方/周期时只记观察，不生成计划 | `feat/real-01-profile-isolation` | DONE | `backend/`, `frontend/`, migration/tests/docs | 动作/日期/时长/完成、RPE 及文字观察入 PostgreSQL；反馈未填/缺失/有效零值分离、版本更正、幂等、角色/对象隔离；无反馈也能报事件；合成浏览器和 API 测试 | 2026-10-31：`0005` 迁移升/降/升及 PostgreSQL 4 passed，后端 32 passed/3 opt-in skipped，前端 lint/typecheck/21 tests/build，真实浏览器 4 passed；见 STATUS/ADR-0012 |
+| REAL-01D | 工程 | 正式周期/规则版本关联的训练会话与反馈 | P0 | REAL-01D0、REAL-01E；Q-03/09 未签核时不发布适配处方 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migrations/tests | 与已确认周期/版本关联，保留 D0 原始观察与事件历史；任何建议需临床审批 | — |
+| REAL-01E0 | 工程 | 非临床研究周期容器与人工复评关联 | P0 | REAL-01D0；既有 S2-01/ENG-02A；Q-05 未决不自动生成访视日程 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migration/tests/docs | 手工命名周期/访视、关联现有评估和训练观察、未到/拒测/未测分离、历史/趋势刷新持久；研究方案字段明确待批准；合成 PostgreSQL/浏览器验证 | — |
+| REAL-01E | 工程 | 可配置研究周期、访视复评与冻结快照 | P0 | REAL-01E0、REAL-01C；Q-05/06 决定实际方案/终点 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migrations/tests | 周期/访视持久、缺失和更正、描述性趋势、不可变数据快照；默认无真实研究日程 | — |
+| REAL-01F0 | 工程 | 合成纵向记录的单对象编号化实时导出 | P0 | REAL-01D0、既有 S2-01/ENG-02A；Q-07 待真实导出批准，周期冻结另属 E | `feat/real-01f0-coded-export` | DONE | `backend/`, `frontend/`, tests/docs | 限定研究/对象范围、无身份/自由文本、CSV 字典与审计、零/缺失/版本/行数/哈希可复核；仅 Demo 合成数据、非冻结快照 | 2026-10-31：临时 PostgreSQL 5 API passed，后端 32 passed/4 opt-in skipped，真实 Chromium 下载及越权 4 passed；见 ADR-0013/STATUS |
+| REAL-01F | 工程 | 研究工作台、质量检查、纵向趋势与编号化导出 | P0 | REAL-01B/C/D/E；Q-07/09 决定真实导出/冻结审批 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migrations/tests | 服务器端研究/角色/对象范围；CSV 字典、审计、缺失/版本/行数/hash；合成数据库与浏览器 E2E | — |
+
+下一可执行 Task ID 及限制以 [HANDOFF.md](HANDOFF.md) 的实际检查点为准。
 
 2026-10-31：S6-01 的实现和本地合成验收已完成，后续为审查及获准后的提交/PR；尚无依赖已满足的新业务任务。S3-01 仍因 Q-03/09 阻断，不能跳过审批直接进入 Sprint 3。`DONE` 不代表真实照片、临床研究准入或远端集成已获批准。

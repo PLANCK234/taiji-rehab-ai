@@ -187,6 +187,97 @@ class AssessmentRevision(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class TrainingSession(Base):
+    """Recorded activity, never a training prescription."""
+
+    __tablename__ = "training_sessions"
+    __table_args__ = (
+        Index("ix_training_sessions_participant_time", "participant_id", "session_at"),
+        CheckConstraint(
+            "completion_status IN ('completed','partial','interrupted','not_started')",
+            name="ck_training_completion_status",
+        ),
+        CheckConstraint(
+            "actual_minutes IS NULL OR actual_minutes >= 0",
+            name="ck_training_actual_minutes",
+        ),
+        CheckConstraint("source = 'manual_staff_entry'", name="ck_training_source"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    session_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    action_label: Mapped[str] = mapped_column(String(120), nullable=False)
+    actual_minutes: Mapped[int | None] = mapped_column()
+    completion_status: Mapped[str] = mapped_column(String(16), nullable=False)
+    notes: Mapped[str | None] = mapped_column(String(1000))
+    source: Mapped[str] = mapped_column(String(32), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class TrainingFeedbackRevision(Base):
+    __tablename__ = "training_feedback_revisions"
+    __table_args__ = (
+        UniqueConstraint("session_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_training_feedback_revision_positive"),
+        CheckConstraint("state IN ('recorded','missing')", name="ck_training_feedback_state"),
+        CheckConstraint("rpe IS NULL OR rpe BETWEEN 6 AND 20", name="ck_training_feedback_rpe"),
+        CheckConstraint(
+            "missing_reason IS NULL OR missing_reason IN "
+            "('declined','interrupted','technical_failure','unknown')",
+            name="ck_training_feedback_missing_reason",
+        ),
+        CheckConstraint(
+            "(state = 'missing' AND missing_reason IS NOT NULL AND rpe IS NULL "
+            "AND difficulty IS NULL AND support IS NULL AND fatigue IS NULL "
+            "AND discomfort IS NULL AND notes IS NULL) OR "
+            "(state = 'recorded' AND missing_reason IS NULL AND "
+            "(rpe IS NOT NULL OR difficulty IS NOT NULL OR support IS NOT NULL "
+            "OR fatigue IS NOT NULL OR discomfort IS NOT NULL OR notes IS NOT NULL))",
+            name="ck_training_feedback_shape",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    session_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("training_sessions.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    missing_reason: Mapped[str | None] = mapped_column(String(32))
+    rpe: Mapped[int | None] = mapped_column()
+    difficulty: Mapped[str | None] = mapped_column(String(500))
+    support: Mapped[str | None] = mapped_column(String(500))
+    fatigue: Mapped[str | None] = mapped_column(String(500))
+    discomfort: Mapped[str | None] = mapped_column(String(500))
+    notes: Mapped[str | None] = mapped_column(String(1000))
+    change_reason: Mapped[str | None] = mapped_column(String(500))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class SafetyEvent(Base):
+    """Unclassified observation; clinical review policy is not encoded here."""
+
+    __tablename__ = "safety_events"
+    __table_args__ = (Index("ix_safety_events_participant_time", "participant_id", "event_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    session_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("training_sessions.id")
+    )
+    event_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    description: Mapped[str] = mapped_column(String(2000), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class LoginSession(Base):
     __tablename__ = "login_sessions"
     __table_args__ = (Index("ix_login_sessions_user_id", "user_id"),)

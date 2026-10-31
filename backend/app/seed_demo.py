@@ -16,11 +16,12 @@ from app.models import (
     User,
     utc_now,
 )
+from app.runtime import demo_enabled
 from app.security import password_hash
 
 
 def main() -> None:
-    if os.environ.get("APP_ENV") != "local" or os.environ.get("ALLOW_SYNTHETIC_ONLY") != "true":
+    if os.environ.get("APP_ENV") != "local" or not demo_enabled():
         raise RuntimeError("demo seed is restricted to synthetic local mode")
     password = os.environ.get("DEMO_PASSWORD", "")
     reset_password = os.environ.get("RESET_DEMO_PASSWORD") == "true"

@@ -75,7 +75,7 @@ def test_migrated_postgres_synthetic_workflow() -> None:
     with engine.connect() as connection:
         assert connection.scalar(text("select current_database()")) == "taiji_eng04"
         assert connection.scalar(text("select version_num from alembic_version")) == (
-            "0004_manual_assessments"
+            "0005_training_observations"
         )
 
     suffix = uuid.uuid4().hex[:10].upper()

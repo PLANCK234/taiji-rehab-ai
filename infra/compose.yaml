@@ -18,6 +18,7 @@ services:
     build: ../backend
     environment:
       DATABASE_URL: postgresql+psycopg://taiji:${POSTGRES_PASSWORD}@db:5432/taiji
+      APP_PROFILE: demo
       APP_ENV: ${APP_ENV:-local}
       ALLOW_SYNTHETIC_ONLY: ${ALLOW_SYNTHETIC_ONLY:-true}
       SESSION_SECRET: ${SESSION_SECRET:?set in local .env}

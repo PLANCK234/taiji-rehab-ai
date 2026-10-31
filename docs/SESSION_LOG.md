@@ -106,3 +106,25 @@
 - 测试：上次 ENG-02A 定向后端 3 passed/1 opt-in skipped，交接校验 22 ID；ML Ruff 与 4 项 pytest 通过，CLI 两次产出相同 36 行和 SHA-256 `c446f04f23ff0453a28a1426716288f34f5cb3e889ded875f7cfcd4d11e5bd96`。首次 Ruff 格式失败，修正后通过。远端 CI 未运行；最终检查见 STATUS。
 - 提交/PR：本地分支 `feat/eng-03a-synthetic-offline-dataset`；最终 SHA 以 `git log` 为准，未推送或创建 PR。
 - 接续：`ENG-04B` 在临时真实 PostgreSQL + API + Next 上补合成业务浏览器 E2E；`S3-01` 因 Q-03/09 未签核继续 `BLOCKED`。
+
+## 2026-10-31 UTC · REAL-01P
+
+- 目标：在 REAL-01 医疗研究工作台方向下，先建立 Demo 与未激活 Research 的数据库/配置/准入隔离；仅以合成数据验证。
+- 基线核对：起点 9ea36c8（origin/main 合并检查点）；旧 HANDOFF 指向 ENG-03A 已过时，ENG-04B 浏览器文件已合并但本次未证明浏览器通过；工作区原有 .vscode/ 未触碰。
+- 实施：新增 APP_PROFILE 门禁和独立 Research Compose/配置；Research 业务 API、ready、演示种子、Alembic 迁移保持关闭。Demo 旧流程仍可用。拆解 REAL-01P/A-F，S3-01/Q-03/Q-09 继续阻断。
+- 验证：后端 Ruff 通过、pytest 30 passed/2 opt-in skipped；临时 PostgreSQL 迁移/API 3 passed；两个 Compose config --quiet 通过。Research 数据库未启动或迁移，原有卷未修改；前端、浏览器和远端 CI 未在本切片运行。
+- 下一步：REAL-01D 非临床训练会话与反馈持久化；不得自动制定处方或解释风险。提交/检查点 SHA 以 git log 为准；未推送主分支。
+
+## 2026-10-31 UTC · REAL-01D0
+
+- 目标：在 S3-01/Q-03/09 未签核、周期未实现时，先实现非临床“已发生训练观察”及反馈/事件的合成数据库闭环。PRD FR-006/007 完整周期和临床处置部分仍未完成。
+- 实施：Alembic 0005 建训练会话、追加式反馈修订和无严重度分类的独立事件表；后端 API 采用角色/研究/对象隔离、模拟同意、CSRF、幂等、审计和更正版本；前端对象页/反馈页可实际录入与查看。事件可在无反馈时独立记录，平台不发通知或处置建议。OpenAPI、数据字典/API/安全/验收/ADR-0012 更新。
+- 测试：后端 Ruff 通过、pytest 32 passed/3 opt-in skipped；临时 PostgreSQL 迁移升/降/升、Alembic check、API 4 passed；前端 Node 容器 lint/typecheck/21 tests/build；真实 Chromium→Next→FastAPI→PostgreSQL 浏览器测试 4 passed。首轮旧 ENG-04B 用例因点击返回后未等导航就 reload 失败；加 URL 等待后复测 4 passed。未触碰原有数据库卷，未接入真实数据。
+- 取舍：D0 不伪造周期/规则版本，不对 RPE/疲劳推断疗效或安全。事件仅存事实，不能替代机构处置流程。下个 Task ID 为 REAL-01E0（手工周期容器与复评关联），随后 REAL-01F0 合成编号化导出。检查点 SHA 以 git log 为准；未推送 main。
+
+## 2026-10-31 UTC · REAL-01F0
+
+- 目标：利用既有合成人工评估/复评/训练反馈完成纵向浏览器链路中的编号化导出；不依赖尚未批准的研究周期日程。
+- 实施：新增单对象实时 Demo CSV API 和对象页下载链接。服务器按角色、研究和对象范围授权，输出评估与反馈全部修订、训练会话和事件存在记录，显式保留零/空/缺失/版本；排除身份、邮箱和自由文本。响应有行数、SHA-256、no-store、live-demo 标记，允许/拒绝下载留审计。ADR-0013 和 API/字典/安全/验收/追踪更新。
+- 验证：后端 Ruff/pytest 32 passed/4 opt-in skipped；临时 PostgreSQL 迁移升降升、Alembic check、5 API passed，核对 CSV 行数/哈希/内容、跨对象及分析员 403、审计；真实 Chromium 4 passed，包含对象页下载与越权拒绝。前端最终 lint/typecheck/unit/build 和交接检查以本次最终执行记录为准。无真实数据、批量导出或原有卷操作。
+- 取舍：实时文件不是冻结快照；Q-07/Q-09 的真实字段/发布权限未签核。下个 Task ID 为 REAL-01E0：手工周期容器、复评/训练关联和缺失历史；随后扩展指标与冻结数据集。检查点 SHA 以 git log 为准；未推送 main。

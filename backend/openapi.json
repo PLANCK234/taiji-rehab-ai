@@ -659,6 +659,98 @@
         "title": "ParticipantView",
         "type": "object"
       },
+      "SafetyEventCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "event_at": {
+            "format": "date-time",
+            "title": "Event At",
+            "type": "string"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "required": [
+          "event_at",
+          "description"
+        ],
+        "title": "SafetyEventCreate",
+        "type": "object"
+      },
+      "SafetyEventView": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "event_at": {
+            "format": "date-time",
+            "title": "Event At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          }
+        },
+        "required": [
+          "event_at",
+          "description",
+          "id",
+          "participant_id",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "SafetyEventView",
+        "type": "object"
+      },
       "ScreeningCreate": {
         "additionalProperties": false,
         "properties": {
@@ -800,6 +892,430 @@
           "code"
         ],
         "title": "StudyView",
+        "type": "object"
+      },
+      "TrainingFeedbackView": {
+        "properties": {
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty"
+          },
+          "discomfort": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discomfort"
+          },
+          "fatigue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fatigue"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "declined",
+                  "interrupted",
+                  "technical_failure",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Reason"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "rpe": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpe"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "recorded",
+              "missing"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "support": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "revision_no",
+          "state",
+          "missing_reason",
+          "rpe",
+          "difficulty",
+          "support",
+          "fatigue",
+          "discomfort",
+          "notes",
+          "change_reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "TrainingFeedbackView",
+        "type": "object"
+      },
+      "TrainingFeedbackWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "change_reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "difficulty": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difficulty"
+          },
+          "discomfort": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discomfort"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "fatigue": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fatigue"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "declined",
+                  "interrupted",
+                  "technical_failure",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Reason"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "rpe": {
+            "anyOf": [
+              {
+                "maximum": 20.0,
+                "minimum": 6.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpe"
+          },
+          "state": {
+            "enum": [
+              "recorded",
+              "missing"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "support": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "state"
+        ],
+        "title": "TrainingFeedbackWrite",
+        "type": "object"
+      },
+      "TrainingSessionCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "action_label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Action Label",
+            "type": "string"
+          },
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "completion_status": {
+            "enum": [
+              "completed",
+              "partial",
+              "interrupted",
+              "not_started"
+            ],
+            "title": "Completion Status",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "session_at": {
+            "format": "date-time",
+            "title": "Session At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_at",
+          "action_label",
+          "completion_status"
+        ],
+        "title": "TrainingSessionCreate",
+        "type": "object"
+      },
+      "TrainingSessionView": {
+        "additionalProperties": false,
+        "properties": {
+          "action_label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Action Label",
+            "type": "string"
+          },
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "completion_status": {
+            "enum": [
+              "completed",
+              "partial",
+              "interrupted",
+              "not_started"
+            ],
+            "title": "Completion Status",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "session_at": {
+            "format": "date-time",
+            "title": "Session At",
+            "type": "string"
+          },
+          "source": {
+            "const": "manual_staff_entry",
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_at",
+          "action_label",
+          "completion_status",
+          "id",
+          "participant_id",
+          "source",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "TrainingSessionView",
         "type": "object"
       },
       "UserView": {
@@ -1454,6 +1970,148 @@
         "summary": "Record Consent"
       }
     },
+    "/api/v1/participants/{participant_id}/research-export.csv": {
+      "get": {
+        "operationId": "export_participant_demo_api_v1_participants__participant_id__research_export_csv_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Participant Demo"
+      }
+    },
+    "/api/v1/participants/{participant_id}/safety-events": {
+      "get": {
+        "operationId": "list_safety_events_api_v1_participants__participant_id__safety_events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SafetyEventView"
+                  },
+                  "title": "Response List Safety Events Api V1 Participants  Participant Id  Safety Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Safety Events"
+      },
+      "post": {
+        "operationId": "create_safety_event_api_v1_participants__participant_id__safety_events_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SafetyEventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafetyEventView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Safety Event"
+      }
+    },
     "/api/v1/participants/{participant_id}/screenings": {
       "get": {
         "operationId": "list_screenings_api_v1_participants__participant_id__screenings_get",
@@ -1554,6 +2212,110 @@
         "summary": "Record Screening"
       }
     },
+    "/api/v1/participants/{participant_id}/training-sessions": {
+      "get": {
+        "operationId": "list_training_sessions_api_v1_participants__participant_id__training_sessions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingSessionView"
+                  },
+                  "title": "Response List Training Sessions Api V1 Participants  Participant Id  Training Sessions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Training Sessions"
+      },
+      "post": {
+        "operationId": "create_training_session_api_v1_participants__participant_id__training_sessions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingSessionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Training Session"
+      }
+    },
     "/api/v1/studies": {
       "get": {
         "operationId": "studies_api_v1_studies_get",
@@ -1574,6 +2336,150 @@
           }
         },
         "summary": "Studies"
+      }
+    },
+    "/api/v1/training-sessions/{session_id}": {
+      "get": {
+        "operationId": "get_training_session_api_v1_training_sessions__session_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingSessionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Training Session"
+      }
+    },
+    "/api/v1/training-sessions/{session_id}/feedback": {
+      "get": {
+        "operationId": "list_training_feedback_api_v1_training_sessions__session_id__feedback_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingFeedbackView"
+                  },
+                  "title": "Response List Training Feedback Api V1 Training Sessions  Session Id  Feedback Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Training Feedback"
+      },
+      "put": {
+        "operationId": "write_training_feedback_api_v1_training_sessions__session_id__feedback_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Session Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingFeedbackWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingFeedbackView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Write Training Feedback"
       }
     },
     "/health": {

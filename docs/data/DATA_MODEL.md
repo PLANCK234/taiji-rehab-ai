@@ -2,6 +2,8 @@
 
 Use UUID primary keys, UTC timestamps, stable `study_code`, explicit soft-delete/retention policy only after approval. The table below is a **logical target**. Migration `0002_auth_scope` implements users, studies, assignments, coded participants, sessions, rate limits and audit. Migration `0003_synthetic_intake` adds `write_receipts`, `consent_records` and `screening_records`. Migration `0004_manual_assessments` adds only synthetic manual-total assessment headers and append-only revision snapshots. No identity mapping, verified signature, eligibility, grade, recommendation or outcome fields exist yet.
 
+Migration `0005_training_observations` implements a **bounded D0 subset**: `training_sessions` records observed action/time/actual minutes/completion; `training_feedback_revisions` stores append-only missing or recorded feedback, RPE 6–20 where present, text observations and correction reason; `safety_events` stores unclassified factual reports independently of feedback. All three have actor/time and participant scope; none has cycle/rule/prescription/review state. The target rows below describe later full functionality and are not claims about the current physical schema. No existing training data is backfilled into future cycles automatically.
+
 | Entity | Key fields | Integrity and confidentiality |
 |---|---|---|
 | users | id, role, status, password_hash | never export secrets; participant scope via assignments |
