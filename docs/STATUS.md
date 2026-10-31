@@ -18,6 +18,8 @@
 
 ## 最近实测结果
 
+- 2026-10-31 S6-02 后恢复复核：起始工作区干净、HEAD `bf85e3c21f5cfe723be93573ed3c841c713ca781` 与 HANDOFF 一致；核对 AGENTS、继续 Prompt、任务台账、S6-02 浏览器代码/合成夹具、S3-01 相关设计与未决问题。Q-03/09 无签核证据；现有未完成 Task ID 均有未满足依赖。仅在 `docs/recovery-audit-post-s6-02` 分支更新交接文档，不新增任务或临床规则。
+- 本轮实测：后端 `uv run ruff check .` 通过、`uv run pytest -q` → 23 passed（Starlette TestClient 上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 lint、typecheck、test → 12 passed、build 成功；`Dockerfile.e2e` 镜像重建、Playwright/Chromium → 3 passed（本地模拟 API）；Compose config 与交接脚本（14 Task ID、本地链接）通过。真实 PostgreSQL/Next HTTP 烟测、手工浏览器 UAT、远端 CI 本轮未运行。
 - S6-02：从干净的 `692971f35f585dcfe4eaa3c3309746b5e4dcbf29` 恢复；原台账无可执行 ID，登记独立合成浏览器验收任务 `S6-02`，依赖已完成的 S6-01，未更改产品代码或临床规则。`frontend/e2e/synthetic-pose.pw.ts` 在 Next + 本地模拟 API 的 Chromium 中 3 passed：未登录跳转、未分配对象 404、算法提示/模拟照片范围/合成 SVG 生成切换清除、无摄像头调用或非 GET 请求。模拟 API 只含合成编号数据，不是 PostgreSQL 全链路或真实影像验收。
 - S6-02 检查：后端 Windows `uv run ruff check .` 通过、`uv run pytest -q` → 23 passed（上游弃用警告 1 条）；前端 Node 26.13/pnpm 10 容器 `pnpm lint`、`pnpm typecheck`、`pnpm test` → 12 passed、`pnpm build` 成功；Chromium 测试镜像 `docker build -f Dockerfile.e2e -t taiji-s6-02-e2e .` 成功，容器 `pnpm test:e2e` → 3 passed。文档/交接脚本和最终 Git 状态在提交前后复核。
 - S6-02 首次尝试 `pnpm exec playwright install --with-deps chromium` 因容器无法解析 `storage.googleapis.com` 未下载浏览器；改用发行版 Chromium。浏览器套件首跑 2 passed/1 failed，失败因过宽的 `getByRole('img')` 匹配 Next 开发工具图标；限定到合成预览区域后 3 passed。未重跑真实 PostgreSQL/Next HTTP 烟测，未运行浏览器手工 UAT、远端 CI 或真实影像测试。

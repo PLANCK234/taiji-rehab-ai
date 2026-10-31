@@ -64,3 +64,12 @@
 - 测试：后端 Ruff/pytest 23；前端 Node 26/pnpm 10 lint/typecheck/test 12/build；Chromium 浏览器 3 passed；测试镜像构建、Compose config、交接脚本。首轮浏览器测试 2/3，过宽图片选择器误匹配 Next 开发工具图标，限定到合成预览区域后全部通过。浏览器手工 UAT、远端 CI、真实影像与临床验收未运行。
 - 提交/PR：本地分支 `feat/s6-02-synthetic-browser-e2e`；最终 SHA 以 `git log` 为准，未创建 PR。
 - 遗留：S3-01 仍待 Q-03/09 签核；S4/S5/S7/S8 有前序或审批依赖。AT-12 真实影像待 Q-01/10；真实 PostgreSQL/Next HTTP 烟测本轮未重跑。
+
+## 2026-10-31 UTC · 无可执行 Task ID（S6-02 后恢复复核）
+
+- 目标：只依据仓库和 Git 恢复最新检查点，复核 S6-02 结果并选择依赖已满足的下一 Task ID。
+- 完成：确认起始工作区干净、HEAD `bf85e3c21f5cfe723be93573ed3c841c713ca781` 与 HANDOFF 一致；核对任务台账、实际浏览器代码、合成夹具、S3-01 设计及未决问题。另建 `docs/recovery-audit-post-s6-02`，只更新交接文档；任务状态不变。
+- 决策：Q-03/09 仍无有权签核与版本证据，S3-01 保持 BLOCKED；其余未完成任务依赖前序阶段或其他审批。未自行新增 Task ID 或启用临床规则。
+- 测试：后端 Ruff/pytest 23、前端 Node 26/pnpm 10 lint/typecheck/test 12/build、Playwright/Chromium 3、Compose config、交接脚本 14 Task ID/链接及上次提交检查均通过；pytest 有上游弃用警告 1 条。真实 PostgreSQL/Next HTTP 烟测、手工浏览器 UAT 与远端 CI 未运行。
+- 提交/PR：本地文档分支 `docs/recovery-audit-post-s6-02`；最终 SHA 以 `git log` 为准，未创建 PR。
+- 遗留：需 Q-03 的适配模板/禁忌/剂量与 Q-09 的审批/发布权限签核和版本证据，才可启动 S3-01；真实影像仍待 Q-01/10。
