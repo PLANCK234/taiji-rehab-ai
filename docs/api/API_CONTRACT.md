@@ -83,3 +83,21 @@ Session POST: `{"session_at":"2026-10-01T01:30:00Z","action_label":"SYN-OBSERVED
 
 ## API documentation generation
 Once backend exists, commit its OpenAPI spec export and compare to this contract in CI. Amend this file deliberately whenever a public endpoint changes.
+
+## DEMO-V2 synthetic display and training API (implemented)
+
+All endpoints use the existing staff session and server-side study/participant scope; writes require CSRF. `APP_PROFILE=research` still rejects business access. These are `DEMO_ONLY` display records, not FR-004/005 clinical publication.
+
+| Method/path | Meaning |
+|---|---|
+| `POST /api/v1/participants/{id}/demo-profile` / `GET .../demo-profile` | Create once/read optional synthetic `age`, `sex`, `needs_assistance`, `note`; conflicting second create 409 |
+| `GET /api/v1/participants/{id}/demo-plan` | Latest confirmed assessment revision, persisted `demo-rule-v1` result/evidence, current run and planned actions; no confirmed assessment → `grade:null` |
+| `GET /api/v1/demo-actions` | Enabled marked `DEMO_ONLY` action cards from PostgreSQL |
+| `POST /api/v1/participants/{id}/demo-runs` | `{}` with `Idempotency-Key`; replays or an existing active run return same run; only I/II/III with actions and current simulated consent |
+| `GET /api/v1/demo-runs/{runId}` | Persisted run state, scoped to participant |
+| `POST /api/v1/demo-runs/{runId}/step` | `{expected_status,action}`; pause/resume/next/previous; stale state 409 |
+| `POST /api/v1/demo-runs/{runId}/end` | `{actual_minutes,completion_status,notes?,completed_action_ids?}`; actual completed IDs must belong to this run, null means unknown; creates one original `training_sessions` observation and moves to `awaiting_feedback`; same payload repeat returns same record, differing repeat 409 |
+| `POST /api/v1/demo-runs/{runId}/complete` | `{}`; requires existing `training_feedback_revisions` row for linked session; repeated completion returns same run |
+| `POST /api/v1/demo-runs/{runId}/stop` | `{}`; persists `stopped` plus interrupted observation with unknown actual minutes; feedback/event can be added through existing endpoints |
+
+Assessment confirmation (`POST /assessments/{id}/confirm`) additionally persists one `demo_grade_results` per confirmed revision. Existing assessment/training response shapes and endpoints remain valid. The generated OpenAPI snapshot is `backend/openapi.json`.

@@ -9,6 +9,7 @@ import CreateAssessmentForm from "./create-assessment-form";
 import AssessmentTrendSection from "./assessment-trend";
 import TrainingForms from "./training-forms";
 import { getSafetyEvents, getTrainingSessions } from "../../workspace/training";
+import { getDemoPlan } from "../../workspace/demo";
 
 export const dynamic = "force-dynamic";
 
@@ -27,13 +28,14 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
     getAssessmentTrend(id, cookieHeader),
     getTrainingSessions(id, cookieHeader),
     getSafetyEvents(id, cookieHeader),
+    getDemoPlan(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
   const canExport = canWrite || user.role === "clinical_approver";
@@ -44,6 +46,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <div className="eyebrow">合成数据编号对象</div>
       <h1>{participant.study_code}</h1>
       <p>此页面仅用于开发演示，不代表真实建档或研究入组。</p>
+      <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">模拟同意记录</h2>
         {consents ? <>
@@ -66,7 +69,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       </section>
       <section aria-labelledby="assessments-heading">
         <h2 id="assessments-heading">合成人工总分评估</h2>
-        <p className="note">仅录入人工 SPPB 总分，不计算分项、等级或训练建议。</p>
+        <p className="note">人工 SPPB 总分会在确认后生成独立 Demo 展示分级；不形成临床建议。</p>
         {assessments === null ? <p>评估记录暂不可用。</p> : assessments.length ? (
           <ul>{assessments.map((row) => (
             <li key={row.id}>

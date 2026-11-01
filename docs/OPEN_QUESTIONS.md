@@ -19,3 +19,5 @@
 | Q-13 | External LLM used for literature only? Approved provider and documents? | security / PI | offline manual literature extraction |
 
 **Decision closure template**: date; question ID; signed decision; authority; scope; rule/protocol version; evidence URL/file; impacted tests; effective date. No closed state without evidence.
+
+DEMO-V2 的 `demo-rule-v1` 与动作文字是明确标记的合成展示映射，不是 Q-03 适配模板或 Q-09 临床发布批准；两项继续未解决。真实数据、处方、剂量和生产接入仍不得据此开放。

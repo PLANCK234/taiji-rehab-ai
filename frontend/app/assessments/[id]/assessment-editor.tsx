@@ -11,6 +11,7 @@ type Validity = "" | "valid" | "missing" | "invalid";
 
 export default function AssessmentEditor(props: {
   assessmentId: string;
+  participantId: string;
   current: AssessmentRevision;
   canWrite: boolean;
   canConfirm: boolean;
@@ -71,6 +72,7 @@ export default function AssessmentEditor(props: {
     setPending(false);
     if (result.value) {
       confirmKey.current = "";
+      router.push(`/participants/${props.participantId}/demo`);
       router.refresh();
     } else setError(assessmentError(result.status));
   }

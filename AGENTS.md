@@ -3,11 +3,19 @@
 > These instructions apply to the whole repository. Read `docs/README.md` to find the authoritative detail; do not treat this file as a specification replacement.
 
 ## Mission and constraints
+- **Current engineering priority (DEMO-V2):** deliver a Chinese-first, interactive, PostgreSQL-backed researcher demo: login → coded participant → manual assessment → versioned demo grade → demo plan/action library → training run → observed feedback/completion. This is a product prototype, not a static mockup. Keep the existing clinical research roadmap and approval gates.
+- Demo output is `DEMO_RULE` / `DEMO_ONLY`, never an approved clinical prescription. `CLINICAL_RULE`, `MODEL_CANDIDATE`, and `HUMAN_CONFIRMATION` are distinct records and claims. An independent Demo task may proceed while formal clinical tasks remain blocked.
 - Build a **researcher-facing**, Chinese-first Web platform for Tai Chi rehabilitation assessment and research data management; **not** a patient app, autonomous diagnosis system, or autonomous clinical prescription engine.
 - Follow `docs/product/PRD.md` and `docs/product/ACCEPTANCE.md`. When requirements disagree, document the conflict in `docs/OPEN_QUESTIONS.md` and ask the human owner before implementing a clinical rule.
 - Clinical advice, grades and model suggestions are **proposals** until explicitly approved by an authorized clinician; preserve prediction, confirmation and version separately.
 - Use synthetic fixtures only until ethics, consent, security review and hosting approvals are documented. Never upload identifiable health information to public LLMs.
 - Never invent clinical cutoffs, treatment dosages, efficacy claims, research approvals, published papers or model performance results.
+
+## Demo-first development policy
+- Core operations use FastAPI and the existing PostgreSQL database. No page-local fake participants, session counts, or completion rates presented as persisted data.
+- Synthetic fixtures and manually created coded participants are allowed only in Demo. Demo grading uses a separate, deterministic, versioned rule engine without GPT/API dependence; it cannot unlock Research or real-patient access.
+- Keep unknown assessments and symptom reports unknown. Preserve existing rows and migrations; extend schema incrementally. Demo seed must be idempotent and may only add or validate its own marked rows.
+- Do not bypass consent, scope, security, or production approval gates by changing environment switches.
 
 ## Architecture
 - Modular monolith: `frontend/` Next.js + TypeScript; `backend/` FastAPI + Python; PostgreSQL, SQLAlchemy, Alembic; `ml/` for offline rules/experiments; `infra/` for deployment.

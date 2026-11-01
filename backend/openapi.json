@@ -496,6 +496,482 @@
         "title": "ConsentView",
         "type": "object"
       },
+      "DemoActionView": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "demo_grade": {
+            "title": "Demo Grade",
+            "type": "string"
+          },
+          "display_order": {
+            "title": "Display Order",
+            "type": "integer"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "marker": {
+            "const": "DEMO_ONLY",
+            "title": "Marker",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "demo_grade",
+          "explanation",
+          "steps",
+          "display_order",
+          "marker"
+        ],
+        "title": "DemoActionView",
+        "type": "object"
+      },
+      "DemoEnd": {
+        "additionalProperties": false,
+        "properties": {
+          "actual_minutes": {
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Actual Minutes",
+            "type": "integer"
+          },
+          "completed_action_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed Action Ids"
+          },
+          "completion_status": {
+            "enum": [
+              "completed",
+              "partial",
+              "interrupted"
+            ],
+            "title": "Completion Status",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "required": [
+          "actual_minutes",
+          "completion_status"
+        ],
+        "title": "DemoEnd",
+        "type": "object"
+      },
+      "DemoGradeView": {
+        "properties": {
+          "assessment_revision_id": {
+            "format": "uuid",
+            "title": "Assessment Revision Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "demo_training_mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Demo Training Mode"
+          },
+          "evidence": {
+            "additionalProperties": true,
+            "title": "Evidence",
+            "type": "object"
+          },
+          "functional_grade": {
+            "enum": [
+              "I",
+              "II",
+              "III",
+              "IV",
+              "UNASSESSED"
+            ],
+            "title": "Functional Grade",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "rule_version": {
+            "title": "Rule Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "assessment_revision_id",
+          "rule_version",
+          "functional_grade",
+          "demo_training_mode",
+          "evidence",
+          "created_at"
+        ],
+        "title": "DemoGradeView",
+        "type": "object"
+      },
+      "DemoPlanView": {
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/DemoActionView"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "current_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DemoRunView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DemoGradeView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "marker": {
+            "const": "DEMO_ONLY",
+            "default": "DEMO_ONLY",
+            "title": "Marker",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "grade",
+          "actions",
+          "current_run"
+        ],
+        "title": "DemoPlanView",
+        "type": "object"
+      },
+      "DemoProfileCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "maximum": 120.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "needs_assistance": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Assistance"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "enum": [
+                  "female",
+                  "male",
+                  "other",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          }
+        },
+        "title": "DemoProfileCreate",
+        "type": "object"
+      },
+      "DemoProfileView": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "maximum": 120.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "needs_assistance": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Assistance"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "enum": [
+                  "female",
+                  "male",
+                  "other",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          }
+        },
+        "required": [
+          "participant_id"
+        ],
+        "title": "DemoProfileView",
+        "type": "object"
+      },
+      "DemoRunView": {
+        "properties": {
+          "action_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Action Ids",
+            "type": "array"
+          },
+          "completed_action_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed Action Ids"
+          },
+          "current_index": {
+            "title": "Current Index",
+            "type": "integer"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "grade_result_id": {
+            "format": "uuid",
+            "title": "Grade Result Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "in_progress",
+              "paused",
+              "awaiting_feedback",
+              "completed",
+              "stopped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "training_session_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Training Session Id"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "grade_result_id",
+          "status",
+          "action_ids",
+          "completed_action_ids",
+          "current_index",
+          "started_at",
+          "ended_at",
+          "training_session_id"
+        ],
+        "title": "DemoRunView",
+        "type": "object"
+      },
+      "DemoStart": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "DemoStart",
+        "type": "object"
+      },
+      "DemoStep": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "pause",
+              "resume",
+              "next",
+              "previous"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "expected_status": {
+            "enum": [
+              "in_progress",
+              "paused"
+            ],
+            "title": "Expected Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_status",
+          "action"
+        ],
+        "title": "DemoStep",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1674,6 +2150,248 @@
         "summary": "Me"
       }
     },
+    "/api/v1/demo-actions": {
+      "get": {
+        "operationId": "list_demo_actions_api_v1_demo_actions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DemoActionView"
+                  },
+                  "title": "Response List Demo Actions Api V1 Demo Actions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Demo Actions"
+      }
+    },
+    "/api/v1/demo-runs/{run_id}": {
+      "get": {
+        "operationId": "get_demo_run_api_v1_demo_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Demo Run"
+      }
+    },
+    "/api/v1/demo-runs/{run_id}/complete": {
+      "post": {
+        "operationId": "complete_demo_run_api_v1_demo_runs__run_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Demo Run"
+      }
+    },
+    "/api/v1/demo-runs/{run_id}/end": {
+      "post": {
+        "operationId": "end_demo_run_api_v1_demo_runs__run_id__end_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoEnd"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End Demo Run"
+      }
+    },
+    "/api/v1/demo-runs/{run_id}/step": {
+      "post": {
+        "operationId": "step_demo_run_api_v1_demo_runs__run_id__step_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoStep"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Step Demo Run"
+      }
+    },
+    "/api/v1/demo-runs/{run_id}/stop": {
+      "post": {
+        "operationId": "stop_demo_run_api_v1_demo_runs__run_id__stop_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stop Demo Run"
+      }
+    },
     "/api/v1/participants": {
       "get": {
         "operationId": "list_participants_api_v1_participants_get",
@@ -1968,6 +2686,204 @@
           }
         },
         "summary": "Record Consent"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-plan": {
+      "get": {
+        "operationId": "get_demo_plan_api_v1_participants__participant_id__demo_plan_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoPlanView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Demo Plan"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-profile": {
+      "get": {
+        "operationId": "get_demo_profile_api_v1_participants__participant_id__demo_profile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/DemoProfileView"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Demo Profile Api V1 Participants  Participant Id  Demo Profile Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Demo Profile"
+      },
+      "post": {
+        "operationId": "create_demo_profile_api_v1_participants__participant_id__demo_profile_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoProfileCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoProfileView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Demo Profile"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-runs": {
+      "post": {
+        "operationId": "start_demo_run_api_v1_participants__participant_id__demo_runs_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRunView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Demo Run"
       }
     },
     "/api/v1/participants/{participant_id}/research-export.csv": {

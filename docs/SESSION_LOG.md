@@ -128,3 +128,18 @@
 - 实施：新增单对象实时 Demo CSV API 和对象页下载链接。服务器按角色、研究和对象范围授权，输出评估与反馈全部修订、训练会话和事件存在记录，显式保留零/空/缺失/版本；排除身份、邮箱和自由文本。响应有行数、SHA-256、no-store、live-demo 标记，允许/拒绝下载留审计。ADR-0013 和 API/字典/安全/验收/追踪更新。
 - 验证：后端 Ruff/pytest 32 passed/4 opt-in skipped；临时 PostgreSQL 迁移升降升、Alembic check、5 API passed，核对 CSV 行数/哈希/内容、跨对象及分析员 403、审计；真实 Chromium 4 passed，包含对象页下载与越权拒绝。前端最终 lint/typecheck/unit/build 和交接检查以本次最终执行记录为准。无真实数据、批量导出或原有卷操作。
 - 取舍：实时文件不是冻结快照；Q-07/Q-09 的真实字段/发布权限未签核。下个 Task ID 为 REAL-01E0：手工周期容器、复评/训练关联和缺失历史；随后扩展指标与冻结数据集。检查点 SHA 以 git log 为准；未推送 main。
+
+## 2026-10-31 北京时间 · DEMO-V2-00..07
+
+- 从干净分支 `feat/real-01f0-coded-export` / `b81aa58` 复核所有现存 AGENTS、权威规范、现有模型/API/前端/迁移/任务台账。复用账号会话/RBAC、`participants`、`assessments`/追加修订、`training_sessions`/反馈/事件、PostgreSQL/Alembic 和合成种子。
+- 更新全仓 6 个 AGENTS 文件及 PRD、独立七步流程、验收、任务/路线图、API/数据契约、README、ADR-0014、追踪和交接。`0006_demo_v2` 只新增 Demo 专用资料/等级/动作/训练状态表。确认评估时保存 `demo-rule-v1`；动作 12 条幂等种子。前端统一暗色视觉并接入真实 API，从建档/8 或 5 分到方案、动作库、训练、反馈/中止可操作。
+- 后端 Ruff、pytest 42 passed/4 opt-in skipped；临时 PostgreSQL 升/降/升和 Alembic check、旧 API 5 passed；前端 Node 26 容器 lint/typecheck/21 tests/build；真实浏览器首轮 5/6 因 E2E 选择器歧义，修复后 6/6，新增中止后最终 7/7。尚未运行远端 CI。
+- 本机原合成卷迁移前 4 个 `SYN-` 对象、head `0004`；备份到忽略目录 `exports/demo-v2-pre.dump` 后向前迁移到 `0006`、动作 12，旧对象仍 4。`http://127.0.0.1:3000/login` 200，ready 200。Research 没有启动或迁移；没有临床审批或真实患者数据。
+- 保留 REAL/ENG/S 状态和 S3-01/Q-03/Q-09 阻断。下个 Task ID `REAL-01E0`；如继续 Demo，先完善实际完成动作独立字段/修订与训练反馈易用性。检查点提交见 Git 日志，不推送或合并 main。
+
+补充：最终核对发现计划动作不等于实际完成动作，追加 `0007_demo_completed_actions`，结束表单可选已完成动作 ID；null 表示未知，后端拒绝不属于本次组合或重复的 ID。最终验证和本机迁移结果以 [STATUS](STATUS.md) 最新记录为准。
+
+## 2026-11-01 北京时间 · DEMO-V2 最终复测与本机演示启动
+
+- 后端 Ruff 通过、pytest 42 passed/4 opt-in skipped；OpenAPI 快照同步。临时 PostgreSQL 迁移升/降/升及原 API 5 passed。前端 Node 26 容器 lint/typecheck/21 tests/build 通过。完整浏览器链路 7 passed，含完成动作刷新持久化、旧业务和跨对象拒绝。
+- 本机既有合成卷备份后从 `0006` 增量迁移至 `0007_demo_completed_actions`；核对 head、原 4 个 `SYN-` 对象、12 条动作和新列。重建后 API ready、登录页均 200；Research 未启动。本次未推送/合并 main。下一 Task ID `REAL-01E0`。

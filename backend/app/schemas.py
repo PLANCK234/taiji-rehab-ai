@@ -46,6 +46,21 @@ class ParticipantCreate(BaseModel):
     study_code: str = Field(min_length=7, max_length=64, pattern=SYNTHETIC_CODE)
 
 
+class DemoProfileCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    age: StrictInt | None = Field(default=None, ge=0, le=120)
+    sex: Literal["female", "male", "other", "unknown"] | None = None
+    needs_assistance: bool | None = None
+    note: str | None = Field(default=None, max_length=500)
+
+
+class DemoProfileView(DemoProfileCreate):
+    model_config = ConfigDict(from_attributes=True)
+
+    participant_id: uuid.UUID
+
+
 class ConsentCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

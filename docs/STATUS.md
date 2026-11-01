@@ -1,5 +1,13 @@
 # 实施状态
 
+## 2026-11-01 DEMO-V2 最新检查点
+
+独立合成、数据库驱动的太极训练演示已实现：账号登录→编号对象/显式模拟同意→人工 SPPB 确认→`demo-rule-v1` 分级→I/II/III 展示方案与 12 条动作库→训练状态→既有训练观察/反馈→完成或中止。IV/缺失无自动自主训练组合；所有结果标记 `DEMO_ONLY`，不解除 S3-01/Q-03/Q-09 的临床阻断。原有 REAL/ENG/S 台账状态不因此升级。详见 [DEMO-V2 用户流程](product/DEMO_USER_FLOW.md)、[ADR-0014](decisions/0014-isolated-demo-rule-and-run.md)。
+
+本次新增 `0006_demo_v2` 和 `0007_demo_completed_actions` 两个增量迁移，未重建数据库或改写旧业务表。本机已有 `infra_pgdata` 在变更前为 4 个 `SYN-` 对象、Alembic `0004_manual_assessments`；先备份到忽略目录 `exports/demo-v2-pre.dump`，再向前迁移、幂等写入 12 条动作。最终本机 head `0007_demo_completed_actions`，旧 4 对象仍在，动作 12 条，新增完成动作列存在。服务 `http://127.0.0.1:3000/login` 和 `http://127.0.0.1:8000/ready` 均实测 200。本机现有 `.env` 演示密码与种子验证一致；不记录密码。Research 服务/库未启动。
+
+验证记录：后端 Ruff 通过、pytest **42 passed / 4 opt-in skipped**、OpenAPI 快照同步；临时 PostgreSQL 迁移升/降/升及旧 API **5 passed**；前端 Node 26 容器 lint/typecheck/**21 tests**/build；临时 PostgreSQL→FastAPI→Next→Chromium **7 passed**（含原有业务、8/5 分映射、动作库、暂停/恢复、实际完成动作/反馈/中止、刷新和越权）。远端 CI 未运行。对现有合成卷仅执行备份、向前迁移及幂等动作种子；未删除数据或触碰 Research。
+
 ## 2026-10-31 REAL-01 当前检查点（以下为最新状态）
 
 项目目标现为数据库驱动的医疗研究人员工作台；**开发和自动化验证仍仅使用合成数据**。真实患者数据接入、Research 业务访问及生产部署尚未获仓库内证据批准。REAL-01 纵向闭环尚未完成；旧版 Sprint/ENG 状态记录留在下方作为历史证据，涉及“下一步”的旧叙述已被本节及 [HANDOFF](HANDOFF.md) 取代。

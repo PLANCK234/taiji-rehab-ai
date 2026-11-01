@@ -16,10 +16,14 @@ from app.models import (
     AssessmentRevision,
     AuditEvent,
     ConsentRecord,
+    DemoAction,
+    DemoGradeResult,
+    DemoRun,
     Participant,
     ParticipantAssignment,
     Study,
     StudyAssignment,
+    TrainingSession,
     User,
 )
 from app.security import password_hash
@@ -151,12 +155,17 @@ def test_zero_confirm_correction_and_append_only_history(assessment_api) -> None
     assert created.json()["current"]["validity"] == "unrecorded"
     assert created.json()["current"]["raw_value"] is None
     path = f"/api/v1/assessments/{assessment_id}"
-    assert client.post(
-        path + "/confirm", json={"expected_revision": 1},
-        headers=headers(client, "confirm-unrecorded-01"),
-    ).status_code == 422
+    assert (
+        client.post(
+            path + "/confirm",
+            json={"expected_revision": 1},
+            headers=headers(client, "confirm-unrecorded-01"),
+        ).status_code
+        == 422
+    )
     recorded = client.put(
-        path + "/measurements", json=valid_payload(1, 0),
+        path + "/measurements",
+        json=valid_payload(1, 0),
         headers=headers(client, "measurement-zero-01"),
     )
     assert recorded.status_code == 200, recorded.text
@@ -165,23 +174,29 @@ def test_zero_confirm_correction_and_append_only_history(assessment_api) -> None
     assert recorded.json()["raw_value"] == 0
     assert recorded.json()["performed_at"].startswith("2026-10-01T01:30:00")
     confirmed = client.post(
-        path + "/confirm", json={"expected_revision": 2},
+        path + "/confirm",
+        json={"expected_revision": 2},
         headers=headers(client, "confirm-zero-0001"),
     )
     assert confirmed.status_code == 200, confirmed.text
     assert confirmed.json()["state"] == "confirmed"
     assert confirmed.json()["revision_no"] == 3
     correction = client.put(
-        path + "/measurements", json=valid_payload(3, 12, "SYN-CORRECTION"),
+        path + "/measurements",
+        json=valid_payload(3, 12, "SYN-CORRECTION"),
         headers=headers(client, "measurement-correct-01"),
     )
     assert correction.status_code == 200
     assert correction.json()["state"] == "draft"
     assert correction.json()["revision_no"] == 4
-    assert client.post(
-        path + "/confirm", json={"expected_revision": 4},
-        headers=headers(client, "confirm-correct-01"),
-    ).status_code == 200
+    assert (
+        client.post(
+            path + "/confirm",
+            json={"expected_revision": 4},
+            headers=headers(client, "confirm-correct-01"),
+        ).status_code
+        == 200
+    )
     detail = client.get(path)
     assert detail.status_code == 200
     history = detail.json()["history"]
@@ -216,7 +231,8 @@ def test_missing_and_invalid_are_not_zero_or_confirmed_score(assessment_api) -> 
     assert missing.json()["raw_value"] is None
     assert missing.json()["performed_at"] is None
     confirmed = client.post(
-        path + "/confirm", json={"expected_revision": 2},
+        path + "/confirm",
+        json={"expected_revision": 2},
         headers=headers(client, "confirm-missing-01"),
     )
     assert confirmed.status_code == 200
@@ -225,8 +241,11 @@ def test_missing_and_invalid_are_not_zero_or_confirmed_score(assessment_api) -> 
     invalid = client.put(
         path + "/measurements",
         json={
-            "expected_revision": 3, "validity": "invalid", "raw_value": 13,
-            "missing_reason": "technical_failure", "change_reason": "SYN-CORRECTION",
+            "expected_revision": 3,
+            "validity": "invalid",
+            "raw_value": 13,
+            "missing_reason": "technical_failure",
+            "change_reason": "SYN-CORRECTION",
         },
         headers=headers(client, "measurement-invalid-01"),
     )
@@ -235,18 +254,34 @@ def test_missing_and_invalid_are_not_zero_or_confirmed_score(assessment_api) -> 
     assert invalid.json()["validity"] == "invalid"
     assert client.get(path).json()["current"]["state"] == "draft"
     for payload in (
-        {"expected_revision": 4, "validity": "valid", "raw_value": 13,
-         "performed_at": "2026-10-01T09:30:00+08:00"},
-        {"expected_revision": 4, "validity": "missing", "raw_value": 0,
-         "missing_reason": "declined"},
-        {"expected_revision": 4, "validity": "valid", "raw_value": 5,
-         "performed_at": "2026-10-01T09:30:00"},
+        {
+            "expected_revision": 4,
+            "validity": "valid",
+            "raw_value": 13,
+            "performed_at": "2026-10-01T09:30:00+08:00",
+        },
+        {
+            "expected_revision": 4,
+            "validity": "missing",
+            "raw_value": 0,
+            "missing_reason": "declined",
+        },
+        {
+            "expected_revision": 4,
+            "validity": "valid",
+            "raw_value": 5,
+            "performed_at": "2026-10-01T09:30:00",
+        },
         {"expected_revision": 4, "validity": "invalid", "raw_value": None},
     ):
-        assert client.put(
-            path + "/measurements", json=payload,
-            headers=headers(client, str(uuid.uuid4())),
-        ).status_code == 422
+        assert (
+            client.put(
+                path + "/measurements",
+                json=payload,
+                headers=headers(client, str(uuid.uuid4())),
+            ).status_code
+            == 422
+        )
 
 
 def test_scope_consent_and_confirmation_role(assessment_api) -> None:
@@ -262,41 +297,65 @@ def test_scope_consent_and_confirmation_role(assessment_api) -> None:
     assessment_id = created.json()["id"]
     path = f"/api/v1/assessments/{assessment_id}"
     assert client.get(f"/api/v1/assessments/{uuid.uuid4()}").status_code == 403
-    assert client.put(
-        path + "/measurements", json=valid_payload(1, 5),
-        headers={"Idempotency-Key": "measurement-no-csrf-01"},
-    ).status_code == 403
+    assert (
+        client.put(
+            path + "/measurements",
+            json=valid_payload(1, 5),
+            headers={"Idempotency-Key": "measurement-no-csrf-01"},
+        ).status_code
+        == 403
+    )
     login(client, "assistant")
     assert client.get(path).status_code == 200
-    assert client.put(
-        path + "/measurements", json=valid_payload(1, 5),
-        headers=headers(client, "measurement-assistant-01"),
-    ).status_code == 200
-    assert client.post(
-        path + "/confirm", json={"expected_revision": 2},
-        headers=headers(client, "confirm-assistant-01"),
-    ).status_code == 403
+    assert (
+        client.put(
+            path + "/measurements",
+            json=valid_payload(1, 5),
+            headers=headers(client, "measurement-assistant-01"),
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            path + "/confirm",
+            json={"expected_revision": 2},
+            headers=headers(client, "confirm-assistant-01"),
+        ).status_code
+        == 403
+    )
     login(client, "analyst")
     assert client.get(path).status_code == 403
     assert client.get(f"/api/v1/participants/{ids['assigned']}/assessments").status_code == 403
     login(client)
-    assert client.post(
-        path + "/confirm", json={"expected_revision": 2},
-        headers=headers(client, "confirm-clinician-01"),
-    ).status_code == 200
+    assert (
+        client.post(
+            path + "/confirm",
+            json={"expected_revision": 2},
+            headers=headers(client, "confirm-clinician-01"),
+        ).status_code
+        == 200
+    )
     with Session(engine) as db:
         db.add(
             ConsentRecord(
-                participant_id=ids["assigned"], document_version="SYN-FORM-V1",
-                purpose_code="SYN-DEMO-USE", decision="withdrawn", photo_scope=False,
-                change_reason="SYN-WITHDRAWAL", recorded_by=ids["clinician"],
+                participant_id=ids["assigned"],
+                document_version="SYN-FORM-V1",
+                purpose_code="SYN-DEMO-USE",
+                decision="withdrawn",
+                photo_scope=False,
+                change_reason="SYN-WITHDRAWAL",
+                recorded_by=ids["clinician"],
             )
         )
         db.commit()
-    assert client.put(
-        path + "/measurements", json=valid_payload(3, 6, "SYN-CORRECTION"),
-        headers=headers(client, "measurement-withdrawn-01"),
-    ).status_code == 403
+    assert (
+        client.put(
+            path + "/measurements",
+            json=valid_payload(3, 6, "SYN-CORRECTION"),
+            headers=headers(client, "measurement-withdrawn-01"),
+        ).status_code
+        == 403
+    )
 
 
 def test_idempotency_conflict_and_database_constraint(assessment_api) -> None:
@@ -309,9 +368,12 @@ def test_idempotency_conflict_and_database_constraint(assessment_api) -> None:
     replay = client.post("/api/v1/assessments", json=create_body, headers=key)
     assert first.status_code == replay.status_code == 201
     assert first.json()["id"] == replay.json()["id"]
-    assert client.post(
-        "/api/v1/assessments", json={**create_body, "visit_kind": "revisit"}, headers=key
-    ).status_code == 409
+    assert (
+        client.post(
+            "/api/v1/assessments", json={**create_body, "visit_kind": "revisit"}, headers=key
+        ).status_code
+        == 409
+    )
     path = f"/api/v1/assessments/{first.json()['id']}"
     payload = valid_payload(1, 7)
     measure_key = headers(client, "measurement-replay-01")
@@ -319,35 +381,242 @@ def test_idempotency_conflict_and_database_constraint(assessment_api) -> None:
     replay_measure = client.put(path + "/measurements", json=payload, headers=measure_key)
     assert recorded.status_code == replay_measure.status_code == 200
     assert recorded.json()["id"] == replay_measure.json()["id"]
-    assert client.put(
-        path + "/measurements", json=valid_payload(1, 8, "SYN-CORRECTION"),
-        headers=headers(client, "measurement-stale-01"),
-    ).status_code == 409
-    assert client.put(
-        path + "/measurements", json=valid_payload(2, 8),
-        headers=headers(client, "measurement-no-reason-01"),
-    ).status_code == 422
+    assert (
+        client.put(
+            path + "/measurements",
+            json=valid_payload(1, 8, "SYN-CORRECTION"),
+            headers=headers(client, "measurement-stale-01"),
+        ).status_code
+        == 409
+    )
+    assert (
+        client.put(
+            path + "/measurements",
+            json=valid_payload(2, 8),
+            headers=headers(client, "measurement-no-reason-01"),
+        ).status_code
+        == 422
+    )
     confirm_key = headers(client, "confirm-replay-0001")
     confirm_body = {"expected_revision": 2}
     confirmed = client.post(path + "/confirm", json=confirm_body, headers=confirm_key)
     replay_confirm = client.post(path + "/confirm", json=confirm_body, headers=confirm_key)
     assert confirmed.status_code == replay_confirm.status_code == 200
     assert confirmed.json()["id"] == replay_confirm.json()["id"]
-    assert client.post(
-        path + "/confirm", json={"expected_revision": 3},
-        headers=headers(client, "confirm-again-0001"),
-    ).status_code == 409
+    assert (
+        client.post(
+            path + "/confirm",
+            json={"expected_revision": 3},
+            headers=headers(client, "confirm-again-0001"),
+        ).status_code
+        == 409
+    )
     with Session(engine) as db:
         assert len(db.scalars(select(Assessment)).all()) == 1
         assert len(db.scalars(select(AssessmentRevision)).all()) == 3
         db.add(
             AssessmentRevision(
-                assessment_id=uuid.UUID(first.json()["id"]), revision_no=4,
-                state="confirmed", metric_code="sppb_total", raw_value=13, unit="points",
-                validity="valid", missing_reason=None, performed_at=None,
-                source="manual_staff_entry", recorded_by=ids["clinician"],
+                assessment_id=uuid.UUID(first.json()["id"]),
+                revision_no=4,
+                state="confirmed",
+                metric_code="sppb_total",
+                raw_value=13,
+                unit="points",
+                validity="valid",
+                missing_reason=None,
+                performed_at=None,
+                source="manual_staff_entry",
+                recorded_by=ids["clinician"],
             )
         )
         with pytest.raises(IntegrityError):
             db.commit()
         db.rollback()
+
+
+def test_demo_grade_plan_run_feedback_and_refresh(assessment_api) -> None:
+    client, engine, ids = assessment_api
+    consent(engine, ids["assigned"], ids["clinician"])
+    with Session(engine) as db:
+        for grade in ("I", "II", "III"):
+            db.add(
+                DemoAction(
+                    id=f"{grade}-TEST",
+                    name=f"合成{grade}级动作",
+                    category="合成",
+                    demo_grade=grade,
+                    explanation="仅用于测试",
+                    steps=["查看"],
+                    display_order=1,
+                    enabled=True,
+                    marker="DEMO_ONLY",
+                )
+            )
+        db.commit()
+    login(client)
+    participant = ids["assigned"]
+    plan_path = f"/api/v1/participants/{participant}/demo-plan"
+    assert client.get(plan_path).json()["grade"] is None
+    assert (
+        client.post(
+            f"/api/v1/participants/{participant}/demo-runs",
+            json={},
+            headers=headers(client, str(uuid.uuid4())),
+        ).status_code
+        == 422
+    )
+    assessment_id = create(client, participant).json()["id"]
+    path = f"/api/v1/assessments/{assessment_id}"
+    assert (
+        client.put(
+            path + "/measurements",
+            json=valid_payload(1, 8),
+            headers=headers(client, str(uuid.uuid4())),
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            path + "/confirm",
+            json={"expected_revision": 2},
+            headers=headers(client, str(uuid.uuid4())),
+        ).status_code
+        == 200
+    )
+    plan = client.get(plan_path).json()
+    assert plan["grade"]["functional_grade"] == "II"
+    assert plan["grade"]["rule_version"] == "demo-rule-v1"
+    assert plan["grade"]["evidence"]["sppb_total"] == 8
+    assert [action["id"] for action in plan["actions"]] == ["II-TEST"]
+    started = client.post(
+        f"/api/v1/participants/{participant}/demo-runs",
+        json={},
+        headers=headers(client, str(uuid.uuid4())),
+    )
+    assert started.status_code == 200, started.text
+    run_id = started.json()["id"]
+    assert (
+        client.post(
+            f"/api/v1/participants/{participant}/demo-runs",
+            json={},
+            headers=headers(client, str(uuid.uuid4())),
+        ).json()["id"]
+        == run_id
+    )
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{run_id}/step",
+            json={"expected_status": "in_progress", "action": "pause"},
+            headers=headers(client, str(uuid.uuid4())),
+        ).json()["status"]
+        == "paused"
+    )
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{run_id}/step",
+            json={"expected_status": "paused", "action": "resume"},
+            headers=headers(client, str(uuid.uuid4())),
+        ).json()["status"]
+        == "in_progress"
+    )
+    end_payload = {
+        "actual_minutes": 12,
+        "completion_status": "completed",
+        "completed_action_ids": ["II-TEST"],
+    }
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{run_id}/end",
+            json={**end_payload, "completed_action_ids": ["III-TEST"]},
+            headers=headers(client, str(uuid.uuid4())),
+        ).status_code
+        == 422
+    )
+    ended = client.post(
+        f"/api/v1/demo-runs/{run_id}/end",
+        json=end_payload,
+        headers=headers(client, str(uuid.uuid4())),
+    )
+    assert ended.status_code == 200, ended.text
+    assert ended.json()["completed_action_ids"] == ["II-TEST"]
+    session_id = ended.json()["training_session_id"]
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{run_id}/end",
+            json=end_payload,
+            headers=headers(client, str(uuid.uuid4())),
+        ).json()["training_session_id"]
+        == session_id
+    )
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{run_id}/complete", headers=headers(client, str(uuid.uuid4()))
+        ).status_code
+        == 422
+    )
+    feedback = client.put(
+        f"/api/v1/training-sessions/{session_id}/feedback",
+        json={"expected_revision": 0, "state": "recorded", "rpe": 12},
+        headers=headers(client, str(uuid.uuid4())),
+    )
+    assert feedback.status_code == 200, feedback.text
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{run_id}/complete", headers=headers(client, str(uuid.uuid4()))
+        ).json()["status"]
+        == "completed"
+    )
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{run_id}/complete", headers=headers(client, str(uuid.uuid4()))
+        ).json()["status"]
+        == "completed"
+    )
+    assert client.get(f"/api/v1/demo-runs/{run_id}").json()["status"] == "completed"
+    with Session(engine) as db:
+        assert len(db.scalars(select(DemoGradeResult)).all()) == 1
+        assert len(db.scalars(select(DemoRun)).all()) == 1
+        assert len(db.scalars(select(TrainingSession)).all()) == 1
+    correction = client.put(
+        path + "/measurements",
+        json=valid_payload(3, 5, "SYN-CORRECTION"),
+        headers=headers(client, str(uuid.uuid4())),
+    )
+    assert correction.status_code == 200
+    assert (
+        client.post(
+            path + "/confirm",
+            json={"expected_revision": 4},
+            headers=headers(client, str(uuid.uuid4())),
+        ).status_code
+        == 200
+    )
+    assert client.get(plan_path).json()["grade"]["functional_grade"] == "III"
+    second = client.post(
+        f"/api/v1/participants/{participant}/demo-runs",
+        json={},
+        headers=headers(client, str(uuid.uuid4())),
+    )
+    assert second.status_code == 200
+    stopped = client.post(
+        f"/api/v1/demo-runs/{second.json()['id']}/stop",
+        headers=headers(client, str(uuid.uuid4())),
+    )
+    assert stopped.json()["status"] == "stopped"
+    assert (
+        client.post(
+            f"/api/v1/demo-runs/{second.json()['id']}/stop",
+            headers=headers(client, str(uuid.uuid4())),
+        ).json()["training_session_id"]
+        == stopped.json()["training_session_id"]
+    )
+    with Session(engine) as db:
+        assert len(db.scalars(select(TrainingSession)).all()) == 2
+        assert (
+            db.get(TrainingSession, uuid.UUID(stopped.json()["training_session_id"])).actual_minutes
+            is None
+        )
+    login(client, "assistant")
+    assert client.get(plan_path).status_code == 200
+    login(client, "analyst")
+    assert client.get(plan_path).status_code == 403

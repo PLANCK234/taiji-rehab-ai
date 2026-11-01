@@ -4,7 +4,8 @@ import { getAssignedStudies, getCurrentUser } from "./auth";
 import { getAssignedParticipants } from "./intake";
 import CreateParticipantForm from "./create-participant-form";
 import LogoutButton from "./logout-button";
-import Link from "next/link";
+import ParticipantList from "./participant-list";
+import { getDemoPlan } from "./demo";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function WorkspacePage() {
   if (!user) redirect("/login");
   const studies = await getAssignedStudies(cookieHeader);
   const participants = await getAssignedParticipants(cookieHeader);
+  const plans = Object.fromEntries(await Promise.all((participants ?? []).map(async (item) => [item.id, await getDemoPlan(item.id, cookieHeader)] as const)));
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
 
   return (
@@ -26,16 +28,14 @@ export default async function WorkspacePage() {
         {studies === null ? <p>研究分配暂不可用。</p> : studies.length ? (
           <ul>{studies.map((study) => <li key={study.id}>{study.code}</li>)}</ul>
         ) : <p>暂无研究分配。</p>}
-        {canWrite && studies?.length ? <CreateParticipantForm studies={studies} /> : null}
+        {canWrite && studies?.length ? <CreateParticipantForm studies={studies} canConfirm={user.role === "clinician"} /> : null}
       </section>
       <section aria-labelledby="participants-heading">
         <h2 id="participants-heading">已分配编号对象</h2>
         {participants === null ? <p>对象列表暂不可用或当前角色无权查看。</p> : participants.length ? (
-          <ul>{participants.map((participant) => (
-            <li key={participant.id}><Link href={`/participants/${participant.id}`}>{participant.study_code}</Link></li>
-          ))}</ul>
+          <ParticipantList participants={participants} plans={plans} />
         ) : <p>暂无已分配对象。</p>}
-        <p className="note">仅限合成数据；人工总分和合成姿态预览可演示，真实照片、分级与导出尚未开放。</p>
+        <p className="note">仅限合成数据；Demo 分级不代表临床批准。真实照片与 Research 数据准入仍关闭。</p>
       </section>
       <LogoutButton />
     </main>

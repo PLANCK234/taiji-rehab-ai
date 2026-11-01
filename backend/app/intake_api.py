@@ -12,6 +12,7 @@ from app.db import get_db
 from app.intake import require_reason_for_revision, reserve_write
 from app.models import (
     ConsentRecord,
+    DemoParticipantProfile,
     Participant,
     ParticipantAssignment,
     ScreeningRecord,
@@ -21,6 +22,8 @@ from app.schemas import (
     ConsentCreate,
     ConsentHistory,
     ConsentView,
+    DemoProfileCreate,
+    DemoProfileView,
     ParticipantCreate,
     ParticipantView,
     ScreeningCreate,
@@ -62,8 +65,7 @@ def list_participants(
     audit(db, "list", "participant", "allowed", auth.user.id)
     db.commit()
     return [
-        ParticipantView(id=row.id, study_id=row.study_id, study_code=row.study_code)
-        for row in rows
+        ParticipantView(id=row.id, study_id=row.study_id, study_code=row.study_code) for row in rows
     ]
 
 
@@ -101,6 +103,47 @@ def create_participant(
     return ParticipantView(id=row.id, study_id=row.study_id, study_code=row.study_code)
 
 
+@router.get("/participants/{participant_id}/demo-profile", response_model=DemoProfileView | None)
+def get_demo_profile(
+    participant_id: uuid.UUID,
+    auth: AuthContext = Depends(current_auth),
+    db: Session = Depends(get_db),
+) -> DemoProfileView | None:
+    authorized_participant(db, auth, participant_id)
+    row = db.get(DemoParticipantProfile, participant_id)
+    return DemoProfileView.model_validate(row) if row else None
+
+
+@router.post("/participants/{participant_id}/demo-profile", response_model=DemoProfileView)
+def create_demo_profile(
+    participant_id: uuid.UUID,
+    payload: DemoProfileCreate,
+    request: Request,
+    auth: AuthContext = Depends(current_auth),
+    db: Session = Depends(get_db),
+) -> DemoProfileView:
+    require_csrf(request, auth, db, "create", "demo_profile", participant_id)
+    authorized_participant(
+        db,
+        auth,
+        participant_id,
+        action="create",
+        allowed_roles=WRITE_ROLES,
+        audit_success=False,
+        lock_for_write=True,
+    )
+    existing = db.get(DemoParticipantProfile, participant_id)
+    if existing:
+        if DemoProfileCreate.model_validate(existing, from_attributes=True) != payload:
+            raise HTTPException(status_code=409, detail="demo profile already exists")
+        return DemoProfileView.model_validate(existing)
+    row = DemoParticipantProfile(participant_id=participant_id, **payload.model_dump())
+    db.add(row)
+    audit(db, "create", "demo_profile", "allowed", auth.user.id, participant_id)
+    db.commit()
+    return DemoProfileView.model_validate(row)
+
+
 @router.get("/participants/{participant_id}/consents", response_model=ConsentHistory)
 def list_consents(
     participant_id: uuid.UUID,
@@ -119,9 +162,7 @@ def list_consents(
     )
 
 
-@router.post(
-    "/participants/{participant_id}/consents", status_code=201, response_model=ConsentView
-)
+@router.post("/participants/{participant_id}/consents", status_code=201, response_model=ConsentView)
 def record_consent(
     participant_id: uuid.UUID,
     payload: ConsentCreate,
@@ -132,8 +173,13 @@ def record_consent(
 ) -> ConsentView:
     require_csrf(request, auth, db, "record", "consent_record", participant_id)
     authorized_participant(
-        db, auth, participant_id, action="record", allowed_roles=WRITE_ROLES,
-        audit_success=False, lock_for_write=True,
+        db,
+        auth,
+        participant_id,
+        action="record",
+        allowed_roles=WRITE_ROLES,
+        audit_success=False,
+        lock_for_write=True,
     )
     resource_id, fresh = reserve_write(db, auth.user.id, f"consent:{participant_id}", key, payload)
     if not fresh:
@@ -191,8 +237,13 @@ def record_screening(
 ) -> ScreeningView:
     require_csrf(request, auth, db, "record", "screening_record", participant_id)
     authorized_participant(
-        db, auth, participant_id, action="record", allowed_roles=WRITE_ROLES,
-        audit_success=False, lock_for_write=True,
+        db,
+        auth,
+        participant_id,
+        action="record",
+        allowed_roles=WRITE_ROLES,
+        audit_success=False,
+        lock_for_write=True,
     )
     current_consent = db.scalar(
         select(ConsentRecord)
@@ -215,8 +266,10 @@ def record_screening(
     require_reason_for_revision(
         db,
         ScreeningRecord,
-        (ScreeningRecord.participant_id == participant_id,
-         ScreeningRecord.item_code == payload.item_code),
+        (
+            ScreeningRecord.participant_id == participant_id,
+            ScreeningRecord.item_code == payload.item_code,
+        ),
         payload.change_reason,
     )
     row = ScreeningRecord(

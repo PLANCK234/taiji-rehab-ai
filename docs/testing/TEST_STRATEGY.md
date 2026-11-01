@@ -50,3 +50,7 @@ S1 local seed (`python -m app.seed_demo`) creates only three synthetic staff acc
 
 ## Definition of done
 Feature follows documented contract, permissions/validation, migration and rollback, tests executed with recorded output, no unapproved clinical rule, updated docs/traceability/status and reviewer checklist. No change is done because its code compiles alone.
+
+## DEMO-V2 actual database browser gate
+
+`uv run --no-project python scripts/run_eng04b_browser.py` builds disposable PostgreSQL/FastAPI/Next/Chromium, migrates to head, seeds synthetic accounts and 12 marked actions, and runs `frontend/e2e/demo-v2.real.ts` together with old business tests. It verifies 8→II, 5→III, action search/filter/dialog, run pause/resume/end/feedback/complete and stop, refresh persistence, old assessment/feedback/export and cross-scope rejection. The script stops temporary containers and network. SQLite backend unit/API tests remain useful for boundary logic; real DB migration and persistence claims require the disposable PostgreSQL gate. On a populated local Demo volume, take a backup before a forward migration; do not downgrade it for testing.

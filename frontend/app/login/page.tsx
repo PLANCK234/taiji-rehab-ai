@@ -34,8 +34,9 @@ export default function LoginPage() {
 
   return (
     <main className="form-page">
-      <h1>研究人员登录</h1>
-      <p>仅限合成数据开发环境。真实研究账号尚未开通。</p>
+      <div className="eyebrow">TAIJI · RESEARCH DEMO</div>
+      <h1>太极康复研究平台</h1>
+      <p>研究人员登录 · 仅限合成数据演示</p>
       <form onSubmit={submit}>
         <label htmlFor="email">邮箱</label>
         <input id="email" name="email" type="email" autoComplete="username" required />
