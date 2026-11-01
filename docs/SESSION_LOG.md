@@ -143,3 +143,8 @@
 
 - 后端 Ruff 通过、pytest 42 passed/4 opt-in skipped；OpenAPI 快照同步。临时 PostgreSQL 迁移升/降/升及原 API 5 passed。前端 Node 26 容器 lint/typecheck/21 tests/build 通过。完整浏览器链路 7 passed，含完成动作刷新持久化、旧业务和跨对象拒绝。
 - 本机既有合成卷备份后从 `0006` 增量迁移至 `0007_demo_completed_actions`；核对 head、原 4 个 `SYN-` 对象、12 条动作和新列。重建后 API ready、登录页均 200；Research 未启动。本次未推送/合并 main。下一 Task ID `REAL-01E0`。
+
+## 2026-11-01 北京时间 · DEMO-V2-08 本地回环登录修复
+
+- 从干净的 `037c60a` 检查实际路由、配置与本机账号。用户提供的 403/request_id 映射到 `login → check_origin`：容器 `APP_PUBLIC_URL=http://localhost:3000`，127 浏览器 Origin 在凭据校验前被拒；错误处理统一显示 FORBIDDEN。修复前用无效凭据复现 127→403、localhost→401、外部→403；3 个演示账号均启用。
+- 仅对已启用的合成本地/测试 Demo 的 HTTP 回环公开地址接受同端口别名。`require_csrf` 共用该检查；Research 准入、账号/限流、作用域和数据卷未改。修复后用实际账号经本机 Next→FastAPI 登录：127/localhost→200，外部→403。后端 Ruff、pytest 43 passed/4 skipped；临时 PostgreSQL/Next/Chromium 8 passed。仅重建本机 backend，无数据库迁移或数据重置。下个 Task ID 仍为 `REAL-01E0`。

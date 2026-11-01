@@ -6,7 +6,7 @@
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 
-不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。当前分支 `feat/real-01f0-coded-export`，任务组待最终检查点提交。
+不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。当前分支 `feat/real-01f0-coded-export`，最新检查点以 Git 日志为准。
 
 | Task ID | 目标 | 状态 | 最小修改范围 | 验收 / 实测证据 |
 |---|---|---|---|---|
@@ -18,6 +18,7 @@
 | DEMO-V2-05 | 方案页、动作组合 | DONE | Demo API/Next 页面 | 数据库等级、刷新恢复、IV/缺失无自主组合；真实浏览器 |
 | DEMO-V2-06 | 12 条动作库、搜索/筛选/详情 | DONE | 种子、API、页面 | 幂等种子；真实 Chromium 卡片操作 |
 | DEMO-V2-07 | 训练状态、反馈、兼容与交接 | DONE | `demo_runs`、原训练/反馈、`0006`/`0007` 增量迁移、E2E/文档 | 后端 42 passed/4 opt-in skipped、临时 PostgreSQL 5 API、浏览器 7 passed；本机 `0007`、旧对象 4 条保留、动作 12 条；完成动作独立保存 |
+| DEMO-V2-08 | 本地双回环地址登录 403 修复 | DONE | `backend/app/api.py`、登录 API/Chromium 回归、交接文档 | AT-DEMO-06；真实登录 API 127/localhost 均 200、外部来源 403；后端 43 passed/4 skipped、浏览器 8 passed；Research 门禁保持 |
 
 | Task ID | Sprint | 目标 | 优先级 | 依赖 | 负责人/分支 | 状态 | 预计修改范围 | 验收与测试 | 完成证据 |
 |---|---:|---|---|---|---|---|---|---|---|

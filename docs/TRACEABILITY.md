@@ -38,6 +38,6 @@ When a feature is implemented, add links to actual source files, migrations, tes
 | AT-DEMO-01/02 | [流程](product/DEMO_USER_FLOW.md)、`backend/app/demo_rule.py`、`backend/app/assessment_api.py`、`frontend/app/workspace/create-participant-form.tsx`、`frontend/app/participants/[id]/demo/` | `backend/tests/test_demo_rule.py` 与 `test_manual_assessments.py`；`frontend/e2e/demo-v2.real.ts` 8→II、5→III、重开；只供合成展示 |
 | AT-DEMO-03 | `backend/app/seed_demo_actions.py`、`backend/app/demo_api.py`、方案页 | 12 条本地幂等种子；Chromium 搜索/等级筛选/详情弹窗；无医学照片 |
 | AT-DEMO-04/05 | `backend/alembic/versions/0006_demo_v2.py`、`0007_demo_completed_actions.py`、`demo_runs`、原 `training_sessions`/`training_feedback_revisions`、训练页 | PostgreSQL 浏览器开始/暂停/继续/结束/实际完成动作/RPE/完成/刷新与中止未知值 7 passed；API 无反馈拒绝完成、完成动作校验与重复提交；后端 42 passed/4 skipped |
-| AT-DEMO-06 | 原认证/作用域/审计、迁移、`backend/openapi.json` | 临时 PostgreSQL 升/降/升与旧 API 5 项、原浏览器越权与旧流程；真实数据/临床审批不在本验收 |
+| AT-DEMO-06 | 原认证/作用域/审计、迁移、`backend/openapi.json`；DEMO-V2-08 `backend/app/api.py:check_origin` | `backend/tests/test_auth_scope.py` 校验两个本地同端口回环来源、异端口/外部拒绝和 Research 配置；真实登录 API 两来源 200、外部 403；Chromium 8 passed 含 127 登录与原越权流程。真实数据/临床审批不在本验收 |
 
 `FR-004/005` 与 `AT-02/04` 的正式临床规则/审批状态仍由 S3-01/Q-03/Q-09 约束；本表不宣称通过。

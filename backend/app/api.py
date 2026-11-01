@@ -4,6 +4,7 @@ import os
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
@@ -19,6 +20,7 @@ from app.models import (
     StudyAssignment,
     User,
 )
+from app.runtime import demo_enabled
 from app.schemas import LoginRequest, ParticipantView, StudyView, UserView
 from app.security import (
     RATE_FAILURES,
@@ -75,7 +77,24 @@ def current_auth(request: Request, db: Session = Depends(get_db)) -> AuthContext
 def check_origin(request: Request) -> None:
     origin = request.headers.get("origin")
     allowed = os.environ.get("APP_PUBLIC_URL", "http://localhost:3000")
-    if origin and origin.rstrip("/") != allowed.rstrip("/"):
+    allowed_origins = {allowed.rstrip("/")}
+    configured = urlsplit(allowed)
+    # The local Demo can be opened by either loopback name; public/Research origins stay exact.
+    if (
+        demo_enabled()
+        and configured.scheme == "http"
+        and configured.hostname in {"localhost", "127.0.0.1"}
+        and configured.path in {"", "/"}
+        and not configured.query
+        and not configured.fragment
+    ):
+        try:
+            port = configured.port
+        except ValueError:
+            port = None
+        if port is not None:
+            allowed_origins.update({f"http://{host}:{port}" for host in ("localhost", "127.0.0.1")})
+    if origin and origin.rstrip("/") not in allowed_origins:
         raise HTTPException(status_code=403, detail="origin denied")
 
 

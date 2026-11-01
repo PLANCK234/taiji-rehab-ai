@@ -4,9 +4,9 @@
 
 | 项目 | 当前状态 |
 |---|---|
-| Branch / HEAD | 当前分支 `feat/real-01f0-coded-export`，任务开始 HEAD `b81aa58`；完成检查点以 `git log -1` 为准。本次未推送或合并 main。 |
-| 最近独立任务 | `DEMO-V2-00..07`：研究人员可操作的合成数据库训练演示，见 [流程](product/DEMO_USER_FLOW.md)、[ADR-0014](decisions/0014-isolated-demo-rule-and-run.md)。旧 REAL-01F0、REAL-01D0 状态保持不变。 |
-| 验证 | 后端 Ruff、pytest 42 passed/4 opt-in skipped；临时 PostgreSQL 迁移升/降/升与旧 API 5 passed；Node 26 容器前端 lint/typecheck/21 tests/build；真实 PostgreSQL→FastAPI→Next→Chromium 7 passed（含旧业务、越权、8/5 分、实际完成动作/反馈/中止/刷新）。本机现有合成卷从 `0004` 向前升至 `0007`，旧对象 4 条仍在；预迁移备份 `exports/demo-v2-pre.dump`（Git 忽略），动作 12 条。`http://127.0.0.1:3000/login` 和 ready 200 已实测。 |
+| Branch / HEAD | 当前分支 `feat/real-01f0-coded-export`；DEMO-V2-08 开始 HEAD `037c60a`，完成检查点以 `git log -1` 为准。本次未推送或合并 main。 |
+| 最近独立任务 | `DEMO-V2-08`：修复本地 Demo 在 `127.0.0.1:3000` 登录时的 Origin 403；仅允许同端口的两个回环地址，见 [STATUS](STATUS.md)。七步演示 `DEMO-V2-00..07` 保持完成，旧 REAL/ENG/S 状态不变。 |
+| 验证 | 本机真实登录 API：127/localhost 两来源均 200，外部来源 403；后端 Ruff、pytest 43 passed/4 skipped；真实 PostgreSQL→FastAPI→Next→Chromium 8 passed，含新增 127 登录及旧 localhost/越权场景。`APP_PUBLIC_URL=http://localhost:3000`，本机仅重建 backend，无迁移；既有合成卷 head `0007`，原 4 对象和 12 动作保留。上次完整前端 lint/typecheck/21 tests/build 与临时 PostgreSQL 5 API 结果见 STATUS；本轮 Next build 在 Chromium runner 实际通过。 |
 | 当前缺口 | DEMO-V2 动作仅文字/占位示意，无临床审核、获批剂量或真实影像；完成动作可选记录但无单独更正入口。REAL-01A/B/C 仍只有合成子集；E 周期/快照、F 完整研究级导出未完成。 |
 | 临床与数据阻断 | S3-01 继续 BLOCKED：Q-03 训练适配模板/禁忌/剂量和 Q-09 发布责任权限缺签核。Q-01/07/08/10 等真实数据/影像/保留/部署条件也未批准。仅用合成数据；Research 默认拒绝。 |
 | 下一 Task ID | `REAL-01E0`：手工研究周期容器与人工复评/训练观察显式关联；不自动安排访视、不定义结局或临床规则。若继续 DEMO-V2 优化，先补实际完成动作的更正入口及独立使用测验。 |

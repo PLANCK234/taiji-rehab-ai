@@ -16,6 +16,14 @@ test("unauthenticated synthetic workspace redirects to login", async ({ page }) 
   await expect(page).toHaveURL(/\/login$/);
 });
 
+test("local Demo login accepts the 127.0.0.1 browser origin", async ({ page }) => {
+  await page.goto("http://127.0.0.1:3000/login");
+  await page.getByLabel("邮箱").fill("demo-clinician-a@example.org");
+  await page.getByLabel("密码").fill(password);
+  await page.getByRole("button", { name: "登录" }).click();
+  await expect(page).toHaveURL(/\/workspace$/);
+});
+
 test("synthetic enrollment through confirmed baseline and missing revisit persists", async ({ page }) => {
   await login(page, "demo-clinician-a@example.org");
   await expect(page.getByRole("region", { name: "已分配研究" })

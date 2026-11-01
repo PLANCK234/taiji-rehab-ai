@@ -4,7 +4,7 @@
 
 | Implemented path | Behavior |
 |---|---|
-| POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure |
+| POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure. Origin must match `APP_PUBLIC_URL`; only synthetic local/test Demo with an HTTP loopback URL also accepts the same-port `localhost`/`127.0.0.1` alias. Other origins are 403 before credential checking. |
 | GET `/api/v1/auth/me` | Current staff ID, email, role; 401 if absent/expired/revoked |
 | POST `/api/v1/auth/logout` | Requires matching CSRF header and cookie; revokes session |
 | GET `/api/v1/studies` | Lists only assigned synthetic study codes |

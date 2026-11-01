@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-01 DEMO-V2-08 本地登录 Origin 修复
+
+用户报告 `POST /api/v1/auth/login` 403（request_id `0d0a3db4-183a-4e60-883b-1b912385ea79`）。实际容器为 `APP_PROFILE=demo`、`APP_ENV=local`、`ALLOW_SYNTHETIC_ONLY=true`、`APP_PUBLIC_URL=http://localhost:3000`；3 个演示账号均启用。`backend/app/api.py:check_origin` 在凭据/限流前把浏览器 `Origin=http://127.0.0.1:3000` 与单个公开地址精确比较并抛 403；统一错误映射把 `origin denied` 显示成 `FORBIDDEN / 没有访问权限`。修复仅在合成本地/测试 Demo 且配置为 HTTP 回环地址时允许同端口的 `localhost` 与 `127.0.0.1`，外部来源仍拒绝；`require_csrf`、账号校验、RBAC 和 Research 拒绝门禁未更改。
+
+实测：修复前同接口的回环 127 来源 403、localhost 来源进入凭据校验返回预期 401；修复后用现有 Demo 账号经本机 Next→FastAPI 登录 API，两个来源均 **200**，外部来源 **403**。Ruff 通过，后端 pytest **43 passed / 4 skipped**，真实 PostgreSQL→FastAPI→Next→Chromium **8 passed**（含新增 127 登录及既有 localhost/越权场景）。本机仅重建 backend 容器；数据库 head 仍为 `0007`，无迁移、删除或重置。
+
 ## 2026-11-01 DEMO-V2 最新检查点
 
 独立合成、数据库驱动的太极训练演示已实现：账号登录→编号对象/显式模拟同意→人工 SPPB 确认→`demo-rule-v1` 分级→I/II/III 展示方案与 12 条动作库→训练状态→既有训练观察/反馈→完成或中止。IV/缺失无自动自主训练组合；所有结果标记 `DEMO_ONLY`，不解除 S3-01/Q-03/Q-09 的临床阻断。原有 REAL/ENG/S 台账状态不因此升级。详见 [DEMO-V2 用户流程](product/DEMO_USER_FLOW.md)、[ADR-0014](decisions/0014-isolated-demo-rule-and-run.md)。
