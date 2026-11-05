@@ -7,6 +7,8 @@
 | user.email | string | synthetic staff seed | account identifier; never include in participant responses or audit summaries |
 | demo_patient_binding.user_id / participant_id | UUID / UUID | synthetic Demo seed | one-to-one coded linkage only; no real identity or patient-created account |
 | demo_patient_binding.revoked_at | UTC datetime or null | assigned clinician revocation API | null means binding active; revoked row retained and seed does not reactivate it |
+| demo_patient_publication.version / state | positive integer / published or withdrawn | assigned clinician synthetic flow | append-only; latest state controls visibility; never a clinical plan version |
+| demo_patient_publication.marker / recorded_by / recorded_at | fixed `SYNTHETIC_PROCESS_ONLY` / staff UUID / UTC | server/audit | no action, dose or video URL; patient projection omits staff identity |
 | consent_record.decision | granted/refused/withdrawn | synthetic staff entry | latest entry controls synthetic screening write; no verified consent signature |
 | consent_record.photo_scope | boolean | synthetic staff entry | record only; photo upload remains unavailable |
 | consent_record.document_version / purpose_code | `SYN-` code | synthetic staff entry | no real protocol, signature or purpose approval implied |

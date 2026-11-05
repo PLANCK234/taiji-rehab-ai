@@ -14,7 +14,9 @@ from app.db import Base, get_db
 from app.main import app
 from app.models import (
     AuditEvent,
+    ConsentRecord,
     DemoPatientBinding,
+    DemoPatientPublication,
     LoginRateLimit,
     LoginSession,
     Participant,
@@ -206,7 +208,9 @@ def test_synthetic_patient_self_scope_and_revocation(seeded_api) -> None:
         db.commit()
 
     assert login(client, "demo-patient@example.org").status_code == 200
-    assert client.get("/api/v1/patient/me").json() == {"study_code": "SYN-001"}
+    assert client.get("/api/v1/patient/me").json() == {
+        "study_code": "SYN-001", "publication": None,
+    }
     assert client.get("/api/v1/studies").status_code == 403
     assert client.get("/api/v1/participants").status_code == 403
     assert client.get(f"/api/v1/participants/{ids['assigned']}").status_code == 403
@@ -239,6 +243,107 @@ def test_synthetic_patient_self_scope_and_revocation(seeded_api) -> None:
                 AuditEvent.action == "revoke", AuditEvent.resource_type == "demo_patient_binding"
             )
         ) is not None
+
+
+def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> None:
+    _, engine, ids = seeded_api
+    with Session(engine) as db:
+        patient = User(
+            email="demo-patient@example.org",
+            password_hash=password_hash.hash("synthetic-password-123"),
+            role="patient",
+        )
+        db.add(patient)
+        db.flush()
+        db.add_all([
+            DemoPatientBinding(user_id=patient.id, participant_id=ids["assigned"]),
+            ConsentRecord(
+                participant_id=ids["assigned"], document_version="SYN-V1",
+                purpose_code="SYN-DEMO", decision="granted", photo_scope=False,
+                recorded_by=ids["clinician"],
+            ),
+        ])
+        db.commit()
+
+    path = f"/api/v1/participants/{ids['assigned']}/demo-patient-publications"
+    with TestClient(app) as staff, TestClient(app) as patient_client:
+        assert login(staff).status_code == 200
+        assert login(patient_client, "demo-patient@example.org").status_code == 200
+        assert staff.get(path).json() == []
+        assert patient_client.get(path).status_code == 403
+        payload = {
+            "operation": "publish", "expected_version": 0,
+            "synthetic_only_acknowledged": True,
+        }
+        headers = {
+            "Origin": "http://localhost:3000",
+            "X-CSRF-Token": staff.cookies.get("taiji_csrf"),
+            "Idempotency-Key": "synthetic-publish-0001",
+        }
+        no_csrf = {k: v for k, v in headers.items() if k != "X-CSRF-Token"}
+        assert staff.post(path, json=payload, headers=no_csrf).status_code == 403
+        denied = staff.post(
+            f"/api/v1/participants/{ids['same_study_unassigned']}/demo-patient-publications",
+            json=payload, headers=headers,
+        )
+        assert denied.status_code == 403
+        first = staff.post(path, json=payload, headers=headers)
+        assert first.status_code == 201
+        assert first.json()["version"] == 1
+        assert first.json()["marker"] == "SYNTHETIC_PROCESS_ONLY"
+        assert staff.post(path, json=payload, headers=headers).json() == first.json()
+        demo_path = f"/api/v1/participants/{ids['assigned']}/demo-plan"
+        assert patient_client.get(demo_path).status_code == 403
+        home = patient_client.get("/api/v1/patient/me").json()
+        assert home["publication"] == first.json()
+        assert "训练计划" in home["publication"]["message"]
+        stale = staff.post(
+            path, json={**payload, "expected_version": 0},
+            headers={**headers, "Idempotency-Key": "synthetic-publish-0002"},
+        )
+        assert stale.status_code == 409
+        withdrawn = staff.post(
+            path, json={**payload, "operation": "withdraw", "expected_version": 1},
+            headers={**headers, "Idempotency-Key": "synthetic-withdraw-0001"},
+        )
+        assert withdrawn.status_code == 201
+        assert withdrawn.json()["version"] == 2
+        assert patient_client.get("/api/v1/patient/me").json()["publication"] is None
+        republished = staff.post(
+            path, json={**payload, "expected_version": 2},
+            headers={**headers, "Idempotency-Key": "synthetic-publish-0003"},
+        )
+        assert republished.status_code == 201
+        assert republished.json()["version"] == 3
+        assert [row["state"] for row in staff.get(path).json()] == [
+            "published", "withdrawn", "published",
+        ]
+        with Session(engine) as db:
+            db.add(ConsentRecord(
+                participant_id=ids["assigned"], document_version="SYN-V1",
+                purpose_code="SYN-DEMO", decision="withdrawn", photo_scope=False,
+                change_reason="SYN-WITHDRAW", recorded_by=ids["clinician"],
+            ))
+            db.commit()
+        assert patient_client.get("/api/v1/patient/me").json()["publication"] is None
+        after_consent_withdrawal = staff.post(
+            path, json={**payload, "operation": "withdraw", "expected_version": 3},
+            headers={**headers, "Idempotency-Key": "synthetic-withdraw-0002"},
+        )
+        assert after_consent_withdrawal.status_code == 201
+        assert after_consent_withdrawal.json()["version"] == 4
+        blocked_publish = staff.post(
+            path, json={**payload, "expected_version": 4},
+            headers={**headers, "Idempotency-Key": "synthetic-publish-0004"},
+        )
+        assert blocked_publish.status_code == 403
+
+    with Session(engine) as db:
+        assert len(db.scalars(select(DemoPatientPublication)).all()) == 4
+        assert db.scalar(select(AuditEvent).where(
+            AuditEvent.resource_type == "demo_patient_publication",
+            AuditEvent.action == "withdraw",
+        )) is not None
 
 
 def test_invalid_credentials_and_rate_limit(seeded_api) -> None:

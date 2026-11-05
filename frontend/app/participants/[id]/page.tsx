@@ -10,6 +10,8 @@ import AssessmentTrendSection from "./assessment-trend";
 import TrainingForms from "./training-forms";
 import { getSafetyEvents, getTrainingSessions } from "../../workspace/training";
 import { getDemoPlan } from "../../workspace/demo";
+import { getPublicationHistory } from "../../workspace/patient-publication";
+import PublicationControls from "./publication-controls";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +30,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
@@ -36,6 +38,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
     getTrainingSessions(id, cookieHeader),
     getSafetyEvents(id, cookieHeader),
     getDemoPlan(id, cookieHeader),
+    getPublicationHistory(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
   const canExport = canWrite || user.role === "clinical_approver";
@@ -47,6 +50,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <h1>{participant.study_code}</h1>
       <p>此页面仅用于开发演示，不代表真实建档或研究入组。</p>
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
+      <PublicationControls participantId={id} initialHistory={publicationHistory} canPublish={user.role === "clinician"} consentGranted={consents?.state === "granted"} />
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">模拟同意记录</h2>
         {consents ? <>

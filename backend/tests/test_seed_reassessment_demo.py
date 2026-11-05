@@ -3,6 +3,8 @@
 import os
 
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import Session
@@ -139,9 +141,8 @@ def test_seed_on_migrated_postgres(monkeypatch: pytest.MonkeyPatch) -> None:
     assert engine.dialect.name == "postgresql"
     with engine.connect() as connection:
         assert connection.scalar(text("select current_database()")) == "taiji_eng04"
-        assert connection.scalar(text("select version_num from alembic_version")) == (
-            "0007_demo_completed_actions"
-        )
+        expected_head = ScriptDirectory.from_config(Config("alembic.ini")).get_current_head()
+        assert connection.scalar(text("select version_num from alembic_version")) == expected_head
     monkeypatch.setenv("APP_ENV", "local")
     monkeypatch.setenv("DEMO_PASSWORD", PASSWORD)
     seed_reassessment_demo.main()

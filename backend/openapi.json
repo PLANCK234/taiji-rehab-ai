@@ -1137,6 +1137,16 @@
       },
       "PatientHomeView": {
         "properties": {
+          "publication": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicationView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "study_code": {
             "title": "Study Code",
             "type": "string"
@@ -1146,6 +1156,73 @@
           "study_code"
         ],
         "title": "PatientHomeView",
+        "type": "object"
+      },
+      "PublicationView": {
+        "properties": {
+          "marker": {
+            "title": "Marker",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "published",
+              "withdrawn"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "video_status": {
+            "const": "awaiting_review",
+            "title": "Video Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "state",
+          "marker",
+          "message",
+          "video_status"
+        ],
+        "title": "PublicationView",
+        "type": "object"
+      },
+      "PublicationWrite": {
+        "properties": {
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "operation": {
+            "enum": [
+              "publish",
+              "withdraw"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "synthetic_only_acknowledged": {
+            "const": true,
+            "title": "Synthetic Only Acknowledged",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "operation",
+          "expected_version",
+          "synthetic_only_acknowledged"
+        ],
+        "title": "PublicationWrite",
         "type": "object"
       },
       "SafetyEventCreate": {
@@ -2732,6 +2809,110 @@
           }
         },
         "summary": "Revoke Patient Binding"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-patient-publications": {
+      "get": {
+        "operationId": "publication_history_api_v1_participants__participant_id__demo_patient_publications_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PublicationView"
+                  },
+                  "title": "Response Publication History Api V1 Participants  Participant Id  Demo Patient Publications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publication History"
+      },
+      "post": {
+        "operationId": "record_publication_api_v1_participants__participant_id__demo_patient_publications_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Publication"
       }
     },
     "/api/v1/participants/{participant_id}/demo-plan": {

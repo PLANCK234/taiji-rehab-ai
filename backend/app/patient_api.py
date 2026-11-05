@@ -1,22 +1,61 @@
 """Synthetic-only patient home and clinician revocation boundary."""
 
 import uuid
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api import AuthContext, audit, authorized_participant, current_auth, require_csrf
 from app.db import get_db
-from app.models import DemoPatientBinding, LoginSession, Participant, utc_now
+from app.intake import reserve_write
+from app.intake_api import READ_ROLES, idempotency_header
+from app.models import (
+    DemoPatientBinding,
+    DemoPatientPublication,
+    LoginSession,
+    Participant,
+    utc_now,
+)
+from app.patient_publication import (
+    MARKER,
+    MESSAGE,
+    VIDEO_STATUS,
+    active_binding,
+    latest_publication,
+)
 from app.runtime import require_demo
+from app.training import has_current_synthetic_consent
 
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(require_demo)])
 
 
+class PublicationView(BaseModel):
+    version: int
+    state: Literal["published", "withdrawn"]
+    marker: str
+    message: str
+    video_status: Literal["awaiting_review"]
+
+
 class PatientHomeView(BaseModel):
     study_code: str
+    publication: PublicationView | None = None
+
+
+class PublicationWrite(BaseModel):
+    operation: Literal["publish", "withdraw"]
+    expected_version: int = Field(ge=0)
+    synthetic_only_acknowledged: Literal[True]
+
+
+def publication_view(row: DemoPatientPublication) -> PublicationView:
+    return PublicationView(
+        version=row.version, state=row.state, marker=row.marker,
+        message=MESSAGE, video_status=VIDEO_STATUS,
+    )
 
 
 @router.get("/patient/me", response_model=PatientHomeView)
@@ -38,9 +77,91 @@ def patient_home(
         audit(db, "read", "patient_home", "denied", auth.user.id)
         db.commit()
         raise HTTPException(status_code=403, detail="access denied")
+    latest = latest_publication(db, row.id)
+    visible = (
+        publication_view(latest)
+        if latest is not None and latest.state == "published"
+        and has_current_synthetic_consent(db, row.id)
+        else None
+    )
     audit(db, "read", "patient_home", "allowed", auth.user.id, row.id)
     db.commit()
-    return PatientHomeView(study_code=row.study_code)
+    return PatientHomeView(study_code=row.study_code, publication=visible)
+
+
+@router.get(
+    "/participants/{participant_id}/demo-patient-publications",
+    response_model=list[PublicationView],
+)
+def publication_history(
+    participant_id: uuid.UUID,
+    auth: AuthContext = Depends(current_auth),
+    db: Session = Depends(get_db),
+) -> list[PublicationView]:
+    authorized_participant(
+        db, auth, participant_id, action="read", allowed_roles=READ_ROLES,
+        audit_success=False,
+    )
+    rows = db.scalars(
+        select(DemoPatientPublication)
+        .where(DemoPatientPublication.participant_id == participant_id)
+        .order_by(DemoPatientPublication.version)
+    ).all()
+    audit(db, "read", "demo_patient_publication", "allowed", auth.user.id, participant_id)
+    db.commit()
+    return [publication_view(row) for row in rows]
+
+
+@router.post(
+    "/participants/{participant_id}/demo-patient-publications",
+    response_model=PublicationView, status_code=201,
+)
+def record_publication(
+    participant_id: uuid.UUID,
+    payload: PublicationWrite,
+    request: Request,
+    auth: AuthContext = Depends(current_auth),
+    db: Session = Depends(get_db),
+    key: str = Depends(idempotency_header),
+) -> PublicationView:
+    require_csrf(request, auth, db, payload.operation, "demo_patient_publication", participant_id)
+    participant = authorized_participant(
+        db, auth, participant_id, action=payload.operation, allowed_roles={"clinician"},
+        audit_success=False, lock_for_write=True,
+    )
+    if not participant.study_code.startswith("SYN-"):
+        raise HTTPException(status_code=403, detail="synthetic participant required")
+    event_id, fresh = reserve_write(
+        db, auth.user.id, f"patient_publication:{participant_id}", key, payload
+    )
+    if not fresh:
+        existing = db.get(DemoPatientPublication, event_id)
+        if existing is None:
+            raise HTTPException(status_code=503, detail="receipt target missing")
+        return publication_view(existing)
+    previous = latest_publication(db, participant_id)
+    version = previous.version if previous is not None else 0
+    if payload.expected_version != version:
+        raise HTTPException(status_code=409, detail="publication version changed")
+    if payload.operation == "publish":
+        if not active_binding(db, participant_id) or not has_current_synthetic_consent(
+            db, participant_id
+        ):
+            raise HTTPException(status_code=403, detail="active demo binding and consent required")
+    elif previous is None or previous.state != "published":
+        raise HTTPException(status_code=409, detail="no published card to withdraw")
+    row = DemoPatientPublication(
+        id=event_id, participant_id=participant_id, version=version + 1,
+        state="published" if payload.operation == "publish" else "withdrawn",
+        marker=MARKER, recorded_by=auth.user.id,
+    )
+    db.add(row)
+    audit(
+        db, payload.operation, "demo_patient_publication", "allowed",
+        auth.user.id, participant_id,
+    )
+    db.commit()
+    return publication_view(row)
 
 
 @router.post("/participants/{participant_id}/demo-patient-binding/revoke", status_code=204)

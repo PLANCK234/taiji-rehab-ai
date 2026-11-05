@@ -4,6 +4,8 @@ import os
 import uuid
 
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from fastapi.testclient import TestClient
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
@@ -51,9 +53,8 @@ def test_training_session_feedback_event_persist_and_isolate() -> None:
     engine = get_engine()
     with engine.connect() as connection:
         assert connection.scalar(text("select current_database()")) == "taiji_eng04"
-        assert connection.scalar(text("select version_num from alembic_version")) == (
-            "0007_demo_completed_actions"
-        )
+        expected_head = ScriptDirectory.from_config(Config("alembic.ini")).get_current_head()
+        assert connection.scalar(text("select version_num from alembic_version")) == expected_head
     suffix = uuid.uuid4().hex[:10]
     clinician_email = f"training-pg-{suffix}@example.org"
     peer_email = f"training-peer-{suffix}@example.org"

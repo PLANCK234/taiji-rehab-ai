@@ -18,5 +18,6 @@ Current proposals:
 - [ADR-0013](0013-live-coded-demo-export.md): audited single-participant live Demo CSV, excluding identity and free text; not a frozen research snapshot.
 - [ADR-0014](0014-isolated-demo-rule-and-run.md): isolated `DEMO_ONLY` grade, catalog and persisted training run using existing observations/feedback.
 - [ADR-0015](0015-separate-patient-portal.md): separate planned patient portal with self-only access, clinician-published content and synthetic-first development.
+- [ADR-0016](0016-synthetic-patient-publication-card.md): append-only synthetic publish/withdraw test card without actionable plan or video content.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.

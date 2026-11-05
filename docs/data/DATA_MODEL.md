@@ -48,3 +48,7 @@ The additive migration creates `demo_participant_profiles` (one optional synthet
 ## Synthetic patient binding `0008_demo_patient_binding` (2026-11-05)
 
 The additive migration permits the `patient` user role and creates `demo_patient_bindings` with one user and one participant per binding, `created_at` and nullable `revoked_at`. It stores only synthetic coded linkage, not real identity or consent. A clinician scoped to the participant may revoke the link; sessions are revoked and the row remains as history. No self-registration or reactivation route exists. Downgrade was rehearsed only on an empty disposable PostgreSQL database; never downgrade a populated Demo database without an approved rollback plan.
+
+## Synthetic publication events `0009_demo_patient_publication` (2026-11-05)
+
+`demo_patient_publications` adds one append-only event per participant/version (`published|withdrawn`), immutable `SYNTHETIC_PROCESS_ONLY` marker, actor and UTC time. Only the latest published event is projected to an active synthetic patient with current simulated consent. The event carries no plan details, action IDs, dose, video URL or clinical approval. The new table is additive; downgrade was tested only on an empty disposable PostgreSQL database.

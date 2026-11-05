@@ -80,6 +80,28 @@ class DemoPatientBinding(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class DemoPatientPublication(Base):
+    """Append-only synthetic publication test events, without actionable plan content."""
+
+    __tablename__ = "demo_patient_publications"
+    __table_args__ = (
+        UniqueConstraint("participant_id", "version"),
+        CheckConstraint(
+            "state IN ('published','withdrawn')", name="ck_demo_patient_publication_state"
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    version: Mapped[int] = mapped_column(nullable=False)
+    state: Mapped[str] = mapped_column(String(20), nullable=False)
+    marker: Mapped[str] = mapped_column(String(40), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class DemoParticipantProfile(Base):
     """Synthetic display metadata; never a real identity mapping."""
 

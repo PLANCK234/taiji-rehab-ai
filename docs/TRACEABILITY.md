@@ -33,12 +33,12 @@ When a feature is implemented, add links to actual source files, migrations, tes
 
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
-患者端方向见 [ADR-0015](decisions/0015-separate-patient-portal.md)、[PRD](product/PRD.md)、[任务台账](TASKS.md) 与 [AT-PAT-01..03](product/ACCEPTANCE.md)。截至 2026-11-05，仅合成患者登录、本人编号隔离和撤销子集已实现；经医护发布计划、审核视频和患者训练/不适录入**未实现**，不得标为验收通过。
-
-| AT-PAT-01 合成子集 | `backend/alembic/versions/0008_demo_patient_binding.py`、`backend/app/patient_api.py`、`backend/app/seed_demo.py`、`frontend/app/patient/page.tsx`、登录/工作台守卫 | `backend/tests/test_auth_scope.py`、`test_seed_demo.py`；后端 44 passed/4 skipped；临时 PostgreSQL 升/降/升及 Alembic check；前端 lint/typecheck/23 tests/build；隔离浏览器登录、工作人员页转向、撤销后会话失效及再次登录拒绝。`frontend/e2e/patient.real.ts` 已添加，但 Chromium 镜像 apt 网络失败，自动浏览器用例未运行 | 仅 SYN 合成身份；无真实患者、发布计划/视频或患者记录 |
+患者端方向见 [ADR-0015](decisions/0015-separate-patient-portal.md)、[ADR-0016](decisions/0016-synthetic-patient-publication-card.md)、[PRD](product/PRD.md)、[任务台账](TASKS.md) 与 [AT-PAT-01..03](product/ACCEPTANCE.md)。截至 2026-11-05，合成患者入口和不可执行卡片的发布/撤回子集已实现；真实医护确认计划、审核视频和患者训练/不适录入**未实现**，不得标为验收通过。
 
 | 验收 | 实现 | 证据与边界 |
 |---|---|---|
+| AT-PAT-01 合成子集 | `backend/alembic/versions/0008_demo_patient_binding.py`、`backend/app/patient_api.py`、`backend/app/seed_demo.py`、`frontend/app/patient/page.tsx`、登录/工作台守卫 | `backend/tests/test_auth_scope.py`、`test_seed_demo.py`；本次全量后端 45 passed/4 skipped、前端 24 passed、临时 PostgreSQL 5 passed、真实 Chromium 8 passed（含合成患者入口和绑定撤销）；仅 SYN 合成身份，不接真实患者 |
+| AT-PAT-02 合成流程子集 | `backend/alembic/versions/0009_demo_patient_publication.py`、`backend/app/patient_publication.py`、`backend/app/patient_api.py`、`frontend/app/participants/[id]/publication-controls.tsx`、`frontend/app/patient/page.tsx` | API 授权/CSRF/幂等/版本 409/撤回/模拟同意测试、临时 PostgreSQL 升降升与 Alembic check、`frontend/e2e/patient.real.ts` 发布/患者可见/撤回/无视频 8-case 浏览器运行；只有固定不可执行测试卡片，无真实计划内容或审核视频，AT-PAT-02 未完整通过 |
 | AT-DEMO-01/02 | [流程](product/DEMO_USER_FLOW.md)、`backend/app/demo_rule.py`、`backend/app/assessment_api.py`、`frontend/app/workspace/create-participant-form.tsx`、`frontend/app/participants/[id]/demo/` | `backend/tests/test_demo_rule.py` 与 `test_manual_assessments.py`；`frontend/e2e/demo-v2.real.ts` 8→II、5→III、重开；只供合成展示 |
 | AT-DEMO-03 | `backend/app/seed_demo_actions.py`、`backend/app/demo_api.py`、方案页 | 12 条本地幂等种子；Chromium 搜索/等级筛选/详情弹窗；无医学照片 |
 | AT-DEMO-04/05 | `backend/alembic/versions/0006_demo_v2.py`、`0007_demo_completed_actions.py`、`demo_runs`、原 `training_sessions`/`training_feedback_revisions`、训练页 | PostgreSQL 浏览器开始/暂停/继续/结束/实际完成动作/RPE/完成/刷新与中止未知值 7 passed；API 无反馈拒绝完成、完成动作校验与重复提交；后端 42 passed/4 skipped |
