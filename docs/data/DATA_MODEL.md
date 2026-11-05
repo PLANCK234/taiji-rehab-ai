@@ -52,3 +52,7 @@ The additive migration permits the `patient` user role and creates `demo_patient
 ## Synthetic publication events `0009_demo_patient_publication` (2026-11-05)
 
 `demo_patient_publications` adds one append-only event per participant/version (`published|withdrawn`), immutable `SYNTHETIC_PROCESS_ONLY` marker, actor and UTC time. Only the latest published event is projected to an active synthetic patient with current simulated consent. The event carries no plan details, action IDs, dose, video URL or clinical approval. The new table is additive; downgrade was tested only on an empty disposable PostgreSQL database.
+
+## Synthetic patient self-report revisions `0010_demo_patient_report` (2026-11-05)
+
+`demo_patient_report_revisions` stores append-only patient-authored snapshots under a stable `report_id` and increasing `revision_no`: occurred time, explicit activity state (`performed|not_performed|unknown`), optional actual minutes only if performed, explicit discomfort state (`reported|none|unknown`), description only if reported, synthetic correction reason, actor and UTC record time. No row means unknown; a null duration remains unknown and an explicit `none` is not inferred from silence. This separate source never creates or modifies staff `training_sessions`, completion, safety-event classification or a clinical plan. Current simulated consent is needed for new writes; a revoked binding blocks patient access. Free-text discomfort is not included in existing coded CSV export. Migration is additive; populated database downgrade is not approved.

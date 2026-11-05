@@ -17,6 +17,7 @@ from app.models import (
     ConsentRecord,
     DemoPatientBinding,
     DemoPatientPublication,
+    DemoPatientReportRevision,
     LoginRateLimit,
     LoginSession,
     Participant,
@@ -343,6 +344,105 @@ def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> Non
         assert db.scalar(select(AuditEvent).where(
             AuditEvent.resource_type == "demo_patient_publication",
             AuditEvent.action == "withdraw",
+        )) is not None
+
+
+def test_synthetic_patient_report_history_scope_and_missingness(seeded_api) -> None:
+    _, engine, ids = seeded_api
+    with Session(engine) as db:
+        patient = User(
+            email="demo-patient@example.org",
+            password_hash=password_hash.hash("synthetic-password-123"), role="patient",
+        )
+        db.add(patient)
+        db.flush()
+        db.add(DemoPatientBinding(user_id=patient.id, participant_id=ids["assigned"]))
+        db.commit()
+    with TestClient(app) as staff, TestClient(app) as patient_client:
+        assert login(staff).status_code == 200
+        assert login(patient_client, "demo-patient@example.org").status_code == 200
+        path = "/api/v1/patient/reports"
+        staff_path = f"/api/v1/participants/{ids['assigned']}/patient-reports"
+        assert patient_client.get(path).json() == []
+        assert staff.get(staff_path).json() == []
+        assert patient_client.get(staff_path).status_code == 403
+        assert staff.get(path).status_code == 403
+        assert staff.get(
+            f"/api/v1/participants/{ids['same_study_unassigned']}/patient-reports"
+        ).status_code == 403
+        payload = {
+            "expected_revision": 0, "observed_at": "2026-11-05T10:00:00+08:00",
+            "activity_state": "unknown", "actual_minutes": None,
+            "discomfort_state": "reported", "discomfort_note": "SYN-训练后感到不适",
+            "change_reason": None,
+        }
+        headers = {
+            "Origin": "http://localhost:3000",
+            "X-CSRF-Token": patient_client.cookies.get("taiji_csrf"),
+            "Idempotency-Key": "patient-report-create-0001",
+        }
+        assert patient_client.post(path, json=payload, headers=headers).status_code == 403
+        with Session(engine) as db:
+            db.add(ConsentRecord(
+                participant_id=ids["assigned"], document_version="SYN-V1",
+                purpose_code="SYN-DEMO", decision="granted", photo_scope=False,
+                recorded_by=ids["clinician"],
+            ))
+            db.commit()
+        assert patient_client.post(path, json=payload, headers={
+            k: v for k, v in headers.items() if k != "X-CSRF-Token"
+        }).status_code == 403
+        assert patient_client.post(path, json={
+            **payload, "discomfort_state": "none",
+        }, headers=headers).status_code == 422
+        first = patient_client.post(path, json=payload, headers=headers)
+        assert first.status_code == 201
+        assert first.json()["revision_no"] == 1
+        assert first.json()["activity_state"] == "unknown"
+        assert first.json()["actual_minutes"] is None
+        assert patient_client.post(path, json=payload, headers=headers).json() == first.json()
+        assert staff.get(staff_path).json()[0]["id"] == first.json()["id"]
+        correction_path = f"{path}/{first.json()['report_id']}"
+        correction = {
+            **payload, "expected_revision": 1, "activity_state": "performed",
+            "actual_minutes": 12, "discomfort_state": "none", "discomfort_note": None,
+            "change_reason": "SYN-CORRECTION",
+        }
+        changed = patient_client.post(correction_path, json=correction, headers={
+            **headers, "Idempotency-Key": "patient-report-correct-0001",
+        })
+        assert changed.status_code == 201
+        assert changed.json()["revision_no"] == 2
+        assert [row["revision_no"] for row in patient_client.get(path).json()] == [2, 1]
+        assert patient_client.post(correction_path, json=correction, headers={
+            **headers, "Idempotency-Key": "patient-report-correct-0002",
+        }).status_code == 409
+        assert patient_client.post(correction_path, json={
+            **correction, "actual_minutes": -1,
+        }, headers={**headers, "Idempotency-Key": "patient-report-correct-0003"}).status_code == 422
+        with Session(engine) as db:
+            db.add(ConsentRecord(
+                participant_id=ids["assigned"], document_version="SYN-V1",
+                purpose_code="SYN-DEMO", decision="withdrawn", photo_scope=False,
+                change_reason="SYN-WITHDRAW", recorded_by=ids["clinician"],
+            ))
+            db.commit()
+        assert patient_client.post(path, json=payload, headers={
+            **headers, "Idempotency-Key": "patient-report-create-0002",
+        }).status_code == 403
+        assert len(patient_client.get(path).json()) == 2
+        assert staff.post(
+            f"/api/v1/participants/{ids['assigned']}/demo-patient-binding/revoke",
+            headers={
+                "Origin": "http://localhost:3000",
+                "X-CSRF-Token": staff.cookies.get("taiji_csrf"),
+            },
+        ).status_code == 204
+        assert patient_client.get(path).status_code == 401
+    with Session(engine) as db:
+        assert len(db.scalars(select(DemoPatientReportRevision)).all()) == 2
+        assert db.scalar(select(AuditEvent).where(
+            AuditEvent.resource_type == "patient_report", AuditEvent.action == "revise",
         )) is not None
 
 

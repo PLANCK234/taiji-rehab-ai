@@ -178,3 +178,9 @@
 - 从干净 `cc2c106` 建立 `codex/demo-patient-publication`。新增 `0009_demo_patient_publication` 追加版本事件，固定 `SYNTHETIC_PROCESS_ONLY` 测试卡片；医护发布/撤回需对象授权、活跃合成绑定、发布时当前模拟同意、CSRF、幂等与预期版本。患者只读本人当前已发布投影，无真实训练内容和视频 URL；视频区域显示待添加。架构取舍见 ADR-0016。
 - 后端 Ruff、pytest 45 passed/4 skipped；前端隔离 Docker lint/typecheck/24 tests/build；临时 PostgreSQL 升/空库降/升、Alembic check、旧业务 API 5 passed；完整真实 Chromium 8 passed。首次集成检查仅因三处旧测试将 Alembic 版本固定为 `0007` 失败，改为当前 head 后复测通过。
 - 自动浏览器镜像所需 Debian Chromium 本次下载成功，之前 DEMO-V2-11 未跑的患者用例与新发布/撤回流程一并通过。测试脚本停止临时容器、网络并移除其任务镜像；既有共享 Demo 数据库/服务/外网隧道未改动。Q-03/Q-09/Q-15 的临床内容与视频审核继续阻断；下一可执行合成任务 DEMO-V2-13。
+
+## 2026-11-05 北京时间 · DEMO-V2-13 合成患者自报记录
+
+- 从干净 `1e7bd24` 建立 `codex/demo-patient-report`。新增 `0010_demo_patient_report` 追加式版本表、本人与授权医护接口、患者录入/更正页面和工作人员只读修订历史。独立于医护观察；缺失保持未知，当前模拟同意与绑定限制新写入；无自动风险判定、通知或处置承诺。取舍见 ADR-0017。
+- 后端 Ruff、pytest 46 passed/4 skipped；前端隔离 Docker lint/typecheck/24 tests/build；临时 PostgreSQL→FastAPI→Next→Chromium 8 passed，含本人填写、不适、更正、刷新、医护查看与绑定撤销。本机前端 `node_modules` 缺少测试依赖，故本机 typecheck/test 不构成可用基线，隔离镜像复验通过。
+- 另一临时 PostgreSQL 升/空库降/升、Alembic check 与旧业务 API 5 passed；浏览器脚本清理临时容器、网络和任务镜像。交接脚本与 Git 差异最终检查见提交记录。未部署到现有共享 Demo 服务或临时域名，未推送；真实患者数据与正式异常处置继续阻断。

@@ -1158,6 +1158,191 @@
         "title": "PatientHomeView",
         "type": "object"
       },
+      "PatientReportView": {
+        "properties": {
+          "activity_state": {
+            "enum": [
+              "performed",
+              "not_performed",
+              "unknown"
+            ],
+            "title": "Activity State",
+            "type": "string"
+          },
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "discomfort_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discomfort Note"
+          },
+          "discomfort_state": {
+            "enum": [
+              "reported",
+              "none",
+              "unknown"
+            ],
+            "title": "Discomfort State",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "report_id": {
+            "format": "uuid",
+            "title": "Report Id",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "report_id",
+          "participant_id",
+          "revision_no",
+          "observed_at",
+          "activity_state",
+          "actual_minutes",
+          "discomfort_state",
+          "discomfort_note",
+          "change_reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "PatientReportView",
+        "type": "object"
+      },
+      "PatientReportWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_state": {
+            "enum": [
+              "performed",
+              "not_performed",
+              "unknown"
+            ],
+            "title": "Activity State",
+            "type": "string"
+          },
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 5,
+                "pattern": "^SYN-",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "discomfort_note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discomfort Note"
+          },
+          "discomfort_state": {
+            "enum": [
+              "reported",
+              "none",
+              "unknown"
+            ],
+            "title": "Discomfort State",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "observed_at",
+          "activity_state",
+          "discomfort_state"
+        ],
+        "title": "PatientReportWrite",
+        "type": "object"
+      },
       "PublicationView": {
         "properties": {
           "marker": {
@@ -3113,6 +3298,50 @@
         "summary": "Start Demo Run"
       }
     },
+    "/api/v1/participants/{participant_id}/patient-reports": {
+      "get": {
+        "operationId": "staff_reports_api_v1_participants__participant_id__patient_reports_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PatientReportView"
+                  },
+                  "title": "Response Staff Reports Api V1 Participants  Participant Id  Patient Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff Reports"
+      }
+    },
     "/api/v1/participants/{participant_id}/research-export.csv": {
       "get": {
         "operationId": "export_participant_demo_api_v1_participants__participant_id__research_export_csv_get",
@@ -3475,6 +3704,140 @@
           }
         },
         "summary": "Patient Home"
+      }
+    },
+    "/api/v1/patient/reports": {
+      "get": {
+        "operationId": "own_reports_api_v1_patient_reports_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PatientReportView"
+                  },
+                  "title": "Response Own Reports Api V1 Patient Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Own Reports"
+      },
+      "post": {
+        "operationId": "create_report_api_v1_patient_reports_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientReportWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientReportView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Report"
+      }
+    },
+    "/api/v1/patient/reports/{report_id}": {
+      "post": {
+        "operationId": "revise_report_api_v1_patient_reports__report_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientReportWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientReportView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revise Report"
       }
     },
     "/api/v1/studies": {

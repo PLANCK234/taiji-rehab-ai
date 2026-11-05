@@ -14,6 +14,7 @@ from app.assessment_api import router as assessment_router
 from app.demo_api import router as demo_router
 from app.intake_api import router as intake_router
 from app.patient_api import router as patient_router
+from app.patient_reports_api import router as patient_reports_router
 from app.research_api import router as research_router
 from app.research_export_api import router as export_router
 from app.runtime import require_demo
@@ -28,6 +29,7 @@ app.include_router(export_router)
 app.include_router(training_router)
 app.include_router(demo_router)
 app.include_router(patient_router)
+app.include_router(patient_reports_router)
 
 
 @app.middleware("http")

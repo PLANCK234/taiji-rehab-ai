@@ -4,7 +4,7 @@
 
 > **REAL-01 工程目标（2026-10-31）**：逐步构建数据库持久化的医疗研究人员业务工作台。可先用合成数据开发真实业务字段与流程；真实患者数据接入须另行完成机构、伦理、同意、安全与部署批准。当前 Research 配置只是独立且关闭的准备环境，不能处理患者数据。详见 [REAL-01 台账](docs/TASKS.md)、[最新状态](docs/STATUS.md) 和 [ADR-0011](docs/decisions/0011-demo-research-profile-boundary.md)。
 
-> **双端产品方向（2026-11-05）**：已有合成患者账号、本人编号隔离和独立 `/patient` 入口，以及医护发布/撤回固定流程测试卡片。卡片没有可执行训练内容，视频仍待审核素材，患者训练/不适录入尚未实现。第一版目标仍是查看医护确认的本人计划和审核视频，并记录训练与不适；不自行填写评估量表或直接接收自动建议。真实患者使用仍待审批。见 [PRD](docs/product/PRD.md)、[ADR-0015](docs/decisions/0015-separate-patient-portal.md)、[ADR-0016](docs/decisions/0016-synthetic-patient-publication-card.md)。
+> **双端产品方向（2026-11-05）**：已有合成患者账号、本人编号隔离和独立 `/patient` 入口、医护发布/撤回固定流程测试卡片，以及患者本人训练与不适事实记录、修订和授权工作人员只读查看。卡片没有可执行训练内容，视频仍待审核素材；自报记录不触发自动风险判断或处置。第一版目标仍是查看医护确认的本人计划和审核视频，并记录训练与不适；不自行填写评估量表或直接接收自动建议。真实患者使用仍待审批。见 [PRD](docs/product/PRD.md)、[ADR-0015](docs/decisions/0015-separate-patient-portal.md)、[ADR-0017](docs/decisions/0017-synthetic-patient-self-report.md)。
 
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
 

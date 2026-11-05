@@ -102,6 +102,53 @@ class DemoPatientPublication(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class DemoPatientReportRevision(Base):
+    """Patient-authored synthetic fact snapshots; revisions are append-only."""
+
+    __tablename__ = "demo_patient_report_revisions"
+    __table_args__ = (
+        UniqueConstraint("report_id", "revision_no"),
+        Index("ix_demo_patient_report_participant", "participant_id", "recorded_at"),
+        CheckConstraint("revision_no > 0", name="ck_patient_report_revision_positive"),
+        CheckConstraint(
+            "activity_state IN ('performed','not_performed','unknown')",
+            name="ck_patient_report_activity_state",
+        ),
+        CheckConstraint(
+            "discomfort_state IN ('reported','none','unknown')",
+            name="ck_patient_report_discomfort_state",
+        ),
+        CheckConstraint(
+            "actual_minutes IS NULL OR actual_minutes >= 0",
+            name="ck_patient_report_minutes",
+        ),
+        CheckConstraint(
+            "(activity_state = 'performed' OR actual_minutes IS NULL)",
+            name="ck_patient_report_minutes_shape",
+        ),
+        CheckConstraint(
+            "(discomfort_state = 'reported' AND discomfort_note IS NOT NULL) OR "
+            "(discomfort_state != 'reported' AND discomfort_note IS NULL)",
+            name="ck_patient_report_discomfort_shape",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    report_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    activity_state: Mapped[str] = mapped_column(String(20), nullable=False)
+    actual_minutes: Mapped[int | None] = mapped_column()
+    discomfort_state: Mapped[str] = mapped_column(String(20), nullable=False)
+    discomfort_note: Mapped[str | None] = mapped_column(String(500))
+    change_reason: Mapped[str | None] = mapped_column(String(500))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class DemoParticipantProfile(Base):
     """Synthetic display metadata; never a real identity mapping."""
 
