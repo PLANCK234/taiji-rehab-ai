@@ -19,7 +19,7 @@
 | DEMO-V2-06 | 12 条动作库、搜索/筛选/详情 | DONE | 种子、API、页面 | 幂等种子；真实 Chromium 卡片操作 |
 | DEMO-V2-07 | 训练状态、反馈、兼容与交接 | DONE | `demo_runs`、原训练/反馈、`0006`/`0007` 增量迁移、E2E/文档 | 后端 42 passed/4 opt-in skipped、临时 PostgreSQL 5 API、浏览器 7 passed；本机 `0007`、旧对象 4 条保留、动作 12 条；完成动作独立保存 |
 | DEMO-V2-08 | 明亮配色与练习视频区域 | DONE | 前端全局样式、动作详情/训练页视频区域、组件测试 | 2026-11-05：隔离 Docker 构建、lint、typecheck、23 项前端测试通过；浏览器登录页视觉核对。本机登录来源运行配置由临时外链改回 `127.0.0.1:3000`，错误测试账号 401、异源 403、ready 200。视频尚无素材，明确显示待添加；AT-DEMO-07 |
-| DEMO-V2-09 | 临时外网演示入口与本机登录共存 | DONE | `backend/app/api.py`、认证测试、`infra/compose.yaml`、本机运行配置 | 2026-11-05：后端 43 passed/4 skipped、Ruff/Compose config 通过；临时外网 `/login` 200，外网/本机无效测试凭据均 401，ready 200；无真实密码跨网测试。仅本地 Demo，临时域名不保证持续可用 |
+| DEMO-V2-09 | 临时外网演示入口与本机登录共存 | DONE | `backend/app/api.py`、认证测试、`infra/compose.yaml`、本机运行配置 | 2026-11-05：后端 43 passed/4 skipped、Ruff/Compose config 通过。原隧道 QUIC 超时导致 1033，已改用 HTTP/2 新隧道；新外网 `/login` 200，外网/本机无效测试凭据均 401，ready 200。无真实密码跨网测试；临时域名不保证持续可用 |
 
 | Task ID | Sprint | 目标 | 优先级 | 依赖 | 负责人/分支 | 状态 | 预计修改范围 | 验收与测试 | 完成证据 |
 |---|---:|---|---|---|---|---|---|---|---|

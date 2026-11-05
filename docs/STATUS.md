@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-05 临时隧道 1033 恢复
+
+原临时地址出现 Cloudflare 1033；本机登录页仍为 200，旧隧道容器日志显示 QUIC 连续超时，外网检查为 530。已停止旧 `taiji-demo-quick-tunnel` 容器（保留容器，不删除），另建固定使用 HTTP/2 的 `taiji-demo-http2-tunnel`，新地址为 `https://shopper-fathers-tunes-irc.trycloudflare.com/login`。修改本机被 Git 忽略的 `.env` 公开地址前，另存可恢复副本 `.env.backup-20261105-http2`；仅重建后端容器以应用新地址。
+
+恢复验证：新外网登录页 200；新外网/本机同源无效测试凭据均 401；后端 ready 200。未提交有效演示密码到外网，完整账号登录仍待使用者实测。Quick Tunnel 仍无持续在线保证，旧链接不应再分发。
+
 ## 2026-11-05 DEMO-V2-09 临时分享链接
 
 按用户要求，通过独立 `cloudflare/cloudflared` 容器把当前合成演示前端暴露为临时 HTTPS 链接 `https://typically-playing-seeking-reverse.trycloudflare.com/login`。后端仍在本机 Demo 配置，数据库端口未公开。为避免此前切换公开地址导致本机登录 403，`check_origin` 在 `APP_ENV=local/test` 时仅额外接受显式 `APP_LOCAL_URL`；非 local/test 不接受该额外地址。Compose 明确配置本机 `127.0.0.1:3000`。公开域名保存在本机被 Git 忽略的 `.env`，修改前另存 `.env.backup-20261105-tunnel`，未提交任何密码或配置副本。
