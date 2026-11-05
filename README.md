@@ -4,13 +4,15 @@
 
 > **REAL-01 工程目标（2026-10-31）**：逐步构建数据库持久化的医疗研究人员业务工作台。可先用合成数据开发真实业务字段与流程；真实患者数据接入须另行完成机构、伦理、同意、安全与部署批准。当前 Research 配置只是独立且关闭的准备环境，不能处理患者数据。详见 [REAL-01 台账](docs/TASKS.md)、[最新状态](docs/STATUS.md) 和 [ADR-0011](docs/decisions/0011-demo-research-profile-boundary.md)。
 
+> **双端产品方向（2026-11-05）**：未来在工作人员工作台之外新增独立患者入口。第一版患者只查看医护确认的本人计划和审核视频，并记录训练与不适；不自行填写评估量表或直接接收自动建议。患者端目前尚未实现，真实患者使用仍待审批。见 [PRD](docs/product/PRD.md)、[ADR-0015](docs/decisions/0015-separate-patient-portal.md)。
+
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
 
 **已可操作的合成纵向子流程**：工作人员登录→编码建档→模拟同意→人工 SPPB 总分及复评→对象页趋势→记录已发生训练观察→单独记录事件→录入/更正反馈→单对象编号化 CSV 下载。页面刷新后从 PostgreSQL 读取记录；入口在对象详情。导出仅含结构化数据与修订历史，不含身份或自由文本，并附行数与哈希；它是实时 Demo 下载，**不是周期冻结快照**。训练观察只记录事实，尚无周期/规则关联；REAL-01E0 周期、其他评估量表、人员管理、研究级冻结导出与真实数据准入仍未完成。见 [ADR-0012](docs/decisions/0012-training-observation-before-cycle.md)、[ADR-0013](docs/decisions/0013-live-coded-demo-export.md)。
 
 [![Status](https://img.shields.io/badge/status-synthetic--demo-yellow)](docs/STATUS.md)
 
-**Researcher-facing Tai Chi Rehabilitation Assessment & Research Platform.**
+**Tai Chi Rehabilitation Research Platform with a planned separate patient portal.**
 
 > 当前仓库还包含独立的 DEMO-V2 合成分级/训练演示；不包含真实数据接入或临床判定功能。
 
@@ -18,7 +20,7 @@ Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷
 医疗人员对研究对象建档、安全筛查、录入 SPPB 等客观评估，获取可解释的功能分级候选及太极训练适配建议并人工复核；每次训练后收集结构化反馈；周期末冻结数据并对照 V0 规则离线优化，审批通过的新版本才可发布。
 
 ## 不做什么
-不提供患者端、实时动作纠错、自动诊断、自动调整临床处方或在线自学习；姿态照片模块当前仅为明确标注“识别算法未接入”的演示能力。
+当前版本尚不提供患者端；未来患者端第一版不包括患者自行填写量表或自动获得训练建议。实时动作纠错、自动诊断、自动调整临床处方及在线自学习仍不在范围内；姿态照片模块当前仅为明确标注“识别算法未接入”的演示能力。
 
 ## 技术方案
 | 层 | 选型 |

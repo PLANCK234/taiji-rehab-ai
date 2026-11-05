@@ -33,6 +33,8 @@ When a feature is implemented, add links to actual source files, migrations, tes
 
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
+患者端方向见 [ADR-0015](decisions/0015-separate-patient-portal.md)、[PRD](product/PRD.md)、[任务台账](TASKS.md) 与 [AT-PAT-01..03](product/ACCEPTANCE.md)。截至 2026-11-05，患者账号、本人隔离、经医护发布计划、审核视频和患者训练/不适页面均**未实现**；只有文档范围决定，不得标为验收通过。
+
 | 验收 | 实现 | 证据与边界 |
 |---|---|---|
 | AT-DEMO-01/02 | [流程](product/DEMO_USER_FLOW.md)、`backend/app/demo_rule.py`、`backend/app/assessment_api.py`、`frontend/app/workspace/create-participant-form.tsx`、`frontend/app/participants/[id]/demo/` | `backend/tests/test_demo_rule.py` 与 `test_manual_assessments.py`；`frontend/e2e/demo-v2.real.ts` 8→II、5→III、重开；只供合成展示 |
