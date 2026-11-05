@@ -5,6 +5,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { demoError, writeDemo, type DemoAction, type DemoRun } from "../../../../../workspace/demo";
 import FeedbackForm from "../../../training/[sessionId]/feedback-form";
+import DemoVideo from "../../demo-video";
 
 const statusText = {
   in_progress: "进行中", paused: "已暂停", awaiting_feedback: "待填写反馈", completed: "已完成", stopped: "已中止",
@@ -52,6 +53,7 @@ export default function RunClient({ run, actions, feedbackCount, canWrite }: {
       <div className="eyebrow">{statusText[run.status]} · {run.current_index + 1} / {run.action_ids.length}</div>
       <h2>{current?.name ?? "动作资料暂不可用"}</h2>
       <p>{current?.explanation}</p>
+      {current && <DemoVideo action={current} />}
       <p className="note">开始时间：{new Date(run.started_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</p>
       {canWrite && (run.status === "in_progress" || run.status === "paused") && <div className="button-row">
         {run.status === "in_progress" ? <button type="button" disabled={pending} onClick={() => step("pause")}>暂停</button>

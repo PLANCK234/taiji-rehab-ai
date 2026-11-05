@@ -11,6 +11,7 @@ RUN pnpm build
 FROM node:26.13.0-bookworm-slim
 WORKDIR /app
 ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 EXPOSE 3000

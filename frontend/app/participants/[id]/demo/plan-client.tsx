@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { demoError, writeDemo, type DemoAction, type DemoPlan, type DemoRun } from "../../../workspace/demo";
 import type { DemoProfile } from "../../../workspace/intake";
+import DemoVideo from "./demo-video";
 
 export default function DemoPlanClient({ participantId, studyCode, profile, plan, library, canWrite }: {
   participantId: string; studyCode: string; profile: DemoProfile | null; plan: DemoPlan; library: DemoAction[]; canWrite: boolean;
@@ -69,7 +70,7 @@ export default function DemoPlanClient({ participantId, studyCode, profile, plan
       {!filtered.length && <p>没有匹配的演示动作。</p>}
     </section>
     <dialog ref={dialog} className="action-dialog" onClose={() => setSelected(null)}>
-      {selected && <><div className="eyebrow">DEMO ONLY · {selected.demo_grade} 级</div><h2>{selected.name}</h2><p>{selected.explanation}</p><ol>{selected.steps.map((step, index) => <li key={index}>{step}</li>)}</ol><p className="note">示意内容未经临床审核，不用于自主训练指导。</p><button type="button" onClick={() => dialog.current?.close()}>关闭</button></>}
+      {selected && <><div className="eyebrow">DEMO ONLY · {selected.demo_grade} 级</div><h2>{selected.name}</h2><DemoVideo action={selected} /><p>{selected.explanation}</p><ol>{selected.steps.map((step, index) => <li key={index}>{step}</li>)}</ol><p className="note">示意内容未经临床审核，不用于自主训练指导。</p><button type="button" onClick={() => dialog.current?.close()}>关闭</button></>}
     </dialog>
   </div>;
 }

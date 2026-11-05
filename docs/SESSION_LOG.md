@@ -143,3 +143,10 @@
 
 - 后端 Ruff 通过、pytest 42 passed/4 opt-in skipped；OpenAPI 快照同步。临时 PostgreSQL 迁移升/降/升及原 API 5 passed。前端 Node 26 容器 lint/typecheck/21 tests/build 通过。完整浏览器链路 7 passed，含完成动作刷新持久化、旧业务和跨对象拒绝。
 - 本机既有合成卷备份后从 `0006` 增量迁移至 `0007_demo_completed_actions`；核对 head、原 4 个 `SYN-` 对象、12 条动作和新列。重建后 API ready、登录页均 200；Research 未启动。本次未推送/合并 main。下一 Task ID `REAL-01E0`。
+
+## 2026-11-05 北京时间 · DEMO-V2-08
+
+- 用户要求降低黑色界面的压抑感，并先为练习添加播放区域；暂无视频素材。独立分支 `codex/demo-light-video-slot` 从 `main` 的 `1fdd767` 开始。
+- 前端改为浅米白/绿色；方案动作详情与训练当前动作共用 16:9 视频区域。无素材时明确显示待添加；保留 `DEMO_ONLY` 提示。不修改业务规则、数据库或权限。
+- 隔离 Docker 生产构建、lint、typecheck、23/23 前端测试通过；浏览器视觉核对浅色登录页。更新本机前端容器时发现镜像只监听容器主机名，映射端口 502；Dockerfile 设置 `HOSTNAME=0.0.0.0` 后，本机直连及浏览器均 200，后端与数据库保持运行。宿主机已有 `node_modules` 缺依赖，故宿主机 typecheck 结果不作通过证据。真实视频播放待素材审核与提供。
+- 下一任务仍为 `REAL-01E0`；如优先完善演示，可在拿到经审核的视频后接入本地素材，并补真实浏览器播放验收。
