@@ -5,6 +5,8 @@
 | study_code | string | registration | no name/phone in general exports |
 | participant.study_code | string | synthetic-only seed | unique within study; no name, phone or eligibility fields in S1 |
 | user.email | string | synthetic staff seed | account identifier; never include in participant responses or audit summaries |
+| demo_patient_binding.user_id / participant_id | UUID / UUID | synthetic Demo seed | one-to-one coded linkage only; no real identity or patient-created account |
+| demo_patient_binding.revoked_at | UTC datetime or null | assigned clinician revocation API | null means binding active; revoked row retained and seed does not reactivate it |
 | consent_record.decision | granted/refused/withdrawn | synthetic staff entry | latest entry controls synthetic screening write; no verified consent signature |
 | consent_record.photo_scope | boolean | synthetic staff entry | record only; photo upload remains unavailable |
 | consent_record.document_version / purpose_code | `SYN-` code | synthetic staff entry | no real protocol, signature or purpose approval implied |

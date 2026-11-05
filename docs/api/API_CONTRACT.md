@@ -5,7 +5,7 @@
 | Implemented path | Behavior |
 |---|---|
 | POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure |
-| GET `/api/v1/auth/me` | Current staff ID, email, role; 401 if absent/expired/revoked |
+| GET `/api/v1/auth/me` | Current account ID, email, role; 401 if absent/expired/revoked |
 | POST `/api/v1/auth/logout` | Requires matching CSRF header and cookie; revokes session |
 | GET `/api/v1/studies` | Lists only assigned synthetic study codes |
 | GET `/api/v1/participants/{id}` | Returns code only when role, study assignment and participant assignment all permit it; otherwise 403 |
@@ -24,6 +24,10 @@
 | GET/PUT `/api/v1/training-sessions/{id}/feedback` | Ordered append-only feedback history / expected-revision write; first revision 0, later corrections require reason; missing vs recorded mutually exclusive |
 | GET/POST `/api/v1/participants/{id}/safety-events` | Scoped list / independent idempotent fact report, possible before feedback; no clinical severity, escalation SLA or notification |
 | GET `/api/v1/participants/{id}/research-export.csv` | Audited, single-object live Demo CSV for existing read roles only; all assessment/feedback revisions, training sessions and event existence, no identity/free text; response has `X-Row-Count`, `X-Content-SHA256`, `X-Export-Mode: live-demo` and `Cache-Control: no-store` |
+| GET `/api/v1/patient/me` | Demo-only patient role with active binding; returns own synthetic `study_code` only, audited; no UUID, staff data, plan or clinical advice |
+| POST `/api/v1/participants/{id}/demo-patient-binding/revoke` | Assigned clinician with CSRF revokes the active synthetic patient binding and its active sessions; audited; 404 if no active binding |
+
+`DEMO-V2-11` adds one seed-only synthetic patient binding and an independent `/patient` page. Patient role is denied staff study/object lists, object reads, exports and Demo plan routes by backend role checks. Revoked bindings are never silently reactivated by seed. There is no patient self-registration, real identity binding, published plan/video or patient feedback write API.
 
 These are synthetic-only demo routes. All intake and assessment writes require a matching `X-CSRF-Token` and `Idempotency-Key` (16–128 ASCII letters/digits/`._-`). Repeating a key with the same body returns the same record; using it with another body returns 409. Corrections append a record and require a `SYN-` change reason. Consent `granted` is only a simulated staff entry, not a verified signature or ethics approval. Screening returns `not_assessed` with no entries and `needs_review` with any entries; it never concludes safe/eligible. S6-01 adds only the server-guarded Next page `/participants/{id}/pose-demo` with a browser-local synthetic SVG preview; photo collection stays unavailable even when `photo_scope=true`, and there is no image API. Assessments accept only `baseline`/`revisit`, manual `sppb_total` in points, and protocol marker `SYN-MANUAL-V1`. Valid values are integer 0–12 plus timezone-aware `performed_at`; missing is null value plus reason and no measurement time; invalid can retain a raw value with a reason. An initial unrecorded draft cannot be confirmed. Measurement corrections need a `SYN-` reason. The expected revision yields 409 on stale writes, and all revisions retain actor and UTC time. There is no item scoring, grade, eligibility or advice endpoint. No identity mapping, real patient creation or export endpoint exists. See generated [OpenAPI](../../backend/openapi.json).
 

@@ -18,7 +18,8 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint(
-            "role IN ('clinician','clinical_approver','research_assistant','analyst','admin')",
+            "role IN ('clinician','clinical_approver','research_assistant',"
+            "'analyst','admin','patient')",
             name="ck_users_role",
         ),
     )
@@ -64,6 +65,19 @@ class ParticipantAssignment(Base):
     participant_id: Mapped[uuid.UUID] = mapped_column(
         Uuid, ForeignKey("participants.id"), primary_key=True
     )
+
+
+class DemoPatientBinding(Base):
+    """One synthetic patient account per coded participant; revoked rows stay for audit."""
+
+    __tablename__ = "demo_patient_bindings"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), primary_key=True)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), unique=True, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class DemoParticipantProfile(Base):

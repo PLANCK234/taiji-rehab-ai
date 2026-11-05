@@ -46,7 +46,7 @@ docker run --rm -e CI=true --mount "type=bind,source=$((Get-Location).Path),targ
 ```
 
 ## Seed data
-S1 local seed (`python -m app.seed_demo`) creates only three synthetic staff accounts, two studies and three coded objects for access tests; it has no clinical measurements. The optional ENG-01A fixture adds two synthetic coded participants and manual total records; later synthetic cohorts still need consent refusal, aborted sessions, symptoms, cycles and model decisions. Label all such data SYNTHETIC.
+S1 local seed (`python -m app.seed_demo`) creates three synthetic staff accounts, one synthetic patient account bound to `SYN-001`, two studies and three coded objects for access tests; it has no clinical measurements. The optional ENG-01A fixture adds two synthetic coded participants and manual total records; later synthetic cohorts still need consent refusal, aborted sessions, symptoms, cycles and model decisions. Label all such data SYNTHETIC.
 
 ## Definition of done
 Feature follows documented contract, permissions/validation, migration and rollback, tests executed with recorded output, no unapproved clinical rule, updated docs/traceability/status and reviewer checklist. No change is done because its code compiles alone.
@@ -54,3 +54,5 @@ Feature follows documented contract, permissions/validation, migration and rollb
 ## DEMO-V2 actual database browser gate
 
 `uv run --no-project python scripts/run_eng04b_browser.py` builds disposable PostgreSQL/FastAPI/Next/Chromium, migrates to head, seeds synthetic accounts and 12 marked actions, and runs `frontend/e2e/demo-v2.real.ts` together with old business tests. It verifies 8→II, 5→III, action search/filter/dialog, run pause/resume/end/feedback/complete and stop, refresh persistence, old assessment/feedback/export and cross-scope rejection. The script stops temporary containers and network. SQLite backend unit/API tests remain useful for boundary logic; real DB migration and persistence claims require the disposable PostgreSQL gate. On a populated local Demo volume, take a backup before a forward migration; do not downgrade it for testing.
+
+`DEMO-V2-11` adds `frontend/e2e/patient.real.ts` for synthetic patient login, own portal, staff route rejection and clinician revocation. Backend API tests cover role/object denial, session invalidation and audit. The disposable PostgreSQL upgrade/downgrade/upgrade and isolated live Next/FastAPI browser checks passed; the scripted Chromium suite could not start because its Debian apt package download failed, so the new E2E file is not reported as passed. The patient portal has no released plan/video or feedback write path.

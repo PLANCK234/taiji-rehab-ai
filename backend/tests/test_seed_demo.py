@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 
 from app import seed_demo
 from app.db import Base
-from app.models import AuditEvent, LoginSession, User
+from app.models import AuditEvent, DemoPatientBinding, LoginSession, User, utc_now
 from app.security import issue_session, password_hash
 
 
@@ -54,5 +54,18 @@ def test_explicit_demo_reset_revokes_sessions_and_audits(monkeypatch) -> None:
         resets = db.scalars(
             select(AuditEvent).where(AuditEvent.action == "demo_password_reset")
         ).all()
-        assert len(resets) == 3
+        assert len(resets) == 4
+        patient = db.scalar(select(User).where(User.email == "demo-patient@example.org"))
+        assert patient is not None and patient.role == "patient"
+        patient_id = patient.id
+        binding = db.get(DemoPatientBinding, patient_id)
+        assert binding is not None and binding.revoked_at is None
+        binding.revoked_at = utc_now()
+        db.commit()
+
+    monkeypatch.delenv("RESET_DEMO_PASSWORD")
+    seed_demo.main()
+    with Session(engine) as db:
+        binding = db.get(DemoPatientBinding, patient_id)
+        assert binding is not None and binding.revoked_at is not None
     engine.dispose()

@@ -1,7 +1,7 @@
 # Security, privacy and clinical safety requirements
 
 ## Core protection
-1. Human-only accounts for research staff; secure session cookie (HttpOnly, Secure, SameSite), CSRF protection, rate-limited login, password hash with proven scheme and proper secrets rotation.
+1. Individual accounts for research staff and, in Demo only, a synthetic patient; secure session cookie (HttpOnly, Secure, SameSite), CSRF protection, rate-limited login, password hash with proven scheme and proper secrets rotation.
 2. RBAC **and** participant/study scope checked by backend for each endpoint, CSV export, image read and model report.
 3. Separate encrypted identity mapping from coded research records. Minimize collection; do not log secrets, full symptoms/free text, images or identities.
 4. HTTPS everywhere; encrypted at rest/backup per institution requirements; private Postgres and object store; expiring authorized downloads and export audit.
@@ -11,6 +11,8 @@
 8. Clinical safety: symptom report accessible even if full feedback incomplete. Display emergency/stop messages per approved policy; do not autonomously determine SAE or resumption of exercise.
 
 ## Implemented S1 synthetic-only boundary
+
+`DEMO-V2-11` adds only a synthetic patient account bound to one `SYN-` participant. The separate `/patient` page reads the own code from an audited Demo-only API. Staff study/object lists, object detail, export and Demo plan routes reject the patient role on the server. An assigned clinician can revoke the binding with CSRF; all active sessions are revoked and the retained binding cannot be reactivated by the seed. This is not a real patient identity, consent, release approval, or permission to expose clinical advice.
 
 - Staff passwords use Argon2 via `pwdlib`; 32-byte opaque session tokens are hashed in PostgreSQL. Sessions expire after eight hours and are revoked on logout. Cookies are HttpOnly/Strict; `Secure` and `__Host-` prefix apply outside local/test HTTP. Logout requires a matching CSRF header and cookie; browser login origins are checked.
 - Login failures are limited per HMAC-hashed email/client-host key in a 15-minute window. Audit events record login, logout and coded-record read outcomes without credentials, raw email/IP or clinical data.

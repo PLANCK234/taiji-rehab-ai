@@ -14,6 +14,7 @@ from app.db import Base, get_db
 from app.main import app
 from app.models import (
     AuditEvent,
+    DemoPatientBinding,
     LoginRateLimit,
     LoginSession,
     Participant,
@@ -189,6 +190,55 @@ def test_local_origin_remains_allowed_with_temporary_public_url(seeded_api, monk
         "/api/v1/auth/login", json=payload, headers={"Origin": "http://127.0.0.1:3000"}
     )
     assert response.status_code == 403
+
+
+def test_synthetic_patient_self_scope_and_revocation(seeded_api) -> None:
+    client, engine, ids = seeded_api
+    with Session(engine) as db:
+        patient = User(
+            email="demo-patient@example.org",
+            password_hash=password_hash.hash("synthetic-password-123"),
+            role="patient",
+        )
+        db.add(patient)
+        db.flush()
+        db.add(DemoPatientBinding(user_id=patient.id, participant_id=ids["assigned"]))
+        db.commit()
+
+    assert login(client, "demo-patient@example.org").status_code == 200
+    assert client.get("/api/v1/patient/me").json() == {"study_code": "SYN-001"}
+    assert client.get("/api/v1/studies").status_code == 403
+    assert client.get("/api/v1/participants").status_code == 403
+    assert client.get(f"/api/v1/participants/{ids['assigned']}").status_code == 403
+    assert client.get(f"/api/v1/participants/{ids['other_study']}").status_code == 403
+    assert client.get(f"/api/v1/participants/{ids['assigned']}/demo-plan").status_code == 403
+    assert client.post(
+        f"/api/v1/participants/{ids['assigned']}/demo-patient-binding/revoke",
+        headers={
+            "Origin": "http://localhost:3000",
+            "X-CSRF-Token": client.cookies.get("taiji_csrf"),
+        },
+    ).status_code == 403
+
+    with TestClient(app) as staff:
+        assert login(staff).status_code == 200
+        csrf = staff.cookies.get("taiji_csrf")
+        assert staff.post(
+            f"/api/v1/participants/{ids['assigned']}/demo-patient-binding/revoke",
+            headers={"Origin": "http://localhost:3000", "X-CSRF-Token": csrf},
+        ).status_code == 204
+    assert client.get("/api/v1/patient/me").status_code == 401
+    assert login(client, "demo-patient@example.org").status_code == 200
+    assert client.get("/api/v1/patient/me").status_code == 403
+
+    with Session(engine) as db:
+        binding = db.scalar(select(DemoPatientBinding))
+        assert binding is not None and binding.revoked_at is not None
+        assert db.scalar(
+            select(AuditEvent).where(
+                AuditEvent.action == "revoke", AuditEvent.resource_type == "demo_patient_binding"
+            )
+        ) is not None
 
 
 def test_invalid_credentials_and_rate_limit(seeded_api) -> None:

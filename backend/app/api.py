@@ -162,6 +162,8 @@ def logout(
 def studies(
     auth: AuthContext = Depends(current_auth), db: Session = Depends(get_db)
 ) -> list[StudyView]:
+    if auth.user.role not in READ_ROLES | {"analyst", "admin"}:
+        raise HTTPException(status_code=403, detail="access denied")
     rows = db.scalars(
         select(Study)
         .join(StudyAssignment, StudyAssignment.study_id == Study.id)

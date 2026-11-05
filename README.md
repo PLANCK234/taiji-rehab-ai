@@ -4,7 +4,7 @@
 
 > **REAL-01 工程目标（2026-10-31）**：逐步构建数据库持久化的医疗研究人员业务工作台。可先用合成数据开发真实业务字段与流程；真实患者数据接入须另行完成机构、伦理、同意、安全与部署批准。当前 Research 配置只是独立且关闭的准备环境，不能处理患者数据。详见 [REAL-01 台账](docs/TASKS.md)、[最新状态](docs/STATUS.md) 和 [ADR-0011](docs/decisions/0011-demo-research-profile-boundary.md)。
 
-> **双端产品方向（2026-11-05）**：未来在工作人员工作台之外新增独立患者入口。第一版患者只查看医护确认的本人计划和审核视频，并记录训练与不适；不自行填写评估量表或直接接收自动建议。患者端目前尚未实现，真实患者使用仍待审批。见 [PRD](docs/product/PRD.md)、[ADR-0015](docs/decisions/0015-separate-patient-portal.md)。
+> **双端产品方向（2026-11-05）**：工作人员工作台之外已实现合成患者账号、本人编号隔离和独立 `/patient` 入口，用于开发验证。第一版目标仍是查看医护确认的本人计划和审核视频，并记录训练与不适；这些发布和记录功能尚未实现，页面明确显示占位。不自行填写评估量表或直接接收自动建议。真实患者使用仍待审批。见 [PRD](docs/product/PRD.md)、[ADR-0015](docs/decisions/0015-separate-patient-portal.md)。
 
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
 
@@ -20,7 +20,7 @@ Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷
 医疗人员对研究对象建档、安全筛查、录入 SPPB 等客观评估，获取可解释的功能分级候选及太极训练适配建议并人工复核；每次训练后收集结构化反馈；周期末冻结数据并对照 V0 规则离线优化，审批通过的新版本才可发布。
 
 ## 不做什么
-当前版本尚不提供患者端；未来患者端第一版不包括患者自行填写量表或自动获得训练建议。实时动作纠错、自动诊断、自动调整临床处方及在线自学习仍不在范围内；姿态照片模块当前仅为明确标注“识别算法未接入”的演示能力。
+当前版本仅提供合成患者入口；患者端第一版不包括患者自行填写量表或自动获得训练建议。实时动作纠错、自动诊断、自动调整临床处方及在线自学习仍不在范围内；姿态照片模块当前仅为明确标注“识别算法未接入”的演示能力。
 
 ## 技术方案
 | 层 | 选型 |
@@ -47,7 +47,7 @@ Invoke-RestMethod http://127.0.0.1:8000/ready
 Start-Process http://localhost:3000/login
 ```
 
-演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。基础种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。基础种子只创建虚构研究编号、编码对象和权限分配。
+演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org` 和合成患者 `demo-patient@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。合成患者只绑定 `SYN-001`；运行迁移 `0008_demo_patient_binding` 与最新种子后才可登录患者入口，撤销绑定后种子不会重新启用。基础种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。基础种子只创建虚构研究编号、编码对象和权限分配。
 
 可选的人工复评合成夹具：在已配置的本地合成环境运行 `docker compose --env-file .env -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_reassessment_demo`。它先确认基础种子，再创建 `SYN-ENG01A-001/002` 两名虚构编号对象的模拟同意、未知/未记录筛查、人工基线与复评（含缺失和更正历史）。重复运行只核对既有记录；如果夹具被改动会报错，不覆盖记录。密码重置须先单独运行基础种子。夹具原始值不是疗效结果，不生成临床等级或建议。
 

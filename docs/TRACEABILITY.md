@@ -33,7 +33,9 @@ When a feature is implemented, add links to actual source files, migrations, tes
 
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
-患者端方向见 [ADR-0015](decisions/0015-separate-patient-portal.md)、[PRD](product/PRD.md)、[任务台账](TASKS.md) 与 [AT-PAT-01..03](product/ACCEPTANCE.md)。截至 2026-11-05，患者账号、本人隔离、经医护发布计划、审核视频和患者训练/不适页面均**未实现**；只有文档范围决定，不得标为验收通过。
+患者端方向见 [ADR-0015](decisions/0015-separate-patient-portal.md)、[PRD](product/PRD.md)、[任务台账](TASKS.md) 与 [AT-PAT-01..03](product/ACCEPTANCE.md)。截至 2026-11-05，仅合成患者登录、本人编号隔离和撤销子集已实现；经医护发布计划、审核视频和患者训练/不适录入**未实现**，不得标为验收通过。
+
+| AT-PAT-01 合成子集 | `backend/alembic/versions/0008_demo_patient_binding.py`、`backend/app/patient_api.py`、`backend/app/seed_demo.py`、`frontend/app/patient/page.tsx`、登录/工作台守卫 | `backend/tests/test_auth_scope.py`、`test_seed_demo.py`；后端 44 passed/4 skipped；临时 PostgreSQL 升/降/升及 Alembic check；前端 lint/typecheck/23 tests/build；隔离浏览器登录、工作人员页转向、撤销后会话失效及再次登录拒绝。`frontend/e2e/patient.real.ts` 已添加，但 Chromium 镜像 apt 网络失败，自动浏览器用例未运行 | 仅 SYN 合成身份；无真实患者、发布计划/视频或患者记录 |
 
 | 验收 | 实现 | 证据与边界 |
 |---|---|---|

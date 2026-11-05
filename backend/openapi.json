@@ -1135,6 +1135,19 @@
         "title": "ParticipantView",
         "type": "object"
       },
+      "PatientHomeView": {
+        "properties": {
+          "study_code": {
+            "title": "Study Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "study_code"
+        ],
+        "title": "PatientHomeView",
+        "type": "object"
+      },
       "SafetyEventCreate": {
         "additionalProperties": false,
         "properties": {
@@ -2688,6 +2701,39 @@
         "summary": "Record Consent"
       }
     },
+    "/api/v1/participants/{participant_id}/demo-patient-binding/revoke": {
+      "post": {
+        "operationId": "revoke_patient_binding_api_v1_participants__participant_id__demo_patient_binding_revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Patient Binding"
+      }
+    },
     "/api/v1/participants/{participant_id}/demo-plan": {
       "get": {
         "operationId": "get_demo_plan_api_v1_participants__participant_id__demo_plan_get",
@@ -3230,6 +3276,24 @@
           }
         },
         "summary": "Create Training Session"
+      }
+    },
+    "/api/v1/patient/me": {
+      "get": {
+        "operationId": "patient_home_api_v1_patient_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientHomeView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Patient Home"
       }
     },
     "/api/v1/studies": {

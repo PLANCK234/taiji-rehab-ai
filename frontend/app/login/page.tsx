@@ -24,7 +24,8 @@ export default function LoginPage() {
         setError(response.status === 429 ? "尝试次数过多，请稍后重试。" : "登录失败，请检查凭据。");
         return;
       }
-      router.replace("/workspace");
+      const user = await response.json() as { role: string };
+      router.replace(user.role === "patient" ? "/patient" : "/workspace");
     } catch {
       setError("服务暂不可用，请稍后重试。");
     } finally {
@@ -36,7 +37,7 @@ export default function LoginPage() {
     <main className="form-page">
       <div className="eyebrow">TAIJI · RESEARCH DEMO</div>
       <h1>太极康复研究平台</h1>
-      <p>研究人员登录 · 仅限合成数据演示</p>
+      <p>工作人员与患者登录 · 仅限合成数据演示</p>
       <form onSubmit={submit}>
         <label htmlFor="email">邮箱</label>
         <input id="email" name="email" type="email" autoComplete="username" required />

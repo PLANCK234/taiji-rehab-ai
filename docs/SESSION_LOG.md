@@ -166,3 +166,9 @@
 - 用户明确希望平台未来同时供工作人员与患者使用；重新确认首版患者范围为查看医护确认的本人计划/审核视频、记录训练与不适。先前误选的“患者自行填写量表”已由用户撤回，不纳入第一版。
 - 核对当前代码仅有工作人员角色、研究/对象授权与合成 Demo；患者账号、本人绑定、患者页面、医护发布计划、已审核视频均未实现。
 - 更新 PRD/SCOPE/ROADMAP、ADR-0015、验收、问题、任务与交接，拆出合成患者入口等后续任务。`scripts/check_handoff.py` 通过（49 Task ID、链接完整），`git diff --check` 通过；仅文档变更，未运行代码测试。没有修改临床阈值、真实数据准入或服务配置；真实患者试点继续阻断。
+
+## 2026-11-05 北京时间 · DEMO-V2-11 合成患者本人入口
+
+- 从 `codex/demo-light-video-slot` 的干净 `3932090` 建立 `codex/demo-patient-self-scope`。新增 `0008_demo_patient_binding`、Demo 合成患者种子与单对象绑定、`/api/v1/patient/me` 和分配医护撤销 API；患者不能读取工作人员研究/对象/导出/方案。独立 `/patient` 页面只显示本人 `SYN-001` 编号；无已发布计划/视频或患者记录时明确显示未开放。
+- 后端 Ruff 通过、pytest 44 passed/4 opt-in skipped；临时 PostgreSQL 升/空库降/升与 Alembic check 通过。前端隔离 Docker 生产构建、lint/typecheck/23 tests 通过。独立测试网络中的真实浏览器成功登录患者、核对本人编号及工作人员路由转向；工作人员撤销返回 204，原患者会话刷新回登录，再登录显示无法访问。
+- 新增 `frontend/e2e/patient.real.ts`，但自动 Chromium 镜像构建在 Debian apt 下载处失败，未执行自动浏览器用例。测试容器/网络仅为本任务临时合成环境；现有共享 Demo PostgreSQL 卷、服务和旧临时网址未修改。本分支未推送或合并；真实患者试点继续阻断，医护发布计划/视频和患者训练/不适录入待 DEMO-V2-12/13。

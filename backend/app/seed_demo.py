@@ -1,4 +1,4 @@
-"""Idempotent synthetic-only staff and coded-record seed for local demos."""
+"""Idempotent synthetic-only accounts and coded-record seed for local demos."""
 
 import os
 
@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db import get_engine
 from app.models import (
     AuditEvent,
+    DemoPatientBinding,
     LoginSession,
     Participant,
     ParticipantAssignment,
@@ -42,6 +43,7 @@ def main() -> None:
             ("demo-clinician-a@example.org", "clinician"),
             ("demo-clinician-b@example.org", "clinician"),
             ("demo-analyst@example.org", "analyst"),
+            ("demo-patient@example.org", "patient"),
         ):
             row = db.scalar(select(User).where(User.email == email))
             if row is None:
@@ -109,6 +111,19 @@ def main() -> None:
             user, participant = users[email], participants[code]
             if db.get(ParticipantAssignment, (user.id, participant.id)) is None:
                 db.add(ParticipantAssignment(user_id=user.id, participant_id=participant.id))
+        patient, participant = users["demo-patient@example.org"], participants["SYN-001"]
+        binding = db.get(DemoPatientBinding, patient.id)
+        if binding is None:
+            existing = db.scalar(
+                select(DemoPatientBinding).where(
+                    DemoPatientBinding.participant_id == participant.id
+                )
+            )
+            if existing is not None:
+                raise RuntimeError("synthetic participant already bound to another patient account")
+            db.add(DemoPatientBinding(user_id=patient.id, participant_id=participant.id))
+        elif binding.participant_id != participant.id:
+            raise RuntimeError("existing demo patient binding differs; refusing to overwrite")
     print("SYNTHETIC demo accounts and coded records are ready")
 
 
