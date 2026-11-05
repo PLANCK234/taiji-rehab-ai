@@ -40,5 +40,6 @@ When a feature is implemented, add links to actual source files, migrations, tes
 | AT-DEMO-04/05 | `backend/alembic/versions/0006_demo_v2.py`、`0007_demo_completed_actions.py`、`demo_runs`、原 `training_sessions`/`training_feedback_revisions`、训练页 | PostgreSQL 浏览器开始/暂停/继续/结束/实际完成动作/RPE/完成/刷新与中止未知值 7 passed；API 无反馈拒绝完成、完成动作校验与重复提交；后端 42 passed/4 skipped |
 | AT-DEMO-06 | 原认证/作用域/审计、迁移、`backend/openapi.json` | 临时 PostgreSQL 升/降/升与旧 API 5 项、原浏览器越权与旧流程；真实数据/临床审批不在本验收 |
 | AT-DEMO-07 | `frontend/app/style.css`、`frontend/app/participants/[id]/demo/demo-video.tsx`、方案动作详情与训练页 | `demo-video.test.tsx` 验证无素材占位与本地素材播放控件；隔离 Docker 前端 lint/typecheck/23 tests/build；浏览器登录页视觉核对。尚无实际视频素材，未验收真实视频播放 |
+| DEMO-V2-09 本机与临时外网登录来源 | `backend/app/api.py`、`infra/compose.yaml` | 后端 pytest 43 passed/4 opt-in skipped（含 `test_auth_scope.py` 11 passed）；Ruff 与 Compose config；临时外网登录页 200，外网/本机无效凭据 401，ready 200。未用有效密码做外网验收；非 local/test 不接受额外本机来源 |
 
 `FR-004/005` 与 `AT-02/04` 的正式临床规则/审批状态仍由 S3-01/Q-03/Q-09 约束；本表不宣称通过。

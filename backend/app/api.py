@@ -74,8 +74,12 @@ def current_auth(request: Request, db: Session = Depends(get_db)) -> AuthContext
 
 def check_origin(request: Request) -> None:
     origin = request.headers.get("origin")
-    allowed = os.environ.get("APP_PUBLIC_URL", "http://localhost:3000")
-    if origin and origin.rstrip("/") != allowed.rstrip("/"):
+    allowed = {os.environ.get("APP_PUBLIC_URL", "http://localhost:3000").rstrip("/")}
+    if os.environ.get("APP_ENV") in {"local", "test"}:
+        local_origin = os.environ.get("APP_LOCAL_URL")
+        if local_origin:
+            allowed.add(local_origin.rstrip("/"))
+    if origin and origin.rstrip("/") not in allowed:
         raise HTTPException(status_code=403, detail="origin denied")
 
 

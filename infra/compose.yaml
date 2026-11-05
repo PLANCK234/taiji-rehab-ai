@@ -23,6 +23,7 @@ services:
       ALLOW_SYNTHETIC_ONLY: ${ALLOW_SYNTHETIC_ONLY:-true}
       SESSION_SECRET: ${SESSION_SECRET:?set in local .env}
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:3000}
+      APP_LOCAL_URL: ${APP_LOCAL_URL:-http://127.0.0.1:3000}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-}
       RESET_DEMO_PASSWORD: ${RESET_DEMO_PASSWORD:-false}
     depends_on:

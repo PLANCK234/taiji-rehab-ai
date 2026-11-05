@@ -172,6 +172,25 @@ def test_expired_session_and_origin_check(seeded_api) -> None:
     assert client.get("/api/v1/auth/me").status_code == 401
 
 
+def test_local_origin_remains_allowed_with_temporary_public_url(seeded_api, monkeypatch) -> None:
+    client, _, _ = seeded_api
+    monkeypatch.setenv("APP_PUBLIC_URL", "https://temporary.example.org")
+    monkeypatch.setenv("APP_LOCAL_URL", "http://127.0.0.1:3000")
+    payload = {"email": "clinician@example.org", "password": "synthetic-password-123"}
+    for origin, expected in (
+        ("http://127.0.0.1:3000", 200),
+        ("https://temporary.example.org", 200),
+        ("https://other.example.org", 403),
+    ):
+        response = client.post("/api/v1/auth/login", json=payload, headers={"Origin": origin})
+        assert response.status_code == expected
+    monkeypatch.setenv("APP_ENV", "staging")
+    response = client.post(
+        "/api/v1/auth/login", json=payload, headers={"Origin": "http://127.0.0.1:3000"}
+    )
+    assert response.status_code == 403
+
+
 def test_invalid_credentials_and_rate_limit(seeded_api) -> None:
     client, engine, _ = seeded_api
     for _ in range(5):

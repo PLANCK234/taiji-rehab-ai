@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-05 DEMO-V2-09 临时分享链接
+
+按用户要求，通过独立 `cloudflare/cloudflared` 容器把当前合成演示前端暴露为临时 HTTPS 链接 `https://typically-playing-seeking-reverse.trycloudflare.com/login`。后端仍在本机 Demo 配置，数据库端口未公开。为避免此前切换公开地址导致本机登录 403，`check_origin` 在 `APP_ENV=local/test` 时仅额外接受显式 `APP_LOCAL_URL`；非 local/test 不接受该额外地址。Compose 明确配置本机 `127.0.0.1:3000`。公开域名保存在本机被 Git 忽略的 `.env`，修改前另存 `.env.backup-20261105-tunnel`，未提交任何密码或配置副本。
+
+验证：后端 pytest 43 passed/4 opt-in skipped（含认证测试 11 passed），Ruff 与 Compose config 通过；外网 `/login` 200，外网同源及本机同源以无效测试凭据均返回 401，后端 ready 200。未用有效账号经过外网测试；临时 Cloudflare 域名依赖本机、Docker 与隧道容器持续运行，且不保证稳定或固定。真实数据及临床审批边界不变。
+
 ## 2026-11-05 本机登录来源修复
 
 浅色前端上线后，本机 `127.0.0.1:3000` 登录返回 403，原因是运行中的后端仍将 `APP_PUBLIC_URL` 指向先前临时分享域名；凭据尚未进入校验。将被 Git 忽略的本机 `.env` 中公开地址改为 `http://127.0.0.1:3000`，修改前在同目录保存可恢复副本 `.env.backup-20261105-login`；仅重建后端容器，不改数据库/源代码。验证：API ready 200，本机同源错误测试账号返回 401、异源返回 403。未使用或显示真实演示密码，尚未以有效账号做完整登录验收。旧临时分享域名不再是此后端的允许登录来源。
