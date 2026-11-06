@@ -16,6 +16,7 @@ import { activityText, discomfortText, getPatientReports } from "../../workspace
 import { getCycles } from "../../workspace/cycles";
 import CycleForms from "./cycle-forms";
 import ProfileSection from "./profile-section";
+import ManualObservations from "./manual-observations";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <h1>{participant.study_code}</h1>
       <p>此页面仅用于开发演示，不代表真实建档或研究入组。</p>
       <ProfileSection participantId={id} history={profileHistory} canWrite={canWrite} />
+      <ManualObservations participantId={id} canWrite={canWrite && consents?.state === "granted"} />
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
       <PublicationControls participantId={id} initialHistory={publicationHistory} canPublish={user.role === "clinician"} consentGranted={consents?.state === "granted"} />
       <section aria-labelledby="patient-reports-heading"><h2 id="patient-reports-heading">患者自报训练与不适</h2>

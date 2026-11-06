@@ -53,3 +53,5 @@ When a feature is implemented, add links to actual source files, migrations, tes
 `FR-004/005` 与 `AT-02/04` 的正式临床规则/审批状态仍由 S3-01/Q-03/Q-09 约束；本表不宣称通过。
 
 REAL-01C0：[人工多指标契约](product/MANUAL_METRICS_CONTRACT.md) 对应 FR-003/FR-010、AT-01/AT-05 合成子集；2026-11-07 仅设计完成，现有人工评估基线 5 passed。多指标实现/数据库/浏览器验收由 REAL-01C1 承担，未通过前不标功能完成。
+
+REAL-01C1 检查点：`backend/app/manual_observations.py`、迁移 `0014`、对象页 `manual-observations.tsx`；API 基础授权/更正和真实浏览器保存/刷新已通过，完整 C0 验收仍未完成，见 STATUS。

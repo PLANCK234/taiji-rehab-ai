@@ -157,3 +157,7 @@
 ## 当前阻断与下一步
 
 S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A`、`ENG-02A` 和 `ENG-03A` 的限定范围已完成；下一项依赖已满足的独立任务是 `ENG-04B`，在临时 PostgreSQL 和实际 API/Next 上做现有合成建档、人工评估与趋势浏览器 E2E，不扩展临床业务。ENG-01 的训练/周期/导出仍需安全的非临床前置任务另行拆解。Q-02 未决时不能自动计算 SPPB 分项，Q-01/10 未决时不能采集或留存真实影像。`S3-01` 保持 `BLOCKED`，需 Q-03 适配模板/禁忌/剂量和 Q-09 审批/发布权限由授权负责人签核；S4/S5/S7/S8 仍依赖前序或其他批准。S1 完整 CRUD、真实同意/身份/照片、AT-14 人工准入及 AT-01 导出仍未完成。临床问题保持 [OPEN_QUESTIONS](OPEN_QUESTIONS.md) 的未决状态。
+
+## 2026-11-07 REAL-01C1 合成原始观察检查点
+
+新增 0014 追加版本表与 manual-observations API、对象页录入/更正。四种指标固定单位，十进制原值以最长 40 字符字符串保存，拒绝非有限数；按对象权限、当前模拟同意、CSRF、幂等与预期版本核验。独立于 SPPB 和 Demo 分级，旧 CSV 暂不含这些观察，页面明确说明。后端 Ruff/52 passed、4 skipped；前端 build/lint/typecheck/24 tests；临时 PostgreSQL 迁移升/check/空库降/升与旧 API 5 passed；Chromium 10 passed。首次浏览器发现幂等 route_key 超过 PostgreSQL 80 字符限制，缩短后复测通过；失败附件 exports/eng04b-c62151e22521 保留。最终展示文字补充录入人/时间尚待前端复验。REAL-01C1 保持 IN_PROGRESS：需补齐四指标/缺失/无效与撤权边界验收、独立浏览器夹具及完整契约核对；不宣称多指标功能全面验收。共享网站未部署、未推送。

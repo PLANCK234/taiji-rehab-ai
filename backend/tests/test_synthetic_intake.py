@@ -479,3 +479,73 @@ def test_production_environment_cannot_open_intake_database(monkeypatch) -> None
     with pytest.raises(HTTPException) as error:
         next(get_db())
     assert error.value.status_code == 503
+
+
+def test_manual_observation_revisions(intake_api):
+    client, _, ids = intake_api
+    path = f"/api/v1/participants/{ids['assigned']}/manual-observations"
+    assert client.get(path).status_code == 401
+    login(client)
+    payload = {
+        "metric_code": "gait_4m_seconds",
+        "unit": "s",
+        "raw_value": "4.120",
+        "validity": "valid",
+        "performed_at": "2026-11-07T01:00:00Z",
+        "expected_revision": 0,
+    }
+    headers = write_headers(client, "manual-observation-0001")
+    assert client.post(path, json=payload, headers=headers).status_code == 403
+    assert (
+        client.post(
+            f"/api/v1/participants/{ids['assigned']}/consents",
+            json={
+                "document_version": "SYN-FORM-V1",
+                "purpose_code": "SYN-DEMO-USE",
+                "decision": "granted",
+                "photo_scope": False,
+            },
+            headers=write_headers(client, "manual-consent-0001"),
+        ).status_code
+        == 201
+    )
+    first = client.post(path, json=payload, headers=headers)
+    assert first.status_code == 201, first.text
+    assert first.json()["snapshot"]["raw_value"] == "4.120"
+    assert client.post(path, json=payload, headers=headers).json()["id"] == first.json()["id"]
+    correction_path = path + "/" + first.json()["observation_id"]
+    correction = {
+        **payload,
+        "raw_value": "0",
+        "expected_revision": 1,
+        "change_reason": "SYN-CORRECTION",
+    }
+    assert (
+        client.post(
+            correction_path,
+            json=correction,
+            headers=write_headers(client, "manual-correction-0001"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            correction_path,
+            json=correction,
+            headers=write_headers(client, "manual-correction-0002"),
+        ).status_code
+        == 409
+    )
+    assert [r["snapshot"]["raw_value"] for r in client.get(path).json()] == ["4.120", "0"]
+    for value in ("NaN", "Infinity", "garbage"):
+        assert (
+            client.post(path, json={**payload, "raw_value": value}, headers=headers).status_code
+            == 422
+        )
+    assert client.post(path, json={**payload, "unit": "kg"}, headers=headers).status_code == 422
+    for other in (ids["unassigned"], ids["cross_study"]):
+        other_path = f"/api/v1/participants/{other}/manual-observations"
+        assert client.get(other_path).status_code == 403
+        assert client.post(other_path, json=payload, headers=headers).status_code == 403
+    login(client, "intake-analyst@example.org")
+    assert client.get(path).status_code == 403

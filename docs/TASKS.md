@@ -91,4 +91,4 @@
 2026-10-31：S6-01 的实现和本地合成验收已完成，后续为审查及获准后的提交/PR；尚无依赖已满足的新业务任务。S3-01 仍因 Q-03/09 阻断，不能跳过审批直接进入 Sprint 3。`DONE` 不代表真实照片、临床研究准入或远端集成已获批准。
 
 | REAL-01C0 | 工程设计 | 合成多指标人工录入契约 | P0 | 既有 S2-01、REAL-01B0 | Codex 本地 | DONE | `docs/product/MANUAL_METRICS_CONTRACT.md` | 字段/单位/缺失/更正/权限/兼容与验收清单明确；不引入自动计分 | 2026-11-07：现有代码核对、Ruff 与人工评估 5 tests 通过；仅设计 |
-| REAL-01C1 | 工程 | 合成多指标原始观察实现 | P0 | REAL-01C0、REAL-01B0 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migrations/tests | 按 C0 契约录入/更正/授权；旧 SPPB 不回归；PostgreSQL 与浏览器验证 | 仅合成、不自动计分；实施前确认 CSV 覆盖范围 |
+| REAL-01C1 | 工程 | 合成多指标原始观察实现 | P0 | REAL-01C0、REAL-01B0 | Codex 本地 | IN_PROGRESS | `backend/`, `frontend/`, migrations/tests | 按 C0 契约录入/更正/授权；旧 SPPB 不回归；PostgreSQL 与浏览器验证 | 仅合成、不自动计分；实施前确认 CSV 覆盖范围 |

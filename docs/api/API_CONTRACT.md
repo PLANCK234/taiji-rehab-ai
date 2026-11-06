@@ -119,3 +119,5 @@ All endpoints use the existing staff session and server-side study/participant s
 | `POST /api/v1/demo-runs/{runId}/stop` | `{}`; persists `stopped` plus interrupted observation with unknown actual minutes; feedback/event can be added through existing endpoints |
 
 Assessment confirmation (`POST /assessments/{id}/confirm`) additionally persists one `demo_grade_results` per confirmed revision. Existing assessment/training response shapes and endpoints remain valid. The generated OpenAPI snapshot is `backend/openapi.json`.
+
+REAL-01C1 检查点：GET/POST `/api/v1/participants/{id}/manual-observations`，POST `.../{observation_id}` 追加更正。快照含固定指标/单位、十进制字符串、有效性/缺失原因、时间/侧别/说明，服务端记录来源/操作者/时间；更正需预期版本与 SYN 原因。当前模拟同意、对象范围、CSRF 和幂等必需；不触发 SPPB 分级，不进入旧 CSV。完整验收待完成。

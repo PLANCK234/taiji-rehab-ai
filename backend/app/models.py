@@ -53,6 +53,21 @@ class Study(Base):
     code: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
 
 
+class ManualObservationRevision(Base):
+    __tablename__ = "manual_observation_revisions"
+    __table_args__ = (
+        UniqueConstraint("observation_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_manual_observation_revision"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    observation_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    participant_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("participants.id"))
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    snapshot: Mapped[dict] = mapped_column(JSON, nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class StudyAssignment(Base):
     __tablename__ = "study_assignments"
 

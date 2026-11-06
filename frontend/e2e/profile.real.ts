@@ -27,4 +27,18 @@ test("synthetic display profile correction persists and retains the original", a
   const latest = section.getByRole("listitem").filter({ hasText: /版本 2 · 年龄：68/ });
   await expect(latest).toBeVisible();
   await expect(latest).toContainText("更正原因：SYN-DEMO-CORRECTION");
+  const raw = page.getByRole("region", { name: "人工原始观察" });
+  await raw.getByLabel("原始数值").fill("4.120");
+  await raw.getByLabel("测量时间").fill("2026-11-07T10:00");
+  await raw.getByRole("button", { name: "保存原始观察" }).click();
+  await expect(raw.getByText(/版本 1 · 4.120 s/)).toBeVisible();
+  await raw.getByRole("button", { name: "更正此观察" }).click();
+  await raw.getByLabel("原始数值").fill("4.250");
+  await raw.getByLabel("测量时间").fill("2026-11-07T10:00");
+  await raw.getByLabel("更正原因").fill("SYN-RAW-CORRECTION");
+  await raw.getByRole("button", { name: "保存观察更正" }).click();
+  await expect(raw.getByText(/版本 2 · 4.250 s/)).toBeVisible();
+  await page.reload();
+  await expect(raw.getByText(/版本 1 · 4.120 s/)).toBeVisible();
+  await expect(raw.getByText(/版本 2 · 4.250 s/)).toBeVisible();
 });
