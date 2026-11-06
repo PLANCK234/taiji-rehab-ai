@@ -14,6 +14,8 @@ from app.main import app
 from app.models import (
     AuditEvent,
     ConsentRecord,
+    DemoParticipantProfile,
+    DemoProfileRevision,
     Participant,
     ParticipantAssignment,
     ScreeningRecord,
@@ -101,17 +103,21 @@ def test_create_scope_idempotency_and_list(intake_api) -> None:
     payload = {"study_id": str(ids["study_a"]), "study_code": "SYN-NEW001"}
     assert client.get("/api/v1/participants").status_code == 401
     login(client)
-    assert [row["study_code"] for row in client.get("/api/v1/participants").json()] == [
-        "SYN-BASE"
-    ]
-    assert client.post(
-        "/api/v1/participants", json=payload, headers={"Idempotency-Key": "create-0000000001"}
-    ).status_code == 403
-    assert client.post(
-        "/api/v1/participants",
-        json={**payload, "study_id": str(ids["study_b"])},
-        headers=write_headers(client, "create-0000000002"),
-    ).status_code == 403
+    assert [row["study_code"] for row in client.get("/api/v1/participants").json()] == ["SYN-BASE"]
+    assert (
+        client.post(
+            "/api/v1/participants", json=payload, headers={"Idempotency-Key": "create-0000000001"}
+        ).status_code
+        == 403
+    )
+    assert (
+        client.post(
+            "/api/v1/participants",
+            json={**payload, "study_id": str(ids["study_b"])},
+            headers=write_headers(client, "create-0000000002"),
+        ).status_code
+        == 403
+    )
     created = client.post(
         "/api/v1/participants", json=payload, headers=write_headers(client, "create-0000000003")
     )
@@ -121,38 +127,54 @@ def test_create_scope_idempotency_and_list(intake_api) -> None:
         "/api/v1/participants", json=payload, headers=write_headers(client, "create-0000000003")
     )
     assert replay.status_code == 201 and replay.json()["id"] == created.json()["id"]
-    assert client.post(
-        "/api/v1/participants",
-        json={**payload, "study_code": "SYN-DIFFERENT"},
-        headers=write_headers(client, "create-0000000003"),
-    ).status_code == 409
-    assert client.post(
-        "/api/v1/participants", json=payload, headers=write_headers(client, "create-0000000004")
-    ).status_code == 409
-    assert client.post(
-        "/api/v1/participants",
-        json={**payload, "name": "synthetic forbidden field"},
-        headers=write_headers(client, "create-0000000005"),
-    ).status_code == 422
+    assert (
+        client.post(
+            "/api/v1/participants",
+            json={**payload, "study_code": "SYN-DIFFERENT"},
+            headers=write_headers(client, "create-0000000003"),
+        ).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            "/api/v1/participants", json=payload, headers=write_headers(client, "create-0000000004")
+        ).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            "/api/v1/participants",
+            json={**payload, "name": "synthetic forbidden field"},
+            headers=write_headers(client, "create-0000000005"),
+        ).status_code
+        == 422
+    )
     visible = [row["study_code"] for row in client.get("/api/v1/participants").json()]
     assert visible == ["SYN-BASE", "SYN-NEW001"]
     with Session(engine) as db:
-        assert db.scalar(
-            select(ParticipantAssignment).where(
-                ParticipantAssignment.participant_id == uuid.UUID(created.json()["id"])
+        assert (
+            db.scalar(
+                select(ParticipantAssignment).where(
+                    ParticipantAssignment.participant_id == uuid.UUID(created.json()["id"])
+                )
             )
-        ) is not None
-        assert len(
-            db.scalars(select(Participant).where(Participant.study_code == "SYN-NEW001")).all()
-        ) == 1
+            is not None
+        )
+        assert (
+            len(db.scalars(select(Participant).where(Participant.study_code == "SYN-NEW001")).all())
+            == 1
+        )
         create_events = db.scalars(select(AuditEvent).where(AuditEvent.action == "create")).all()
         assert {event.outcome for event in create_events} == {"allowed", "denied"}
 
     login(client, "intake-analyst@example.org")
     assert client.get("/api/v1/participants").status_code == 403
-    assert client.post(
-        "/api/v1/participants", json=payload, headers=write_headers(client, "create-0000000006")
-    ).status_code == 403
+    assert (
+        client.post(
+            "/api/v1/participants", json=payload, headers=write_headers(client, "create-0000000006")
+        ).status_code
+        == 403
+    )
 
 
 def test_consent_history_scope_and_photo_route_closed(intake_api) -> None:
@@ -166,45 +188,208 @@ def test_consent_history_scope_and_photo_route_closed(intake_api) -> None:
         "decision": "granted",
         "photo_scope": True,
     }
-    assert client.post(
-        path, json=first, headers={"Idempotency-Key": "consent-000000001"}
-    ).status_code == 403
+    assert (
+        client.post(path, json=first, headers={"Idempotency-Key": "consent-000000001"}).status_code
+        == 403
+    )
     created = client.post(path, json=first, headers=write_headers(client, "consent-000000001"))
     assert created.status_code == 201
-    assert client.post(
-        path, json=first, headers=write_headers(client, "consent-000000001")
-    ).json()["id"] == created.json()["id"]
-    assert client.post(
-        path,
-        json={**first, "decision": "withdrawn", "photo_scope": False},
-        headers=write_headers(client, "consent-000000002"),
-    ).status_code == 422
+    assert (
+        client.post(path, json=first, headers=write_headers(client, "consent-000000001")).json()[
+            "id"
+        ]
+        == created.json()["id"]
+    )
+    assert (
+        client.post(
+            path,
+            json={**first, "decision": "withdrawn", "photo_scope": False},
+            headers=write_headers(client, "consent-000000002"),
+        ).status_code
+        == 422
+    )
     withdrawal = {
         **first,
         "decision": "withdrawn",
         "photo_scope": False,
         "change_reason": "SYN-DEMO-CHANGE",
     }
-    assert client.post(
-        path, json=withdrawal, headers=write_headers(client, "consent-000000003")
-    ).status_code == 201
+    assert (
+        client.post(
+            path, json=withdrawal, headers=write_headers(client, "consent-000000003")
+        ).status_code
+        == 201
+    )
     history = client.get(path).json()
     assert history["state"] == "withdrawn"
     assert len(history["records"]) == 2
-    assert client.post(
-        path,
-        json={**first, "decision": "refused"},
-        headers=write_headers(client, "consent-000000004"),
-    ).status_code == 422
+    assert (
+        client.post(
+            path,
+            json={**first, "decision": "refused"},
+            headers=write_headers(client, "consent-000000004"),
+        ).status_code
+        == 422
+    )
     for denied_id in (ids["unassigned"], ids["cross_study"]):
         denied_path = f"/api/v1/participants/{denied_id}/consents"
         assert client.get(denied_path).status_code == 403
-        assert client.post(
-            denied_path, json=first, headers=write_headers(client, f"consent-{denied_id}")
-        ).status_code == 403
+        assert (
+            client.post(
+                denied_path, json=first, headers=write_headers(client, f"consent-{denied_id}")
+            ).status_code
+            == 403
+        )
     assert client.post(f"/api/v1/participants/{ids['assigned']}/images").status_code == 404
     with Session(engine) as db:
         assert len(db.scalars(select(ConsentRecord)).all()) == 2
+
+
+def test_synthetic_profile_correction_history_and_scope(intake_api) -> None:
+    client, engine, ids = intake_api
+    path = f"/api/v1/participants/{ids['assigned']}/demo-profile"
+    assert client.get(f"{path}/revisions").status_code == 401
+    login(client)
+    assert client.get(f"{path}/revisions").json() == {
+        "participant_id": str(ids["assigned"]),
+        "current_revision": 0,
+        "records": [],
+    }
+    original = {"age": 67, "sex": "unknown", "needs_assistance": None, "note": None}
+    assert client.post(path, json=original, headers={}).status_code == 403
+    created = client.post(
+        path, json=original, headers=write_headers(client, "profile-create-00001")
+    )
+    assert created.status_code == 200
+    history = client.get(f"{path}/revisions").json()
+    assert history["current_revision"] == 1
+    assert history["records"][0]["source"] == "created"
+    assert history["records"][0]["recorded_by"] is not None
+    correction = {
+        **original,
+        "age": 68,
+        "sex": "female",
+        "expected_revision": 1,
+        "change_reason": "SYN-PROFILE-CORRECTION",
+    }
+    revised = client.post(
+        f"{path}/revisions",
+        json=correction,
+        headers=write_headers(client, "profile-correction-00001"),
+    )
+    assert revised.status_code == 201, revised.text
+    assert revised.json()["revision_no"] == 2
+    assert revised.json()["recorded_by"] is not None
+    assert (
+        client.post(
+            f"{path}/revisions",
+            json=correction,
+            headers=write_headers(client, "profile-correction-00001"),
+        ).json()["id"]
+        == revised.json()["id"]
+    )
+    assert client.get(path).json()["age"] == 68
+    history = client.get(f"{path}/revisions").json()
+    assert [row["age"] for row in history["records"]] == [67, 68]
+    assert (
+        client.post(
+            f"{path}/revisions",
+            json={**correction, "age": 69},
+            headers=write_headers(client, "profile-correction-00001"),
+        ).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            f"{path}/revisions",
+            json={**correction, "age": 69},
+            headers=write_headers(client, "profile-correction-00002"),
+        ).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            f"{path}/revisions",
+            json={**correction, "age": 69, "expected_revision": 2, "change_reason": "invalid"},
+            headers=write_headers(client, "profile-correction-00003"),
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post(
+            f"{path}/revisions",
+            json={**correction, "age": 121, "expected_revision": 2},
+            headers=write_headers(client, "profile-correction-00004"),
+        ).status_code
+        == 422
+    )
+    for denied_id in (ids["unassigned"], ids["cross_study"]):
+        other = f"/api/v1/participants/{denied_id}/demo-profile/revisions"
+        assert client.get(other).status_code == 403
+        assert (
+            client.post(
+                other, json=correction, headers=write_headers(client, f"profile-{denied_id}")
+            ).status_code
+            == 403
+        )
+    with Session(engine) as db:
+        assert db.get(DemoParticipantProfile, ids["assigned"]).age == 67
+        assert len(db.scalars(select(DemoProfileRevision)).all()) == 2
+        assert db.scalar(select(AuditEvent).where(AuditEvent.action == "correct")) is not None
+
+    login(client, "intake-analyst@example.org")
+    assert client.get(f"{path}/revisions").status_code == 403
+    assert (
+        client.post(
+            f"{path}/revisions",
+            json=correction,
+            headers=write_headers(client, "profile-correction-analyst"),
+        ).status_code
+        == 403
+    )
+
+
+def test_legacy_profile_has_explicit_unknown_attribution(intake_api) -> None:
+    client, engine, ids = intake_api
+    with Session(engine) as db:
+        db.add(DemoParticipantProfile(participant_id=ids["assigned"], age=60))
+        db.commit()
+    login(client)
+    path = f"/api/v1/participants/{ids['assigned']}/demo-profile"
+    history = client.get(f"{path}/revisions").json()
+    assert history["records"] == [
+        {
+            "id": None,
+            "participant_id": str(ids["assigned"]),
+            "revision_no": 1,
+            "age": 60,
+            "sex": None,
+            "needs_assistance": None,
+            "note": None,
+            "change_reason": None,
+            "recorded_by": None,
+            "recorded_at": None,
+            "source": "legacy_initial",
+        }
+    ]
+    correction = {
+        "age": 61,
+        "sex": None,
+        "needs_assistance": None,
+        "note": None,
+        "expected_revision": 1,
+        "change_reason": "SYN-LEGACY-CORRECTION",
+    }
+    assert (
+        client.post(
+            f"{path}/revisions",
+            json=correction,
+            headers=write_headers(client, "profile-legacy-00001"),
+        ).status_code
+        == 201
+    )
+    assert client.get(path).json()["age"] == 61
+    assert [row["age"] for row in client.get(f"{path}/revisions").json()["records"]] == [60, 61]
 
 
 def test_screening_unknown_never_becomes_safe(intake_api) -> None:
@@ -213,9 +398,12 @@ def test_screening_unknown_never_becomes_safe(intake_api) -> None:
     path = f"/api/v1/participants/{ids['assigned']}/screenings"
     assert client.get(path).json() == {"review_state": "not_assessed", "records": []}
     first = {"item_code": "SYN-ITEM-01", "answer": "unknown"}
-    assert client.post(
-        path, json=first, headers=write_headers(client, "screen-0000000000")
-    ).status_code == 403
+    assert (
+        client.post(
+            path, json=first, headers=write_headers(client, "screen-0000000000")
+        ).status_code
+        == 403
+    )
     consent_path = f"/api/v1/participants/{ids['assigned']}/consents"
     consent = {
         "document_version": "SYN-FORM-V1",
@@ -223,43 +411,64 @@ def test_screening_unknown_never_becomes_safe(intake_api) -> None:
         "decision": "granted",
         "photo_scope": False,
     }
-    assert client.post(
-        consent_path, json=consent, headers=write_headers(client, "consent-000000011")
-    ).status_code == 201
-    assert client.post(
-        path, json=first, headers=write_headers(client, "screen-0000000001")
-    ).status_code == 201
+    assert (
+        client.post(
+            consent_path, json=consent, headers=write_headers(client, "consent-000000011")
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            path, json=first, headers=write_headers(client, "screen-0000000001")
+        ).status_code
+        == 201
+    )
     assert client.get(path).json()["review_state"] == "needs_review"
-    assert client.post(
-        path,
-        json={**first, "answer": "no"},
-        headers=write_headers(client, "screen-0000000002"),
-    ).status_code == 422
-    assert client.post(
-        path,
-        json={**first, "answer": "no", "change_reason": "SYN-CORRECTION"},
-        headers=write_headers(client, "screen-0000000003"),
-    ).status_code == 201
+    assert (
+        client.post(
+            path,
+            json={**first, "answer": "no"},
+            headers=write_headers(client, "screen-0000000002"),
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post(
+            path,
+            json={**first, "answer": "no", "change_reason": "SYN-CORRECTION"},
+            headers=write_headers(client, "screen-0000000003"),
+        ).status_code
+        == 201
+    )
     history = client.get(path).json()
     assert history["review_state"] == "needs_review"
     assert {row["answer"] for row in history["records"]} == {"unknown", "no"}
     assert "safe" not in str(history).lower()
-    assert client.post(
-        consent_path,
-        json={**consent, "decision": "withdrawn", "change_reason": "SYN-WITHDRAWAL"},
-        headers=write_headers(client, "consent-000000012"),
-    ).status_code == 201
-    assert client.post(
-        path,
-        json={"item_code": "SYN-ITEM-02", "answer": "yes"},
-        headers=write_headers(client, "screen-0000000004"),
-    ).status_code == 403
+    assert (
+        client.post(
+            consent_path,
+            json={**consent, "decision": "withdrawn", "change_reason": "SYN-WITHDRAWAL"},
+            headers=write_headers(client, "consent-000000012"),
+        ).status_code
+        == 201
+    )
+    assert (
+        client.post(
+            path,
+            json={"item_code": "SYN-ITEM-02", "answer": "yes"},
+            headers=write_headers(client, "screen-0000000004"),
+        ).status_code
+        == 403
+    )
     for denied_id in (ids["unassigned"], ids["cross_study"]):
         denied_path = f"/api/v1/participants/{denied_id}/screenings"
         assert client.get(denied_path).status_code == 403
-        assert client.post(
-            denied_path, json=first, headers=write_headers(client, f"screen-{denied_id}")
-        ).status_code == 403
+        assert (
+            client.post(
+                denied_path, json=first, headers=write_headers(client, f"screen-{denied_id}")
+            ).status_code
+            == 403
+        )
     with Session(engine) as db:
         assert len(db.scalars(select(ScreeningRecord)).all()) == 2
 

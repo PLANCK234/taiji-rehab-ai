@@ -6,6 +6,19 @@ export type DemoProfile = {
   needs_assistance: boolean | null;
   note: string | null;
 };
+export type DemoProfileRevision = DemoProfile & {
+  id: string | null;
+  revision_no: number;
+  change_reason: string | null;
+  recorded_by: string | null;
+  recorded_at: string | null;
+  source: "created" | "corrected" | "legacy_initial";
+};
+export type DemoProfileHistory = {
+  participant_id: string;
+  current_revision: number;
+  records: DemoProfileRevision[];
+};
 export type ConsentRecord = {
   id: string;
   participant_id: string;
@@ -62,6 +75,10 @@ export function getParticipant(id: string, cookieHeader: string, fetcher?: typeo
 
 export function getDemoProfile(id: string, cookieHeader: string, fetcher?: typeof fetch) {
   return readScoped<DemoProfile>(`/participants/${encodeURIComponent(id)}/demo-profile`, cookieHeader, fetcher);
+}
+
+export function getDemoProfileHistory(id: string, cookieHeader: string, fetcher?: typeof fetch) {
+  return readScoped<DemoProfileHistory>(`/participants/${encodeURIComponent(id)}/demo-profile/revisions`, cookieHeader, fetcher);
 }
 
 export function getConsentHistory(id: string, cookieHeader: string, fetcher?: typeof fetch) {

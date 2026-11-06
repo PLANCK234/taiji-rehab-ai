@@ -183,6 +183,36 @@ class DemoParticipantProfile(Base):
     note: Mapped[str | None] = mapped_column(String(500))
 
 
+class DemoProfileRevision(Base):
+    """Append-only synthetic display profile snapshots; the old profile row stays intact."""
+
+    __tablename__ = "demo_profile_revisions"
+    __table_args__ = (
+        UniqueConstraint("participant_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_demo_profile_revision_positive"),
+        CheckConstraint(
+            "age IS NULL OR age BETWEEN 0 AND 120", name="ck_demo_profile_revision_age"
+        ),
+        CheckConstraint(
+            "sex IS NULL OR sex IN ('female','male','other','unknown')",
+            name="ck_demo_profile_revision_sex",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    age: Mapped[int | None] = mapped_column()
+    sex: Mapped[str | None] = mapped_column(String(16))
+    needs_assistance: Mapped[bool | None] = mapped_column()
+    note: Mapped[str | None] = mapped_column(String(500))
+    change_reason: Mapped[str | None] = mapped_column(String(64))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class DemoGradeResult(Base):
     """Immutable, versioned display mapping for a confirmed assessment revision."""
 

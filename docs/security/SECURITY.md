@@ -59,5 +59,7 @@
 
 The REAL-01A synthetic administrator route is server guarded by Demo mode and the `admin` role. It accepts only marked `demo-…@example.org` staff and `SYN-` scopes; patient and admin creation, real identity import and Research administration stay closed. Assignment changes require CSRF, idempotency and expected state, are audited, and study revocation removes dependent object grants. A disabled account or changed role loses current sessions. The optional local admin seed is disabled unless `SEED_DEMO_ADMIN=true`; a public tunnel must not expose an intentionally seeded shared Demo admin without an operator decision.
 
+REAL-01B0 display profile revisions use the existing server-side staff role, study and explicit object scope for reads and writes. Corrections require CSRF, idempotency, expected revision and a synthetic reason, and add an audit event. Legacy rows without creator metadata expose null actor/time rather than an invented identity. These optional Demo fields do not provide real identity mapping or consent evidence.
+
 ## Deployment gate (must sign off)
 Approved protocol/ethics, purpose and consent language, legal retention, data-controller and hosting jurisdiction, access roster, incident response ownership, image policy, backup/restore test, dependency and vulnerability review. Product claims and potential medical-device status require institutional/regulatory review; this document does not certify compliance.

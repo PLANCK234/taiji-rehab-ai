@@ -201,3 +201,9 @@
 - 从干净 `9e9544a` 建立 `codex/real-01a-synthetic-staff-admin`。新增 Demo-only 管理员 API、中文管理页和 `0012` 追加变更历史；仅可管理合成工作人员及 SYN 研究/对象授权。停用/改角色撤销会话，研究撤权连带对象撤权；种子重跑保留撤权，管理员种子默认关闭、仅显式本地开关启用。没有 Research 身份导入、真实患者或临床规则变更，REAL-01A 父任务继续 IN_PROGRESS。取舍见 ADR-0019。
 - 后端 Ruff、pytest 49 passed/4 skipped；前端 Docker lint/typecheck/24 tests/build；临时 PostgreSQL 迁移升/空库降/升、Alembic check 与旧 API 5 passed；隔离 Chromium 最终 9 passed。浏览器首轮异步等待不足、第二轮刷新后误选首位账号，两处测试定位修正后完整复跑通过；失败附件及清理见 STATUS。
 - 未部署共享 Demo 服务或外网临时站点，未推送/合并。下一独立合成工程任务建议 REAL-01B 的档案更正子集；真实身份、正式同意和机构账号治理等待批准。
+
+## 2026-11-06 北京时间 · REAL-01B0 合成展示资料更正
+
+- 从干净 `7369690` 新建 `codex/real-01b0-synthetic-profile-revisions`。新增 `0013` 追加式展示资料版本表、API 当前/历史投影及对象页录入/更正；原资料行不改写，旧行未知创建人/时间不回填。授权、CSRF、幂等、预期版本和合成更正原因均在服务器核验；无真实身份或正式同意。取舍见 ADR-0020。
+- 后端 Ruff、pytest 51 passed/4 skipped；前端 Docker lint/typecheck/24 tests/build；一次性 PostgreSQL 迁移升/空库降/升、Alembic check 与旧 API 5 passed；隔离 PostgreSQL→FastAPI→Next→Chromium 最终 10 passed，含初始值、更正和刷新历史。浏览器首轮历史版本定位歧义导致 9 passed/1 failed，限定历史列表后完整复跑通过；失败附件与资源清理见 STATUS。
+- 未部署共享 Demo 服务或外网临时站点，未推送/合并。REAL-01B 父任务仍进行中；下一独立合成任务建议 REAL-01C 的多指标人工原始值录入子集，先核对数据字典，不自动计分。

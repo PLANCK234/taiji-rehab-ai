@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-06 REAL-01B0 合成展示资料可追溯更正
+
+从干净 `7369690` 建立 `codex/real-01b0-synthetic-profile-revisions`。原演示档案资料只有一次创建和当前读取，无法更正；新增 `0013_demo_profile_revisions` 与对象页表单，年龄/性别/辅助信息/备注以完整快照追加版本，需预期版本、`SYN-` 更正原因、CSRF、幂等和原有研究/对象写权限。旧初始行保持不变，缺少创建人/时间的旧记录明确标为来源未知；当前读取投影最新版本，修订历史显示全部版本。无真实身份映射、正式同意签署或临床判断；REAL-01B 父任务仍 IN_PROGRESS。见 [ADR-0020](decisions/0020-synthetic-profile-revisions.md)。
+
+验证：后端 Ruff、pytest **51 passed / 4 opt-in skipped**；前端隔离 Docker 生产构建、lint、typecheck、**24 tests** 通过；一次性 PostgreSQL 迁移升/空库降/升、Alembic check 和旧业务 API **5 passed**。隔离 PostgreSQL→FastAPI→Next→Chromium 最终 **10 passed**。浏览器首次运行 9 passed/1 failed，原因是测试定位同时匹配当前值和历史列表项；限定历史列表后完整复测通过。失败附件保留在忽略目录 `exports/eng04b-cef3da0f8cda`，脚本已清理临时容器、网络和镜像。现有共享 Demo 服务及临时外网网址未部署本分支。
+
 ## 2026-11-06 REAL-01A0 合成工作人员管理
 
 从干净 `9e9544a` 建立 `codex/real-01a-synthetic-staff-admin`。新增仅 Demo 可用的管理员 API 和中文 `/admin` 页面：建立 `demo-…@example.org` 工作人员、改角色、启停账号、分配/撤销 `SYN-` 研究和编号对象权限。变更写入追加式历史及操作审计；研究撤权连带撤销对象权限，停用/改角色注销现有会话。默认种子不创建管理员，仅显式 `SEED_DEMO_ADMIN=true` 的本地合成环境创建；种子重跑不会恢复有撤权事件的默认分配。没有真实身份导入、临床处方权限或 Research 准入，REAL-01A 父任务仍进行中。见 [ADR-0019](decisions/0019-opt-in-synthetic-staff-admin.md)。
@@ -71,7 +77,7 @@
 | 范围 | 状态 | 实际证据 / 缺口 |
 |---|---|---|
 | REAL-01P Demo/Research 准入隔离 | DONE | `APP_PROFILE` 白名单式 Demo 准入；Research 独立 Compose 项目、PostgreSQL 卷/账号/配置/私网；业务 API、ready、演示种子和 Alembic 迁移审批前拒绝。改 `ALLOW_SYNTHETIC_ONLY=false` 不会打开 Research。 |
-| REAL-01A/B/C | IN_PROGRESS | REAL-01A0 合成人员授权管理已完成工程子集；真实身份与机构账号治理、档案结构/更正及其他量表未完成。 |
+| REAL-01A/B/C | IN_PROGRESS | REAL-01A0 合成人员授权和 REAL-01B0 合成展示资料更正已完成工程子集；真实身份/同意、完整档案字段与其他量表未完成。 |
 | REAL-01D0 | DONE | `0005_training_observations`、训练会话/反馈修订/事件表及 API；对象页、反馈页和可独立上报事件的表单。只记录已发生观察；无周期/规则关联、处方或事件处置闭环，见 [ADR-0012](decisions/0012-training-observation-before-cycle.md)。 |
 | REAL-01F0 | DONE | 对象页可下载实时编号化 CSV；按服务器端角色/研究/对象隔离，读取评估和反馈全部修订、训练会话与事件存在事实；不含身份或自由文本，附行数/SHA-256 和审计。不是冻结快照，见 [ADR-0013](decisions/0013-live-coded-demo-export.md)。 |
 | REAL-01D/E/F | NOT_STARTED | 正式周期/规则关联训练、研究周期/快照、完整研究工作台与编号化导出尚未实现；已有人工总分趋势及 D0 非临床观察子集。 |

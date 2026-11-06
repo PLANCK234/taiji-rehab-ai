@@ -64,3 +64,7 @@ The additive migration permits the `patient` user role and creates `demo_patient
 ## Synthetic staff changes `0012_synthetic_staff_admin` (2026-11-06)
 
 `synthetic_staff_changes` is append-only: target staff, action (`create`, role/active change, study/object grant or revoke), optional scope/value, actor and UTC time. Current access still comes from `users`, `study_assignments` and `participant_assignments`; history prevents a seed rerun from silently restoring revoked defaults. No password or real identity is stored in change events. Migration is additive; a populated database must not be downgraded for testing.
+
+## Synthetic display profile revisions `0013_demo_profile_revisions` (2026-11-06)
+
+The original `demo_participant_profiles` row remains an immutable initial snapshot. New `demo_profile_revisions` stores append-only full display snapshots with `(participant_id, revision_no)` uniqueness, optional age/sex/assistance/note, correction reason, actor and UTC time. Newly created profiles also get an initial version-1 event. Existing profiles without that event are read as a legacy version 1 with actor/time unknown; the migration does not fabricate provenance or rewrite rows. The latest revision drives the current display read. This contains no identity or consent fields; populated database downgrade is not approved. See [ADR-0020](../decisions/0020-synthetic-profile-revisions.md).

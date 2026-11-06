@@ -13,6 +13,7 @@ from app.intake import require_reason_for_revision, reserve_write
 from app.models import (
     ConsentRecord,
     DemoParticipantProfile,
+    DemoProfileRevision,
     Participant,
     ParticipantAssignment,
     ScreeningRecord,
@@ -22,7 +23,10 @@ from app.schemas import (
     ConsentCreate,
     ConsentHistory,
     ConsentView,
+    DemoProfileCorrection,
     DemoProfileCreate,
+    DemoProfileHistory,
+    DemoProfileRevisionView,
     DemoProfileView,
     ParticipantCreate,
     ParticipantView,
@@ -110,7 +114,12 @@ def get_demo_profile(
     db: Session = Depends(get_db),
 ) -> DemoProfileView | None:
     authorized_participant(db, auth, participant_id)
-    row = db.get(DemoParticipantProfile, participant_id)
+    row = db.scalar(
+        select(DemoProfileRevision)
+        .where(DemoProfileRevision.participant_id == participant_id)
+        .order_by(DemoProfileRevision.revision_no.desc())
+        .limit(1)
+    ) or db.get(DemoParticipantProfile, participant_id)
     return DemoProfileView.model_validate(row) if row else None
 
 
@@ -139,9 +148,140 @@ def create_demo_profile(
         return DemoProfileView.model_validate(existing)
     row = DemoParticipantProfile(participant_id=participant_id, **payload.model_dump())
     db.add(row)
+    db.add(
+        DemoProfileRevision(
+            participant_id=participant_id,
+            revision_no=1,
+            **payload.model_dump(),
+            recorded_by=auth.user.id,
+        )
+    )
     audit(db, "create", "demo_profile", "allowed", auth.user.id, participant_id)
     db.commit()
     return DemoProfileView.model_validate(row)
+
+
+def profile_revision_view(row: DemoProfileRevision, source: str) -> DemoProfileRevisionView:
+    return DemoProfileRevisionView.model_validate(
+        {
+            **DemoProfileView.model_validate(row).model_dump(),
+            "id": row.id,
+            "revision_no": row.revision_no,
+            "change_reason": row.change_reason,
+            "recorded_by": row.recorded_by,
+            "recorded_at": row.recorded_at,
+            "source": source,
+        }
+    )
+
+
+@router.get(
+    "/participants/{participant_id}/demo-profile/revisions",
+    response_model=DemoProfileHistory,
+)
+def get_demo_profile_revisions(
+    participant_id: uuid.UUID,
+    auth: AuthContext = Depends(current_auth),
+    db: Session = Depends(get_db),
+) -> DemoProfileHistory:
+    authorized_participant(db, auth, participant_id)
+    initial = db.get(DemoParticipantProfile, participant_id)
+    if initial is None:
+        return DemoProfileHistory(participant_id=participant_id, current_revision=0, records=[])
+    revisions = db.scalars(
+        select(DemoProfileRevision)
+        .where(DemoProfileRevision.participant_id == participant_id)
+        .order_by(DemoProfileRevision.revision_no)
+    ).all()
+    records = [
+        profile_revision_view(row, "created" if row.revision_no == 1 else "corrected")
+        for row in revisions
+    ]
+    if not records or records[0].revision_no != 1:
+        records.insert(
+            0,
+            DemoProfileRevisionView(
+                id=None,
+                participant_id=participant_id,
+                revision_no=1,
+                age=initial.age,
+                sex=initial.sex,
+                needs_assistance=initial.needs_assistance,
+                note=initial.note,
+                change_reason=None,
+                recorded_by=None,
+                recorded_at=None,
+                source="legacy_initial",
+            ),
+        )
+    return DemoProfileHistory(
+        participant_id=participant_id,
+        current_revision=records[-1].revision_no,
+        records=records,
+    )
+
+
+@router.post(
+    "/participants/{participant_id}/demo-profile/revisions",
+    status_code=201,
+    response_model=DemoProfileRevisionView,
+)
+def correct_demo_profile(
+    participant_id: uuid.UUID,
+    payload: DemoProfileCorrection,
+    request: Request,
+    auth: AuthContext = Depends(current_auth),
+    db: Session = Depends(get_db),
+    key: str = Depends(idempotency_header),
+) -> DemoProfileRevisionView:
+    require_csrf(request, auth, db, "correct", "demo_profile", participant_id)
+    authorized_participant(
+        db,
+        auth,
+        participant_id,
+        action="correct",
+        allowed_roles=WRITE_ROLES,
+        audit_success=False,
+        lock_for_write=True,
+    )
+    initial = db.get(DemoParticipantProfile, participant_id)
+    if initial is None:
+        raise HTTPException(status_code=404, detail="demo profile not recorded")
+    revision_id, fresh = reserve_write(
+        db, auth.user.id, f"demo-profile:{participant_id}", key, payload
+    )
+    if not fresh:
+        row = db.get(DemoProfileRevision, revision_id)
+        if row is None:
+            raise HTTPException(status_code=503, detail="receipt target missing")
+        return profile_revision_view(row, "corrected")
+    latest = db.scalar(
+        select(DemoProfileRevision)
+        .where(DemoProfileRevision.participant_id == participant_id)
+        .order_by(DemoProfileRevision.revision_no.desc())
+        .limit(1)
+    )
+    current_no = latest.revision_no if latest else 1
+    if payload.expected_revision != current_no:
+        raise HTTPException(status_code=409, detail="profile revision changed")
+    current = latest or initial
+    values = payload.model_dump(exclude={"expected_revision", "change_reason"})
+    if DemoProfileCreate.model_validate(current, from_attributes=True) == DemoProfileCreate(
+        **values
+    ):
+        raise HTTPException(status_code=409, detail="profile unchanged")
+    row = DemoProfileRevision(
+        id=revision_id,
+        participant_id=participant_id,
+        revision_no=current_no + 1,
+        **values,
+        change_reason=payload.change_reason,
+        recorded_by=auth.user.id,
+    )
+    db.add(row)
+    audit(db, "correct", "demo_profile", "allowed", auth.user.id, participant_id)
+    db.commit()
+    return profile_revision_view(row, "corrected")
 
 
 @router.get("/participants/{participant_id}/consents", response_model=ConsentHistory)
