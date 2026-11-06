@@ -60,3 +60,7 @@ The additive migration permits the `patient` user role and creates `demo_patient
 ## Manual synthetic cycles `0011_synthetic_cycles` (backend checkpoint, 2026-11-06)
 
 `synthetic_cycles` groups one coded participant under a manually entered label. `synthetic_visit_revisions` stores append-only visit label, attendance (`unknown|attended|not_attended`), assessment state (`unknown|recorded|declined|not_measured`), optional existing assessment link and existing training session IDs. The API validates participant scope for every link. This is not an approved schedule or frozen cohort. Empty disposable PostgreSQL migration replay and synthetic browser persistence passed; populated database downgrade is not approved. See [ADR-0018](../decisions/0018-manual-synthetic-cycle-grouping.md).
+
+## Synthetic staff changes `0012_synthetic_staff_admin` (2026-11-06)
+
+`synthetic_staff_changes` is append-only: target staff, action (`create`, role/active change, study/object grant or revoke), optional scope/value, actor and UTC time. Current access still comes from `users`, `study_assignments` and `participant_assignments`; history prevents a seed rerun from silently restoring revoked defaults. No password or real identity is stored in change events. Migration is additive; a populated database must not be downgraded for testing.

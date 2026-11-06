@@ -25,7 +25,7 @@ export default function LoginPage() {
         return;
       }
       const user = await response.json() as { role: string };
-      router.replace(user.role === "patient" ? "/patient" : "/workspace");
+      router.replace(user.role === "patient" ? "/patient" : user.role === "admin" ? "/admin" : "/workspace");
     } catch {
       setError("服务暂不可用，请稍后重试。");
     } finally {

@@ -14,4 +14,5 @@ COPY e2e/real-business.real.ts ./e2e/
 COPY e2e/training.real.ts ./e2e/
 COPY e2e/demo-v2.real.ts ./e2e/
 COPY e2e/patient.real.ts ./e2e/
+COPY e2e/staff-admin.real.ts ./e2e/
 CMD ["pnpm", "exec", "playwright", "test", "--config", "playwright.real.config.ts"]

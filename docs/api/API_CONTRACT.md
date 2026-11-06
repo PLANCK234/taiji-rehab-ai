@@ -93,6 +93,10 @@ Session POST: `{"session_at":"2026-10-01T01:30:00Z","action_label":"SYN-OBSERVED
 - 401 no login, 403 out of scope, 422 invalid/unknown medical input, 409 conflict, 423 locked snapshot, 503 dependency unavailable.
 - Audit actor, timestamp, object version and reason for clinical modifications and exports.
 
+## Synthetic staff administration (REAL-01A engineering subset)
+
+Only an authenticated `admin` in the Demo profile may call `GET /api/v1/admin/scope` and `GET /api/v1/admin/staff`. These return synthetic study/object codes and synthetic staff role, active state and assignment IDs; they do not return passwords. `POST /api/v1/admin/staff` creates a `demo-…@example.org` staff account (clinician, clinical approver, research assistant or analyst). `POST /api/v1/admin/staff/{id}` changes role or active state with `expected_role` and `expected_active`. `POST /api/v1/admin/staff/{id}/assignments` grants/revokes a `SYN-` study or object with `expected_assigned`. Object grant requires study grant. Study revoke also removes its object grants. All writes require CSRF and `Idempotency-Key`; stale state is 409. Deactivation and role change revoke sessions. Real identities, patient/admin creation and Research import are unavailable. See [ADR-0019](../decisions/0019-opt-in-synthetic-staff-admin.md).
+
 ## API documentation generation
 Once backend exists, commit its OpenAPI spec export and compare to this contract in CI. Amend this file deliberately whenever a public endpoint changes.
 

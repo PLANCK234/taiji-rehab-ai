@@ -57,5 +57,7 @@
 - Analyst: coded exports, no identity mapping by default.
 - Admin/operator: manage accounts/backups, not automatic clinical-record viewing.
 
+The REAL-01A synthetic administrator route is server guarded by Demo mode and the `admin` role. It accepts only marked `demo-…@example.org` staff and `SYN-` scopes; patient and admin creation, real identity import and Research administration stay closed. Assignment changes require CSRF, idempotency and expected state, are audited, and study revocation removes dependent object grants. A disabled account or changed role loses current sessions. The optional local admin seed is disabled unless `SEED_DEMO_ADMIN=true`; a public tunnel must not expose an intentionally seeded shared Demo admin without an operator decision.
+
 ## Deployment gate (must sign off)
 Approved protocol/ethics, purpose and consent language, legal retention, data-controller and hosting jurisdiction, access roster, incident response ownership, image policy, backup/restore test, dependency and vulnerability review. Product claims and potential medical-device status require institutional/regulatory review; this document does not certify compliance.

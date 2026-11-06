@@ -195,3 +195,9 @@
 - 在 `248485f` 后补周期/访视对象页、已有评估和训练观察关联选择、最新版本及修订历史；API 响应模型和跨对象链接/旧版本拒绝测试。没有改变现有评估和训练原始行或自动安排访视。
 - 后端 Ruff、pytest 47 passed/4 skipped；前端 Docker lint/typecheck/24 tests/build；一次性 PostgreSQL 迁移升/空库降/升与旧 API 5 passed；Chromium 首跑 7 passed/1 failed，原因是测试“修订历史”文字定位歧义；新增关联评估当前值断言后又因测试按序号选中基线而 7 passed/1 failed。改为按复评名称选择后最终 8 passed。失败附件在 `exports/eng04b-bb46b75cf610` 和 `exports/eng04b-0f4e39d44f59`；脚本清理临时容器、网络与任务镜像。
 - ADR-0018 记录手工归组和缺失语义；正式日程、冻结快照和真实数据准入仍需批准。现有共享站点未部署本分支，未推送或合并。下一可执行任务建议 REAL-01A 合成授权管理。
+
+## 2026-11-06 北京时间 · REAL-01A0 合成工作人员管理
+
+- 从干净 `9e9544a` 建立 `codex/real-01a-synthetic-staff-admin`。新增 Demo-only 管理员 API、中文管理页和 `0012` 追加变更历史；仅可管理合成工作人员及 SYN 研究/对象授权。停用/改角色撤销会话，研究撤权连带对象撤权；种子重跑保留撤权，管理员种子默认关闭、仅显式本地开关启用。没有 Research 身份导入、真实患者或临床规则变更，REAL-01A 父任务继续 IN_PROGRESS。取舍见 ADR-0019。
+- 后端 Ruff、pytest 49 passed/4 skipped；前端 Docker lint/typecheck/24 tests/build；临时 PostgreSQL 迁移升/空库降/升、Alembic check 与旧 API 5 passed；隔离 Chromium 最终 9 passed。浏览器首轮异步等待不足、第二轮刷新后误选首位账号，两处测试定位修正后完整复跑通过；失败附件及清理见 STATUS。
+- 未部署共享 Demo 服务或外网临时站点，未推送/合并。下一独立合成工程任务建议 REAL-01B 的档案更正子集；真实身份、正式同意和机构账号治理等待批准。

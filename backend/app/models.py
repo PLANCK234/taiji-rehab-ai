@@ -32,6 +32,20 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class SyntheticStaffChange(Base):
+    """Append-only synthetic staff and authorization administration history."""
+
+    __tablename__ = "synthetic_staff_changes"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    target_user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    action: Mapped[str] = mapped_column(String(40), nullable=False)
+    scope_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    value: Mapped[str | None] = mapped_column(String(40))
+    actor_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class Study(Base):
     __tablename__ = "studies"
 

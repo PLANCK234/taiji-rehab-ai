@@ -19,6 +19,7 @@ from app.patient_reports_api import router as patient_reports_router
 from app.research_api import router as research_router
 from app.research_export_api import router as export_router
 from app.runtime import require_demo
+from app.staff_admin_api import router as staff_admin_router
 from app.training_api import router as training_router
 
 app = FastAPI(title="太极康复研究平台 API", version="0.1.0")
@@ -27,6 +28,7 @@ app.include_router(intake_router)
 app.include_router(assessment_router)
 app.include_router(cycles_router)
 app.include_router(research_router)
+app.include_router(staff_admin_router)
 app.include_router(export_router)
 app.include_router(training_router)
 app.include_router(demo_router)

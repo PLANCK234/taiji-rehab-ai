@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-06 REAL-01A0 合成工作人员管理
+
+从干净 `9e9544a` 建立 `codex/real-01a-synthetic-staff-admin`。新增仅 Demo 可用的管理员 API 和中文 `/admin` 页面：建立 `demo-…@example.org` 工作人员、改角色、启停账号、分配/撤销 `SYN-` 研究和编号对象权限。变更写入追加式历史及操作审计；研究撤权连带撤销对象权限，停用/改角色注销现有会话。默认种子不创建管理员，仅显式 `SEED_DEMO_ADMIN=true` 的本地合成环境创建；种子重跑不会恢复有撤权事件的默认分配。没有真实身份导入、临床处方权限或 Research 准入，REAL-01A 父任务仍进行中。见 [ADR-0019](decisions/0019-opt-in-synthetic-staff-admin.md)。
+
+验证：后端 Ruff、pytest **49 passed / 4 opt-in skipped**；新增授权/撤权、活跃会话失效和种子重跑测试通过。前端隔离 Docker 生产构建、lint、typecheck、**24 tests** 通过。一次性 PostgreSQL 迁移升/空库降/升、Alembic check 和旧业务 API **5 passed**。隔离 PostgreSQL→FastAPI→Next→Chromium **9 passed**，包含管理员创建、授权、撤权、停用与刷新持久化；脚本清理了临时容器、网络和任务镜像。浏览器首轮在异步点击后未等待保存，第二轮刷新后误选列表首位账号，均为测试定位问题；修正等待与目标选择后完整复测 9 passed。失败附件保留在忽略目录 `exports/eng04b-8b61b20fb331` 和 `exports/eng04b-962db3f160aa`。现有共享演示服务与临时外网网址未部署本分支。
+
 ## 2026-11-06 REAL-01E0 手工合成周期与访视
 
 从干净 `67d3626` 建立 `codex/real-01e0-synthetic-cycles`。新增 `0011_synthetic_cycles` 迁移、手工命名周期与追加式访视版本、对已有评估/训练观察的同对象关联检查；对象页可创建、更正并查看历史和关联评估当前值，刷新从 PostgreSQL 取回。未知、未到、拒测、未测分别显示；不自动生成访视日程、完成率或临床结论。取舍见 [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md)。REAL-01E0 合成工程范围完成；Q-05、正式方案/冻结快照和真实数据准入未完成。
@@ -65,7 +71,7 @@
 | 范围 | 状态 | 实际证据 / 缺口 |
 |---|---|---|
 | REAL-01P Demo/Research 准入隔离 | DONE | `APP_PROFILE` 白名单式 Demo 准入；Research 独立 Compose 项目、PostgreSQL 卷/账号/配置/私网；业务 API、ready、演示种子和 Alembic 迁移审批前拒绝。改 `ALLOW_SYNTHETIC_ONLY=false` 不会打开 Research。 |
-| REAL-01A/B/C | IN_PROGRESS | 现有 Demo 登录/RBAC/审计、编码建档/模拟同意、人工 SPPB 总分/历史为可复用子集；人员授权管理、档案结构/更正及其他量表未完成。 |
+| REAL-01A/B/C | IN_PROGRESS | REAL-01A0 合成人员授权管理已完成工程子集；真实身份与机构账号治理、档案结构/更正及其他量表未完成。 |
 | REAL-01D0 | DONE | `0005_training_observations`、训练会话/反馈修订/事件表及 API；对象页、反馈页和可独立上报事件的表单。只记录已发生观察；无周期/规则关联、处方或事件处置闭环，见 [ADR-0012](decisions/0012-training-observation-before-cycle.md)。 |
 | REAL-01F0 | DONE | 对象页可下载实时编号化 CSV；按服务器端角色/研究/对象隔离，读取评估和反馈全部修订、训练会话与事件存在事实；不含身份或自由文本，附行数/SHA-256 和审计。不是冻结快照，见 [ADR-0013](decisions/0013-live-coded-demo-export.md)。 |
 | REAL-01D/E/F | NOT_STARTED | 正式周期/规则关联训练、研究周期/快照、完整研究工作台与编号化导出尚未实现；已有人工总分趋势及 D0 非临床观察子集。 |

@@ -14,6 +14,7 @@ export default async function WorkspacePage() {
   const user = await getCurrentUser(cookieHeader);
   if (!user) redirect("/login");
   if (user.role === "patient") redirect("/patient");
+  if (user.role === "admin") redirect("/admin");
   const studies = await getAssignedStudies(cookieHeader);
   const participants = await getAssignedParticipants(cookieHeader);
   const plans = Object.fromEntries(await Promise.all((participants ?? []).map(async (item) => [item.id, await getDemoPlan(item.id, cookieHeader)] as const)));

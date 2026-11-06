@@ -347,6 +347,44 @@
         "title": "AssessmentTrendEntry",
         "type": "object"
       },
+      "AssignmentChange": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_assigned": {
+            "title": "Expected Assigned",
+            "type": "boolean"
+          },
+          "operation": {
+            "enum": [
+              "grant",
+              "revoke"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "study",
+              "participant"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "scope_id": {
+            "format": "uuid",
+            "title": "Scope Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope",
+          "scope_id",
+          "operation",
+          "expected_assigned"
+        ],
+        "title": "AssignmentChange",
+        "type": "object"
+      },
       "ConsentCreate": {
         "additionalProperties": false,
         "properties": {
@@ -1706,6 +1744,93 @@
         "title": "ScreeningView",
         "type": "object"
       },
+      "StaffChange": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_active": {
+            "title": "Expected Active",
+            "type": "boolean"
+          },
+          "expected_role": {
+            "enum": [
+              "clinician",
+              "clinical_approver",
+              "research_assistant",
+              "analyst"
+            ],
+            "title": "Expected Role",
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "activate",
+              "deactivate",
+              "role"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "clinician",
+                  "clinical_approver",
+                  "research_assistant",
+                  "analyst"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "required": [
+          "operation",
+          "expected_role",
+          "expected_active"
+        ],
+        "title": "StaffChange",
+        "type": "object"
+      },
+      "StaffCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "minLength": 8,
+            "pattern": "^demo-[a-z0-9._+-]+@example\\.org$",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Password",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "clinician",
+              "clinical_approver",
+              "research_assistant",
+              "analyst"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "role",
+          "password"
+        ],
+        "title": "StaffCreate",
+        "type": "object"
+      },
       "StudyView": {
         "properties": {
           "code": {
@@ -2391,6 +2516,206 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/scope": {
+      "get": {
+        "operationId": "scope_api_v1_admin_scope_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scope"
+      }
+    },
+    "/api/v1/admin/staff": {
+      "get": {
+        "operationId": "list_staff_api_v1_admin_staff_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Staff"
+      },
+      "post": {
+        "operationId": "create_staff_api_v1_admin_staff_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Staff"
+      }
+    },
+    "/api/v1/admin/staff/{user_id}": {
+      "post": {
+        "operationId": "change_staff_api_v1_admin_staff__user_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change Staff"
+      }
+    },
+    "/api/v1/admin/staff/{user_id}/assignments": {
+      "post": {
+        "operationId": "change_assignment_api_v1_admin_staff__user_id__assignments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignmentChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change Assignment"
+      }
+    },
     "/api/v1/assessments": {
       "post": {
         "operationId": "create_assessment_api_v1_assessments_post",

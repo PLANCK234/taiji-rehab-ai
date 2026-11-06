@@ -49,6 +49,8 @@ Start-Process http://localhost:3000/login
 
 演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org` 和合成患者 `demo-patient@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。合成患者只绑定 `SYN-001`；运行迁移 `0008_demo_patient_binding` 与最新种子后才可登录患者入口，撤销绑定后种子不会重新启用。基础种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。基础种子只创建虚构研究编号、编码对象和权限分配。
 
+仅在隔离的本地合成管理演示中，可显式运行 `docker compose --env-file .env -f infra/compose.yaml run --rm -e SEED_DEMO_ADMIN=true backend uv run --no-dev python -m app.seed_demo` 建立 `demo-admin@example.org`，用本机 Demo 密码进入 `/admin` 管理合成工作人员与授权。默认种子不创建管理员；已有临时外网分享地址不应直接使用共享管理员密码。管理员页面不支持真实人员或患者登记；撤销过的默认授权不会被再次运行种子恢复。实际运行前须先升级到最新迁移并备份已有本机演示数据库。
+
 可选的人工复评合成夹具：在已配置的本地合成环境运行 `docker compose --env-file .env -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_reassessment_demo`。它先确认基础种子，再创建 `SYN-ENG01A-001/002` 两名虚构编号对象的模拟同意、未知/未记录筛查、人工基线与复评（含缺失和更正历史）。重复运行只核对既有记录；如果夹具被改动会报错，不覆盖记录。密码重置须先单独运行基础种子。夹具原始值不是疗效结果，不生成临床等级或建议。
 
 登录后可在上述编号对象详情页查看只读的人工总分记录趋势。已确认有效值才有 0–12 分图示；待确认草稿、缺失和无效分别显示。它按登记顺序排列，不是获批准的周期访视或疗效报告。

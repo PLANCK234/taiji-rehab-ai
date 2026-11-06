@@ -64,6 +64,7 @@ def main() -> None:
             "run", "--rm", "--network", network,
             "-e", f"DATABASE_URL={database_url}", "-e", "APP_ENV=local",
             "-e", "ALLOW_SYNTHETIC_ONLY=true", "-e", f"DEMO_PASSWORD={PASSWORD}",
+            "-e", "SEED_DEMO_ADMIN=true",
             backend_image,
         ]
         docker(*common, "uv", "run", "--no-dev", "alembic", "upgrade", "head")
