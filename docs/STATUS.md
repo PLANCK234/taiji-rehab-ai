@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-07 REAL-01C0 人工多指标契约
+
+完成 [录入契约](product/MANUAL_METRICS_CONTRACT.md)，核对当前请求/响应只支持 SPPB 总分、确认耦合 Demo 分级、趋势/CSV 读取旧评估版本。首批设计为四种人工原始观察及追加更正；FRAIL 版本和分项计分继续待批准。本轮仅设计，未新增多指标 API、数据库或页面。后端 Ruff 通过，现有人工评估测试 5 passed；前端/浏览器未运行。下一项 REAL-01C1 实现此合成子集，父任务 REAL-01C 保持 IN_PROGRESS。
+
 ## 2026-11-06 REAL-01B0 合成展示资料可追溯更正
 
 从干净 `7369690` 建立 `codex/real-01b0-synthetic-profile-revisions`。原演示档案资料只有一次创建和当前读取，无法更正；新增 `0013_demo_profile_revisions` 与对象页表单，年龄/性别/辅助信息/备注以完整快照追加版本，需预期版本、`SYN-` 更正原因、CSRF、幂等和原有研究/对象写权限。旧初始行保持不变，缺少创建人/时间的旧记录明确标为来源未知；当前读取投影最新版本，修订历史显示全部版本。无真实身份映射、正式同意签署或临床判断；REAL-01B 父任务仍 IN_PROGRESS。见 [ADR-0020](decisions/0020-synthetic-profile-revisions.md)。

@@ -207,3 +207,8 @@
 - 从干净 `7369690` 新建 `codex/real-01b0-synthetic-profile-revisions`。新增 `0013` 追加式展示资料版本表、API 当前/历史投影及对象页录入/更正；原资料行不改写，旧行未知创建人/时间不回填。授权、CSRF、幂等、预期版本和合成更正原因均在服务器核验；无真实身份或正式同意。取舍见 ADR-0020。
 - 后端 Ruff、pytest 51 passed/4 skipped；前端 Docker lint/typecheck/24 tests/build；一次性 PostgreSQL 迁移升/空库降/升、Alembic check 与旧 API 5 passed；隔离 PostgreSQL→FastAPI→Next→Chromium 最终 10 passed，含初始值、更正和刷新历史。浏览器首轮历史版本定位歧义导致 9 passed/1 failed，限定历史列表后完整复跑通过；失败附件与资源清理见 STATUS。
 - 未部署共享 Demo 服务或外网临时站点，未推送/合并。REAL-01B 父任务仍进行中；下一独立合成任务建议 REAL-01C 的多指标人工原始值录入子集，先核对数据字典，不自动计分。
+
+## 2026-11-07 北京时间 · REAL-01C0 人工多指标契约
+
+- 从干净 f030004 核对数据字典、待决问题、实际 SPPB 请求/响应与 CSV 代码。完成合成原始观察契约，明确字段、单位、未知语义、追加更正、授权、旧流程兼容及验收清单。
+- 本轮未实现多指标功能；后端 Ruff 通过，人工评估基线 5 passed。未运行前端/浏览器，未部署或推送。下一任务 REAL-01C1；真实量表 SOP 与准入审批不变。

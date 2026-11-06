@@ -51,3 +51,5 @@ When a feature is implemented, add links to actual source files, migrations, tes
 | DEMO-V2-09 本机与临时外网登录来源 | `backend/app/api.py`、`infra/compose.yaml` | 后端 pytest 43 passed/4 opt-in skipped（含 `test_auth_scope.py` 11 passed）；Ruff 与 Compose config；临时外网登录页 200，外网/本机无效凭据 401，ready 200。未用有效密码做外网验收；非 local/test 不接受额外本机来源 |
 
 `FR-004/005` 与 `AT-02/04` 的正式临床规则/审批状态仍由 S3-01/Q-03/Q-09 约束；本表不宣称通过。
+
+REAL-01C0：[人工多指标契约](product/MANUAL_METRICS_CONTRACT.md) 对应 FR-003/FR-010、AT-01/AT-05 合成子集；2026-11-07 仅设计完成，现有人工评估基线 5 passed。多指标实现/数据库/浏览器验收由 REAL-01C1 承担，未通过前不标功能完成。
