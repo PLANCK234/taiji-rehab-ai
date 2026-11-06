@@ -1,8 +1,10 @@
 # 实施状态
 
-## 2026-11-06 REAL-01E0 后端检查点（进行中）
+## 2026-11-06 REAL-01E0 手工合成周期与访视
 
-从干净 `67d3626` 建立 `codex/real-01e0-synthetic-cycles`。新增 `0011_synthetic_cycles` 迁移、手工命名周期与追加式访视版本、对已有评估/训练观察的同对象关联检查；未生成研究访视日程或临床结论。后端 Ruff 和 pytest **47 passed / 4 skipped**，OpenAPI 快照已更新。一次性 PostgreSQL 迁移升/空库降/升、Alembic check 与旧业务 API **5 passed**；尚未验证新关联的 PostgreSQL 行为。对象页表单、浏览器验收及完整契约文档尚未完成，`REAL-01E0` 保持 IN_PROGRESS。Q-05 仍未决。
+从干净 `67d3626` 建立 `codex/real-01e0-synthetic-cycles`。新增 `0011_synthetic_cycles` 迁移、手工命名周期与追加式访视版本、对已有评估/训练观察的同对象关联检查；对象页可创建、更正并查看历史和关联评估当前值，刷新从 PostgreSQL 取回。未知、未到、拒测、未测分别显示；不自动生成访视日程、完成率或临床结论。取舍见 [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md)。REAL-01E0 合成工程范围完成；Q-05、正式方案/冻结快照和真实数据准入未完成。
+
+验证：后端 Ruff、pytest **47 passed / 4 opt-in skipped**；前端隔离 Docker lint/typecheck/**24 tests**/生产构建；一次性 PostgreSQL 迁移升/空库降/升、Alembic check 与旧业务 API **5 passed**；隔离 PostgreSQL→FastAPI→Next→Chromium 最终 **8 passed**，含评估和训练观察关联、访视更正、关联评估当前值及刷新持久。首次浏览器运行因“修订历史”测试定位歧义而 1 failed/7 passed；新增当前值断言后又因测试按下拉序号选到基线而 1 failed/7 passed。两处测试选择器修正后完整 8 passed。失败附件留在忽略目录 `exports/eng04b-bb46b75cf610` 和 `exports/eng04b-0f4e39d44f59`；测试容器、网络和任务镜像已由脚本清理。共享本机演示服务及临时外网网站尚未部署本分支。
 
 ## 2026-11-05 DEMO-V2-13 合成患者训练与不适自报
 

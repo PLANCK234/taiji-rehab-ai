@@ -20,5 +20,6 @@ Current proposals:
 - [ADR-0015](0015-separate-patient-portal.md): separate planned patient portal with self-only access, clinician-published content and synthetic-first development.
 - [ADR-0016](0016-synthetic-patient-publication-card.md): append-only synthetic publish/withdraw test card without actionable plan or video content.
 - [ADR-0017](0017-synthetic-patient-self-report.md): separate append-only synthetic patient facts from staff observations, with explicit unknown states and no autonomous triage.
+- [ADR-0018](0018-manual-synthetic-cycle-grouping.md): manual synthetic cycle/visit grouping of existing observations without an approved schedule or outcome inference.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.

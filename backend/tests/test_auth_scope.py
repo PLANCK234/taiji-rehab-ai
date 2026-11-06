@@ -13,6 +13,7 @@ from sqlalchemy.pool import StaticPool
 from app.db import Base, get_db
 from app.main import app
 from app.models import (
+    Assessment,
     AuditEvent,
     ConsentRecord,
     DemoPatientBinding,
@@ -24,6 +25,7 @@ from app.models import (
     ParticipantAssignment,
     Study,
     StudyAssignment,
+    TrainingSession,
     User,
 )
 from app.security import cookie_settings, password_hash, session_cookie_name
@@ -492,6 +494,51 @@ def test_synthetic_cycle_visit_versions_and_unknown(seeded_api) -> None:
     assert client.get(
         f"/api/v1/participants/{ids['same_study_unassigned']}/cycles"
     ).status_code == 403
+
+    with Session(engine) as db:
+        own_assessment = Assessment(
+            participant_id=ids["assigned"], visit_kind="revisit",
+            protocol_version="SYN-MANUAL-V1", created_by=ids["clinician"],
+        )
+        foreign_assessment = Assessment(
+            participant_id=ids["same_study_unassigned"], visit_kind="revisit",
+            protocol_version="SYN-MANUAL-V1", created_by=ids["clinician"],
+        )
+        own_session = TrainingSession(
+            participant_id=ids["assigned"], session_at=datetime.now(timezone.utc),
+            action_label="SYN observed", completion_status="partial",
+            source="manual_staff_entry", recorded_by=ids["clinician"],
+        )
+        foreign_session = TrainingSession(
+            participant_id=ids["same_study_unassigned"],
+            session_at=datetime.now(timezone.utc), action_label="SYN other",
+            completion_status="partial", source="manual_staff_entry",
+            recorded_by=ids["clinician"],
+        )
+        db.add_all([own_assessment, foreign_assessment, own_session, foreign_session])
+        db.commit()
+        own_assessment_id = str(own_assessment.id)
+        foreign_assessment_id = str(foreign_assessment.id)
+        own_session_id, foreign_session_id = str(own_session.id), str(foreign_session.id)
+    linked = {
+        **visit, "assessment_state": "recorded", "assessment_id": own_assessment_id,
+        "training_session_ids": [own_session_id],
+    }
+    assert client.post(visit_path, json={
+        **linked, "assessment_id": foreign_assessment_id,
+    }, headers={**headers, "Idempotency-Key": "visit-cross-assessment-0001"}).status_code == 403
+    assert client.post(visit_path, json={
+        **linked, "training_session_ids": [foreign_session_id],
+    }, headers={**headers, "Idempotency-Key": "visit-cross-session-0001"}).status_code == 403
+    allowed = client.post(visit_path, json=linked, headers={
+        **headers, "Idempotency-Key": "visit-linked-records-0001",
+    })
+    assert allowed.status_code == 201
+    assert allowed.json()["assessment_id"] == own_assessment_id
+    assert allowed.json()["training_session_ids"] == [own_session_id]
+    assert client.post(f"{visit_path}/{first.json()['visit_id']}", json={
+        **visit, "expected_revision": 1, "change_reason": "SYN-STALE",
+    }, headers={**headers, "Idempotency-Key": "visit-stale-0001"}).status_code == 409
 
 
 def test_invalid_credentials_and_rate_limit(seeded_api) -> None:

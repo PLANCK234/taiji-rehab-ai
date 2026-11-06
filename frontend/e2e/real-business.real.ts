@@ -77,6 +77,51 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await expect(table.locator("meter")).toHaveCount(1);
   await expect(table.locator("tbody tr").nth(1)).toContainText("缺失（拒测）");
   await expect(table.locator("tbody tr").nth(1).locator("meter")).toHaveCount(0);
+  const observed = await page.evaluate(async () => {
+    const participantId = location.pathname.split("/").at(-1);
+    const csrf = document.cookie.split("; ").find((part) => part.startsWith("taiji_csrf="))?.split("=")[1];
+    if (!participantId || !csrf) throw new Error("missing synthetic object or CSRF token");
+    const response = await fetch(`/api/v1/participants/${participantId}/training-sessions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", "X-CSRF-Token": decodeURIComponent(csrf),
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({
+        session_at: "2026-11-06T08:00:00+08:00", action_label: "SYN-CYCLE-OBS",
+        actual_minutes: null, completion_status: "partial", notes: null,
+      }),
+    });
+    if (response.status !== 201) throw new Error(`synthetic observation failed: ${response.status}`);
+    return (await response.json() as { id: string }).id;
+  });
+  await page.reload();
+  await page.getByLabel("周期名称").fill("合成周期一");
+  await page.getByRole("button", { name: "保存周期" }).click();
+  await expect(page.getByText("合成周期已保存。")).toBeVisible();
+  await page.getByLabel("访视名称").fill("人工复评访视");
+  await page.getByLabel("到访情况").selectOption("attended");
+  await page.getByLabel("评估情况").selectOption("recorded");
+  const revisitId = await page.getByLabel("已有人工评估").locator("option")
+    .filter({ hasText: "复评" }).getAttribute("value");
+  expect(revisitId).toBeTruthy();
+  await page.getByLabel("已有人工评估").selectOption(revisitId!);
+  await page.getByRole("checkbox", { name: /SYN-CYCLE-OBS/ }).check();
+  await page.getByRole("button", { name: "保存访视" }).click();
+  await expect(page.getByText("合成访视版本已保存。")).toBeVisible();
+  await page.reload();
+  await expect(page.getByText(/人工复评访视 · 已到访 · 已关联人工评估 · 版本 1/)).toBeVisible();
+  await expect(page.getByText(/当前人工总分：缺失（拒测）（已确认）/)).toBeVisible();
+  await expect(page.getByText("关联训练 1 次")).toBeVisible();
+  expect(observed).toMatch(/^[0-9a-f-]{36}$/);
+  await page.getByRole("button", { name: "更正访视" }).click();
+  await page.getByLabel("评估情况").selectOption("declined");
+  await page.getByLabel("更正原因（以 SYN- 开头）").fill("SYN-RECHECK");
+  await page.getByRole("button", { name: "保存访视" }).click();
+  await page.reload();
+  await expect(page.getByText(/人工复评访视 · 已到访 · 拒测 · 版本 2/)).toBeVisible();
+  await page.getByText("修订历史", { exact: true }).click();
+  await expect(page.getByText(/版本 1 · 已到访 · 已关联人工评估/)).toBeVisible();
 });
 
 test("cross-study coded participant is denied by the actual API and page", async ({ browser }) => {

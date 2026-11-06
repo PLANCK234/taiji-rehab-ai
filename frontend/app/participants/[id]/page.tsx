@@ -13,6 +13,8 @@ import { getDemoPlan } from "../../workspace/demo";
 import { getPublicationHistory } from "../../workspace/patient-publication";
 import PublicationControls from "./publication-controls";
 import { activityText, discomfortText, getPatientReports } from "../../workspace/patient-reports";
+import { getCycles } from "../../workspace/cycles";
+import CycleForms from "./cycle-forms";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +33,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory, patientReports] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory, patientReports, cycles] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
@@ -41,6 +43,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
     getDemoPlan(id, cookieHeader),
     getPublicationHistory(id, cookieHeader),
     getPatientReports(cookieHeader, id),
+    getCycles(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
   const canExport = canWrite || user.role === "clinical_approver";
@@ -105,6 +108,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
         </a>
       </section> : null}
       <AssessmentTrendSection trend={trend} />
+      <CycleForms participantId={id} initialCycles={cycles} assessments={assessments ?? []} sessions={sessions ?? []} canWrite={canWrite && consents?.state === "granted"} />
       <section aria-labelledby="training-heading">
         <h2 id="training-heading">训练观察与反馈</h2>
         <p className="note">仅记录已发生的合成训练观察，不表示处方、疗效或临床安全结论。</p>

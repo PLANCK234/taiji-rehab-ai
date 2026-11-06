@@ -1,10 +1,11 @@
 """Manual synthetic grouping of existing observations; no visit scheduler."""
 
 import uuid
+from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,13 +27,47 @@ class CycleWrite(BaseModel):
 
 class VisitWrite(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    expected_revision: int = Field(ge=0)
+    expected_revision: StrictInt = Field(ge=0)
     label: str = Field(min_length=1, max_length=120)
     attendance: Literal["unknown", "attended", "not_attended"]
     assessment_state: Literal["unknown", "recorded", "declined", "not_measured"]
     assessment_id: uuid.UUID | None = None
     training_session_ids: list[uuid.UUID] = Field(default_factory=list, max_length=100)
     change_reason: str | None = Field(default=None, min_length=5, max_length=500, pattern=r"^SYN-")
+
+
+class VisitView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    visit_id: uuid.UUID
+    revision_no: int
+    label: str
+    attendance: Literal["unknown", "attended", "not_attended"]
+    assessment_state: Literal["unknown", "recorded", "declined", "not_measured"]
+    assessment_id: uuid.UUID | None
+    training_session_ids: list[uuid.UUID]
+    change_reason: str | None
+    recorded_at: datetime
+
+    @field_validator("recorded_at", mode="before")
+    @classmethod
+    def restore_sqlite_utc(cls, value: datetime) -> datetime:
+        return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
+
+
+class CycleRecordView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    participant_id: uuid.UUID
+    label: str
+    created_by: uuid.UUID
+    created_at: datetime
+
+
+class CycleView(BaseModel):
+    id: uuid.UUID
+    label: str
+    visits: list[VisitView]
 
 
 def scoped_cycle(
@@ -53,7 +88,7 @@ def scoped_cycle(
     return cycle
 
 
-@router.get("/participants/{participant_id}/cycles")
+@router.get("/participants/{participant_id}/cycles", response_model=list[CycleView])
 def list_cycles(
     participant_id: uuid.UUID,
     auth: AuthContext = Depends(current_auth),
@@ -96,7 +131,9 @@ def list_cycles(
     return result
 
 
-@router.post("/participants/{participant_id}/cycles", status_code=201)
+@router.post(
+    "/participants/{participant_id}/cycles", response_model=CycleRecordView, status_code=201
+)
 def create_cycle(
     participant_id: uuid.UUID,
     payload: CycleWrite,
@@ -136,7 +173,7 @@ def create_cycle(
     return row
 
 
-@router.post("/cycles/{cycle_id}/visits", status_code=201)
+@router.post("/cycles/{cycle_id}/visits", response_model=VisitView, status_code=201)
 def create_visit(
     cycle_id: uuid.UUID,
     payload: VisitWrite,
@@ -148,7 +185,7 @@ def create_visit(
     return write_visit(cycle_id, None, payload, request, auth, db, key)
 
 
-@router.post("/cycles/{cycle_id}/visits/{visit_id}", status_code=201)
+@router.post("/cycles/{cycle_id}/visits/{visit_id}", response_model=VisitView, status_code=201)
 def revise_visit(
     cycle_id: uuid.UUID,
     visit_id: uuid.UUID,

@@ -496,6 +496,70 @@
         "title": "ConsentView",
         "type": "object"
       },
+      "CycleRecordView": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "label",
+          "created_by",
+          "created_at"
+        ],
+        "title": "CycleRecordView",
+        "type": "object"
+      },
+      "CycleView": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "visits": {
+            "items": {
+              "$ref": "#/components/schemas/VisitView"
+            },
+            "title": "Visits",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "visits"
+        ],
+        "title": "CycleView",
+        "type": "object"
+      },
       "CycleWrite": {
         "additionalProperties": false,
         "properties": {
@@ -2150,6 +2214,97 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "VisitView": {
+        "properties": {
+          "assessment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id"
+          },
+          "assessment_state": {
+            "enum": [
+              "unknown",
+              "recorded",
+              "declined",
+              "not_measured"
+            ],
+            "title": "Assessment State",
+            "type": "string"
+          },
+          "attendance": {
+            "enum": [
+              "unknown",
+              "attended",
+              "not_attended"
+            ],
+            "title": "Attendance",
+            "type": "string"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "training_session_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Training Session Ids",
+            "type": "array"
+          },
+          "visit_id": {
+            "format": "uuid",
+            "title": "Visit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "visit_id",
+          "revision_no",
+          "label",
+          "attendance",
+          "assessment_state",
+          "assessment_id",
+          "training_session_ids",
+          "change_reason",
+          "recorded_at"
+        ],
+        "title": "VisitView",
+        "type": "object"
+      },
       "VisitWrite": {
         "additionalProperties": false,
         "properties": {
@@ -2560,7 +2715,9 @@
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/VisitView"
+                }
               }
             },
             "description": "Successful Response"
@@ -2630,7 +2787,9 @@
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/VisitView"
+                }
               }
             },
             "description": "Successful Response"
@@ -3206,7 +3365,13 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CycleView"
+                  },
+                  "title": "Response List Cycles Api V1 Participants  Participant Id  Cycles Get",
+                  "type": "array"
+                }
               }
             },
             "description": "Successful Response"
@@ -3264,7 +3429,9 @@
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CycleRecordView"
+                }
               }
             },
             "description": "Successful Response"

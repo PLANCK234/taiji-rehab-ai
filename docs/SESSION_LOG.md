@@ -189,3 +189,9 @@
 
 - 从干净 `67d3626` 建立独立分支，新增非临床手工周期表、追加式访视修订及同对象评估/训练观察关联 API；Q-05 未决，不生成正式访视计划。
 - 后端 Ruff、pytest 47 passed/4 skipped；OpenAPI 快照更新；临时 PostgreSQL 迁移升/空库降/升、Alembic check 和旧业务 API 5 passed。对象页、新关联的 PostgreSQL 行为与浏览器端到端尚未验收，任务保持 IN_PROGRESS。继续前需复核数据状态组合与关联权限，不得将此检查点用于正式研究。
+
+## 2026-11-06 北京时间 · REAL-01E0 对象页与隔离验收
+
+- 在 `248485f` 后补周期/访视对象页、已有评估和训练观察关联选择、最新版本及修订历史；API 响应模型和跨对象链接/旧版本拒绝测试。没有改变现有评估和训练原始行或自动安排访视。
+- 后端 Ruff、pytest 47 passed/4 skipped；前端 Docker lint/typecheck/24 tests/build；一次性 PostgreSQL 迁移升/空库降/升与旧 API 5 passed；Chromium 首跑 7 passed/1 failed，原因是测试“修订历史”文字定位歧义；新增关联评估当前值断言后又因测试按序号选中基线而 7 passed/1 failed。改为按复评名称选择后最终 8 passed。失败附件在 `exports/eng04b-bb46b75cf610` 和 `exports/eng04b-0f4e39d44f59`；脚本清理临时容器、网络与任务镜像。
+- ADR-0018 记录手工归组和缺失语义；正式日程、冻结快照和真实数据准入仍需批准。现有共享站点未部署本分支，未推送或合并。下一可执行任务建议 REAL-01A 合成授权管理。
