@@ -446,6 +446,54 @@ def test_synthetic_patient_report_history_scope_and_missingness(seeded_api) -> N
         )) is not None
 
 
+def test_synthetic_cycle_visit_versions_and_unknown(seeded_api) -> None:
+    client, engine, ids = seeded_api
+    assert login(client).status_code == 200
+    path = f"/api/v1/participants/{ids['assigned']}/cycles"
+    headers = {
+        "Origin": "http://localhost:3000",
+        "X-CSRF-Token": client.cookies.get("taiji_csrf"),
+        "Idempotency-Key": "cycle-create-test-0001",
+    }
+    assert client.get(path).json() == []
+    assert client.post(path, json={"label": "合成周期 A"}, headers=headers).status_code == 403
+    with Session(engine) as db:
+        db.add(ConsentRecord(
+            participant_id=ids["assigned"], document_version="SYN-V1",
+            purpose_code="SYN-DEMO", decision="granted", photo_scope=False,
+            recorded_by=ids["clinician"],
+        ))
+        db.commit()
+    created = client.post(path, json={"label": "合成周期 A"}, headers=headers)
+    assert created.status_code == 201
+    assert client.post(path, json={"label": "合成周期 A"}, headers=headers).json() == created.json()
+    visit_path = f"/api/v1/cycles/{created.json()['id']}/visits"
+    visit = {
+        "expected_revision": 0, "label": "人工访视 A", "attendance": "unknown",
+        "assessment_state": "unknown", "assessment_id": None,
+        "training_session_ids": [], "change_reason": None,
+    }
+    first = client.post(visit_path, json=visit, headers={
+        **headers, "Idempotency-Key": "visit-create-test-0001",
+    })
+    assert first.status_code == 201
+    assert first.json()["revision_no"] == 1
+    assert first.json()["attendance"] == "unknown"
+    assert client.get(path).json()[0]["visits"][0]["assessment_state"] == "unknown"
+    revised = client.post(f"{visit_path}/{first.json()['visit_id']}", json={
+        **visit, "expected_revision": 1, "attendance": "not_attended",
+        "assessment_state": "not_measured", "change_reason": "SYN-CORRECTION",
+    }, headers={**headers, "Idempotency-Key": "visit-revise-test-0001"})
+    assert revised.status_code == 201
+    assert [row["revision_no"] for row in client.get(path).json()[0]["visits"]] == [1, 2]
+    assert client.post(visit_path, json={
+        **visit, "assessment_state": "recorded",
+    }, headers={**headers, "Idempotency-Key": "visit-invalid-test-0001"}).status_code == 422
+    assert client.get(
+        f"/api/v1/participants/{ids['same_study_unassigned']}/cycles"
+    ).status_code == 403
+
+
 def test_invalid_credentials_and_rate_limit(seeded_api) -> None:
     client, engine, _ = seeded_api
     for _ in range(5):

@@ -184,3 +184,8 @@
 - 从干净 `1e7bd24` 建立 `codex/demo-patient-report`。新增 `0010_demo_patient_report` 追加式版本表、本人与授权医护接口、患者录入/更正页面和工作人员只读修订历史。独立于医护观察；缺失保持未知，当前模拟同意与绑定限制新写入；无自动风险判定、通知或处置承诺。取舍见 ADR-0017。
 - 后端 Ruff、pytest 46 passed/4 skipped；前端隔离 Docker lint/typecheck/24 tests/build；临时 PostgreSQL→FastAPI→Next→Chromium 8 passed，含本人填写、不适、更正、刷新、医护查看与绑定撤销。本机前端 `node_modules` 缺少测试依赖，故本机 typecheck/test 不构成可用基线，隔离镜像复验通过。
 - 另一临时 PostgreSQL 升/空库降/升、Alembic check 与旧业务 API 5 passed；浏览器脚本清理临时容器、网络和任务镜像。交接脚本与 Git 差异最终检查见提交记录。未部署到现有共享 Demo 服务或临时域名，未推送；真实患者数据与正式异常处置继续阻断。
+
+## 2026-11-06 北京时间 · REAL-01E0 后端检查点
+
+- 从干净 `67d3626` 建立独立分支，新增非临床手工周期表、追加式访视修订及同对象评估/训练观察关联 API；Q-05 未决，不生成正式访视计划。
+- 后端 Ruff、pytest 47 passed/4 skipped；OpenAPI 快照更新；临时 PostgreSQL 迁移升/空库降/升、Alembic check 和旧业务 API 5 passed。对象页、新关联的 PostgreSQL 行为与浏览器端到端尚未验收，任务保持 IN_PROGRESS。继续前需复核数据状态组合与关联权限，不得将此检查点用于正式研究。

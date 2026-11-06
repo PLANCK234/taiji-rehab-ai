@@ -381,6 +381,54 @@ class TrainingSession(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class SyntheticCycle(Base):
+    """Manually named nonclinical grouping, without a protocol schedule."""
+
+    __tablename__ = "synthetic_cycles"
+    __table_args__ = (UniqueConstraint("participant_id", "label"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class SyntheticVisitRevision(Base):
+    """Append-only visit status and links to preexisting factual records."""
+
+    __tablename__ = "synthetic_visit_revisions"
+    __table_args__ = (
+        UniqueConstraint("visit_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_synthetic_visit_revision_positive"),
+        CheckConstraint(
+            "attendance IN ('unknown','attended','not_attended')",
+            name="ck_synthetic_visit_attendance",
+        ),
+        CheckConstraint(
+            "assessment_state IN ('unknown','recorded','declined','not_measured')",
+            name="ck_synthetic_visit_assessment_state",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    visit_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    cycle_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("synthetic_cycles.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    attendance: Mapped[str] = mapped_column(String(20), nullable=False)
+    assessment_state: Mapped[str] = mapped_column(String(20), nullable=False)
+    assessment_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("assessments.id"))
+    training_session_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    change_reason: Mapped[str | None] = mapped_column(String(500))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class TrainingFeedbackRevision(Base):
     __tablename__ = "training_feedback_revisions"
     __table_args__ = (

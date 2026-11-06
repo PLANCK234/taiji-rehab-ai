@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-06 REAL-01E0 后端检查点（进行中）
+
+从干净 `67d3626` 建立 `codex/real-01e0-synthetic-cycles`。新增 `0011_synthetic_cycles` 迁移、手工命名周期与追加式访视版本、对已有评估/训练观察的同对象关联检查；未生成研究访视日程或临床结论。后端 Ruff 和 pytest **47 passed / 4 skipped**，OpenAPI 快照已更新。一次性 PostgreSQL 迁移升/空库降/升、Alembic check 与旧业务 API **5 passed**；尚未验证新关联的 PostgreSQL 行为。对象页表单、浏览器验收及完整契约文档尚未完成，`REAL-01E0` 保持 IN_PROGRESS。Q-05 仍未决。
+
 ## 2026-11-05 DEMO-V2-13 合成患者训练与不适自报
 
 在 `codex/demo-patient-report` 新增 `0010_demo_patient_report` 追加式修订表，独立于医护 `training_sessions`。活跃合成绑定的患者仅能查看和写入本人记录；新写入需当前模拟同意、CSRF、幂等键和预期版本，更正另需 `SYN-` 原因。训练情况、不适情况明确区分“有/无/未知”，无记录和空时长保持未知。获研究及对象分配的工作人员可只读查看各版本；原编号化 CSV 不包含不适自由文本。没有自动风险分级、通知或处置时限。AT-PAT-03 仅完成合成工程子集；真实患者接入及 Q-04/Q-07/Q-14 继续阻断。

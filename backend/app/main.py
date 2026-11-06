@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.api import router
 from app.assessment_api import router as assessment_router
+from app.cycles_api import router as cycles_router
 from app.demo_api import router as demo_router
 from app.intake_api import router as intake_router
 from app.patient_api import router as patient_router
@@ -24,6 +25,7 @@ app = FastAPI(title="太极康复研究平台 API", version="0.1.0")
 app.include_router(router)
 app.include_router(intake_router)
 app.include_router(assessment_router)
+app.include_router(cycles_router)
 app.include_router(research_router)
 app.include_router(export_router)
 app.include_router(training_router)
