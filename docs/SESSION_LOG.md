@@ -248,3 +248,7 @@
 ## 2026-11-07 ENG-04C 浏览器 CI 门禁
 
 从干净工作区与 `9bbf410` 继续。核对仓库 CI 只有后端/前端/ML/文档任务，已有真实数据库浏览器脚本未在 CI 执行；新增独立 `synthetic-browser` job 调用原脚本，失败时上传 7 天的合成测试附件，包含隐藏状态文件，工作流只授予仓库读取权限。本地完整脚本 10 passed、临时容器和网络已清理；临时 PyYAML 解析工作流并核对附件路径通过。没有改变应用、临床、数据库或原共享服务，未推送。远端 GitHub Actions 尚未触发，下一步需获准发布分支/PR 后实测，不能将本地通过记作远端通过。
+
+## 2026-11-07 ENG-04C 远端 CI 补验
+
+用户明确授权推送当前功能分支运行测试、不合并 main。核对干净工作区、`9dc13ef` 和 `origin/main` 后，仅推送 `codex/real-01b0-synthetic-profile-revisions`；未创建 PR。首次普通推送受本机代理阻断，获得明确授权后推送成功。[GitHub Actions push #19](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42356649612) 的 backend/frontend/synthetic-browser/docs/ml 均成功；浏览器作业日志 10 passed，失败附件列表为空。脚本 `finally` 负责清理一次性容器、网络和镜像，远端日志未提供独立的清理后残留核对；此前本地已核对清理。未修改业务代码、临床规则或 main。ENG-04 父任务的完整业务 E2E 与新会话恢复仍待核对。

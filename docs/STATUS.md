@@ -2,6 +2,8 @@
 
 ## 2026-11-07 ENG-04C 隔离浏览器门禁接入 CI
 
+远端补验：经用户明确授权，仅将功能分支 `codex/real-01b0-synthetic-profile-revisions` 的 `9dc13ef` 推送到 origin；[GitHub Actions push 运行 #19](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42356649612) 中 backend、frontend、synthetic-browser、docs、ml 五项均通过。浏览器作业日志显示一次性 PostgreSQL 迁移及真实 Chromium **10 passed**，作业成功；失败附件列表为空。脚本的 `finally` 会停止任务容器并移除网络/镜像，但远端日志没有独立的清理后残留核对，因此远端资源清理仅有脚本执行路径证据。本次未创建 PR，未合并或推送 main。下段保留首次本地验收时的原始记录。
+
 核对实际 CI 后确认 `.github/workflows/ci.yaml` 只有后端、前端、ML 和文档任务，虽然 `scripts/run_eng04b_browser.py` 已能启动一次性 PostgreSQL→FastAPI→Next→Chromium 并运行 10 个真实浏览器用例，但之前没有自动执行。新增独立 `synthetic-browser` job，在 push/PR 上运行现有脚本；仅授予仓库读取权限，失败时把 `exports/eng04b-*/` 的合成附件（含隐藏状态文件）保留 7 天。脚本自身在 finally 清理任务容器、网络和镜像；原共享服务不受影响。本地完整脚本复跑 10 passed，核对无残留 `taiji-eng04b` 容器/网络；工作流 YAML 使用临时 PyYAML 解析并核对任务和附件路径。远端 GitHub Actions **尚未运行**，需分支推送或 PR 后才能验收实际 CI 结果。本轮未改业务代码、临床规则或已有数据卷，未推送。
 
 ## 2026-11-07 ENG-02C 手工周期关联训练事实展示
