@@ -258,3 +258,7 @@
 从干净的 `80dfdc3` 继续，实际代码发现脚本 `finally` 忽略 Docker 清理命令的返回码，远端作业通过不能证明本次资源消失。新增仅按本次随机名称核对容器、网络和镜像；残留或 Docker 查询失败让作业失败，浏览器原失败仍作为主错误。CI 在完整浏览器前运行 4 项清理契约测试。本地单测 4 passed、Ruff 通过、隔离 PostgreSQL→FastAPI→Next→Chromium 10 passed，随后脚本输出本次临时资源均已消失。共享服务及原卷未触碰；更新后的远端 Actions 待推送实测。ENG-04 父任务的完整业务 E2E 与新会话恢复未由本任务覆盖。
 
 远端补验：[Actions #21](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42357806932) 在 `c4079c3` 上 5 个作业均成功；浏览器作业先运行清理 4 tests，再运行 Chromium 10 tests，日志输出本次临时容器、网络和镜像均不存在，失败附件列表为空。ENG-04D 因此标记 DONE；完整业务 E2E 和新会话恢复仍属 ENG-04 父任务缺口。
+
+## 2026-11-07 ENG-04E 新会话恢复演练
+
+从干净 `1bfd730` 建一次性 `git clone --local --no-hardlinks` 独立克隆；首次非提权克隆因本机 MSYS 命名对象权限失败且未留下目录，随后在获准环境重试成功。仅凭克隆的 Git、AGENTS、HANDOFF/TASKS/STATUS、OPEN_QUESTIONS、CI 和实际测试文件，恢复出当前分支/HEAD、ENG-04D 的远端通过证据、ENG-04 父任务未完及 S3-01 的 Q-03/09 阻断。克隆中 `check_handoff.py` → 61 Task ID/链接通过；实际 10 项 `.real.ts` 用例、清理测试和 `0014` 迁移存在。临时克隆的绝对路径核对后已清理。测试范围审计确认现有合成流程分散于各用例，未贯通同一对象完整纵向链；未来临床审核/冻结目标不能当作现有 Demo 验收。新增 ENG-04F 合成纵向浏览器子任务；本轮只改交接与测试策略文档，无业务代码、数据库或临床规则变更。

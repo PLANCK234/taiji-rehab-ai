@@ -45,3 +45,9 @@
 ## 2026-10-31 ENG-03A 接续核对
 
 从 `feat/eng-03a-synthetic-offline-dataset` 的干净检查点确认 HEAD、`ml/offline_dataset.py` 与锁定依赖；重跑 `ml/` Ruff/pytest 和命令行合成快照重放，检查清单的 `target=null`、哈希与对象不交叉。下一项 `ENG-04B` 只覆盖已有合成业务的真实数据库浏览器 E2E。ENG-03 的 V0/候选评估、真实研究数据导出、时点特征和模型发布均未完成；`S3-01` 保持 Q-03/09 阻断。
+
+## 2026-11-07 ENG-04E 独立克隆恢复演练
+
+从干净的 `1bfd730` 在项目忽略的 `exports/` 内用 `git clone --local --no-hardlinks` 建立一次性独立克隆，只读取该克隆的 Git、`AGENTS.md`、`HANDOFF.md`、`TASKS.md`、`STATUS.md`、`OPEN_QUESTIONS.md`、CI 工作流和测试文件。恢复出的状态：分支 `codex/real-01b0-synthetic-profile-revisions` 跟踪同名 origin，HEAD `1bfd730`、工作区干净；ENG-04D 已完成，证据为 [Actions #21](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42357806932) 的 5 个通过作业、4 项清理测试、10 项 Chromium 用例和无残留日志；ENG-04 父任务仍 IN_PROGRESS。克隆内 `python scripts/check_handoff.py` → `handoff OK; 61 task IDs; local Markdown links OK`，实际数得 10 项 `*.real.ts` 浏览器用例、清理测试文件和 `0014_manual_observations` 迁移均存在。临时克隆的绝对路径经核对后已清理，原工作区及共享数据库未操作。
+
+现有浏览器用例分别覆盖合成建档/模拟同意/人工评估与复评、Demo 训练与反馈、手工周期、趋势、单对象 CSV、患者隔离、工作人员授权及跨研究拒绝；尚无**同一对象、同一用例**从建档一路贯通训练、复评、周期到导出的验收。`TEST_STRATEGY.md` 所列临床候选审核、三次方案训练和冻结终点是未来目标，当前 Q-03/05/07/09 等未决，不能用 Demo 分级和实时 CSV 代替。下一独立工程切片可为 `ENG-04F`：仅用现有合成能力补同一对象纵向浏览器回归；正式临床流程仍保持阻断。

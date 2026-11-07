@@ -73,3 +73,5 @@ ENG-02C（FR-008/FR-009、AT-01/AT-05 合成子集）：先核对 [ADR-0018](dec
 ENG-04C（工程门禁、AT-01/AT-05/AT-DEMO 合成回归）：[CI 工作流](../.github/workflows/ci.yaml) 调用既有 `scripts/run_eng04b_browser.py`，覆盖临时 PostgreSQL/迁移、FastAPI、Next、真实 Chromium、登录/评估/训练/患者/授权与下载路径；失败时上传限定 `exports/eng04b-*/` 的合成附件。2026-11-07 本地脚本 10 passed，临时容器/网络清理，YAML 解析通过；[远端 push Actions #19](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42356649612) 的 5 个作业全部通过，浏览器日志 10 passed，失败附件列表为空；远端未独立核对清理后残留。
 
 ENG-04D（工程门禁）：[隔离浏览器脚本](../scripts/run_eng04b_browser.py) 在 `finally` 后按当前唯一名称查询容器、网络和镜像；残留或查询失败时报错，原浏览器错误保留。[清理契约测试](../scripts/test_run_eng04b_browser.py) 覆盖正常、残留、Docker 不可用和双重失败；CI 在完整浏览器套件前执行。2026-11-07 本地 4 tests/Ruff、Chromium 10 passed、清理后核对成功；[远端 Actions #21](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42357806932) 5 作业通过，清理 4 tests、浏览器 10 passed，日志确认本次资源消失且无失败附件。无共享资源清理或真实数据处理。
+
+ENG-04E（恢复与测试范围）：[恢复演练](testing/RECOVERY_TEST.md#2026-11-07-eng-04e-独立克隆恢复演练) 在 `1bfd730` 的独立本地克隆内核对 Git、台账、阻断、10 项真实浏览器用例及迁移/清理脚本，运行 `check_handoff.py` → 61 Task ID 和本地链接通过；临时克隆已清理。[测试策略](testing/TEST_STRATEGY.md) 区分现有合成子集与未来获批准的完整临床 E2E。AT-01/05/AT-DEMO 仅有分散的合成回归，同对象纵向浏览器用例留给 ENG-04F；AT-04/09 等正式审核/冻结未验收。
