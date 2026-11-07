@@ -7,6 +7,8 @@ REAL-01D0 verification uses `backend/tests/test_training_observations.py` for fe
 REAL-01F0 adds `backend/tests/test_export_postgres.py` to the disposable PostgreSQL runner for CSV row counts, all revisions, zero/null, digest, free-text exclusion, cross-object/role 403 and audit. The real Chromium flow downloads the file through the Next rewrite and checks coded content. The test database is destroyed with the temporary container; no shared patient database or bulk export is used.
 
 REAL-01F1 extends that PostgreSQL test with all four synthetic raw metrics, correction versions, valid zero, missing and invalid states, source/side, redaction and row count/hash. `frontend/e2e/profile.real.ts` reads the CSV after raw observation correction and refresh in actual Chromium. The browser runner uses a disposable database, service containers and test images.
+
+REAL-01F2 extends the same disposable PostgreSQL export test with two synthetic cycle rows (including an empty cycle), three visit revisions, unknown/recorded/declined states, same-object assessment/training links, free-text exclusion and row count/hash. `frontend/e2e/real-business.real.ts` downloads the CSV after creating and correcting a visit; no shared Demo volume is used.
 - Unit: V0 score boundaries, rule statuses, missingness, feedback schema, symptom mutual exclusions, feature cutoff/leakage, immutable historical versions.
 - Integration: transaction/rollback, migrations, multi-role authorization, participant scoping, session idempotency, feedback revision, safety event without full form, frozen data integrity.
 - E2E: doctor logs in → creates synthetic patient → consent/screening → baseline → candidate grade → review → 3 sessions and feedback → cycle endpoint → trend → coded export.

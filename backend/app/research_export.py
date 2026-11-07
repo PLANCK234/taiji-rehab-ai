@@ -3,6 +3,7 @@
 import csv
 import hashlib
 import io
+import json
 import uuid
 from datetime import datetime, timezone
 
@@ -14,6 +15,8 @@ from app.models import (
     AssessmentRevision,
     ManualObservationRevision,
     SafetyEvent,
+    SyntheticCycle,
+    SyntheticVisitRevision,
     TrainingFeedbackRevision,
     TrainingSession,
 )
@@ -38,6 +41,11 @@ COLUMNS = [
     "missing_reason",
     "measurement_source",
     "measurement_side",
+    "cycle_id",
+    "visit_attendance",
+    "visit_assessment_state",
+    "linked_assessment_id",
+    "linked_training_session_ids",
     "completion_status",
     "actual_minutes",
     "rpe",
@@ -122,6 +130,46 @@ def build_coded_export(
         select(TrainingSession).where(TrainingSession.participant_id == participant_id)
     ).all()
     by_session = {row.id: row for row in sessions}
+    cycles = db.scalars(
+        select(SyntheticCycle).where(SyntheticCycle.participant_id == participant_id)
+    ).all()
+    by_cycle = {row.id: row for row in cycles}
+    for cycle in cycles:
+        rows.append({
+            **base,
+            "record_type": "synthetic_cycle",
+            "record_id": str(cycle.id),
+            "recorded_at_utc": _utc(cycle.created_at),
+            "recorded_by": str(cycle.created_by),
+            "cycle_id": str(cycle.id),
+        })
+    for revision in db.scalars(
+        select(SyntheticVisitRevision)
+        .where(SyntheticVisitRevision.cycle_id.in_(by_cycle))
+        .order_by(SyntheticVisitRevision.cycle_id, SyntheticVisitRevision.visit_id,
+                  SyntheticVisitRevision.revision_no)
+    ):
+        if revision.assessment_id is not None and revision.assessment_id not in by_assessment:
+            raise ValueError("visit assessment is outside export participant")
+        linked_sessions = [uuid.UUID(value) for value in revision.training_session_ids]
+        if any(session_id not in by_session for session_id in linked_sessions):
+            raise ValueError("visit training session is outside export participant")
+        rows.append({
+            **base,
+            "record_type": "synthetic_visit_revision",
+            "record_id": str(revision.id),
+            "parent_id": str(revision.visit_id),
+            "revision_no": revision.revision_no,
+            "recorded_at_utc": _utc(revision.recorded_at),
+            "recorded_by": str(revision.recorded_by),
+            "cycle_id": str(revision.cycle_id),
+            "visit_attendance": revision.attendance,
+            "visit_assessment_state": revision.assessment_state,
+            "linked_assessment_id": str(revision.assessment_id) if revision.assessment_id else "",
+            "linked_training_session_ids": json.dumps(
+                [str(session_id) for session_id in linked_sessions], separators=(",", ":")
+            ),
+        })
     for session in sessions:
         rows.append(
             {

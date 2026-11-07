@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 
 const password = process.env.E2E_PASSWORD;
@@ -122,6 +123,17 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await expect(page.getByText(/人工复评访视 · 已到访 · 拒测 · 版本 2/)).toBeVisible();
   await page.getByText("修订历史", { exact: true }).click();
   await expect(page.getByText(/版本 1 · 已到访 · 已关联人工评估/)).toBeVisible();
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: "下载编号化 CSV" }).click(),
+  ]);
+  const csv = await readFile((await download.path())!, "utf8");
+  expect(csv).toContain("synthetic_cycle");
+  expect(csv).toContain("synthetic_visit_revision");
+  expect(csv).toContain(observed);
+  expect(csv).not.toContain("合成周期一");
+  expect(csv).not.toContain("人工复评访视");
+  expect(csv).not.toContain("SYN-RECHECK");
 });
 
 test("cross-study coded participant is denied by the actual API and page", async ({ browser }) => {

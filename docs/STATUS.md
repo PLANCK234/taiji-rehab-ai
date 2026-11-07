@@ -169,3 +169,7 @@ S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A`、`ENG-02A` 和 `ENG-03A` 的限�
 ## 2026-11-07 REAL-01F1 合成原始观察导出
 
 单对象实时 Demo CSV 现增加 `manual_observation_revision` 行，保留四指标每次修订、原始十进制字符串、零、缺失/无效、单位、来源、侧别与记录者/时间；上下文说明和更正原因不导出。原有服务端对象权限、审计、行数、哈希与 `live-demo` 标记不变；页面明确新增覆盖范围。修改前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；一次性 tmpfs PostgreSQL 迁移升/check/空库降/升及 5 个集成测试通过；实际隔离 Chromium 10 passed，包含新 CSV 内容；完整依赖前端容器 build/lint/typecheck/24 tests 通过。隔离容器、网络和本次门禁镜像已清理。未更改数据库结构、临床规则或真实导出权限，未部署共享站点、未推送。
+
+## 2026-11-07 REAL-01F2 合成周期/访视历史导出
+
+单对象实时 Demo CSV 增加手工周期容器与访视每个修订版本；导出周期/访视 ID、到访与评估状态、同对象已有评估和训练观察关联 ID、操作者和记录时间。无关联评估留空，无关联训练用 `[]`；手工名称与更正原因排除。若数据库中的关联 ID 不属于该对象，导出拒绝生成，避免跨对象泄漏。无新增迁移、日程推断或冻结快照。修改前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；一次性 tmpfs PostgreSQL 升/check/空库降/升及 5 个集成测试通过；隔离 Chromium 10 passed，实际下载含周期/访视修订；前端完整依赖容器 build/lint/typecheck/24 tests 通过。临时容器、网络和本次门禁镜像已清理。未部署共享站点、未推送。

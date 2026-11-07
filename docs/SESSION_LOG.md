@@ -224,3 +224,7 @@
 ## 2026-11-07 REAL-01F1 单对象合成原始观察导出
 
 从干净工作区与 `4484472` 继续。确认旧 CSV 未含 0014 的原始观察，保留旧权限/审计/行数/哈希，只增量导出四指标的全部修订及结构化来源/侧别；自由说明和更正原因不导出。前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；临时 tmpfs PostgreSQL 迁移及 5 个集成测试通过；实际 Chromium 10 passed；前端完整依赖容器 build/lint/typecheck/24 tests 通过。临时容器、网络和门禁镜像已清理。未改临床阈值、生产配置和既有数据卷，未部署/推送。任务完成，下一建议 REAL-01F2；父 REAL-01F 与真实数据审批仍未完成。
+
+## 2026-11-07 REAL-01F2 合成周期/访视历史导出
+
+从干净工作区与 `c6a4491` 继续。核对 E0 只实现手工周期与追加式访视状态/关联，新增实时 Demo CSV 的周期行和全部访视修订；仅出结构化状态与同对象关联 ID，不出标签/更正原因，也不把记录时间当计划或到访时间。修改前后端 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；临时 tmpfs PostgreSQL 迁移及 5 个集成测试通过；实际 Chromium 10 passed；前端完整依赖容器 build/lint/typecheck/24 tests 通过。临时容器、网络及门禁镜像清理；已有共享 Demo 卷未操作，未部署/推送。下一建议 REAL-01F3；父 REAL-01F 与真实数据审批仍未完成。

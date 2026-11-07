@@ -72,6 +72,7 @@ def _assessment(client: TestClient, participant_id: uuid.UUID, kind: str, value:
         headers=_headers(client),
     )
     assert confirmed.status_code == 200, confirmed.text
+    return assessment_id
 
 
 def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
@@ -120,7 +121,7 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
         assert client.get(export_path).status_code == 401
         _login(client, clinician_email)
         _assessment(client, participant_id, "baseline", 0)
-        _assessment(client, participant_id, "revisit", None)
+        revisit_id = _assessment(client, participant_id, "revisit", None)
         raw_path = f"{path}/manual-observations"
         raw_payloads = [
             ("gait_4m_seconds", "s", "4.120", "valid", None, AT, "unknown"),
@@ -203,16 +204,90 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
             headers=_headers(client),
         )
         assert event.status_code == 201, event.text
+        cycle_path = f"{path}/cycles"
+        created_cycle = client.post(
+            cycle_path, json={"label": "SYN-PRIVATE-CYCLE-LABEL"}, headers=_headers(client)
+        )
+        assert created_cycle.status_code == 201, created_cycle.text
+        cycle_id = created_cycle.json()["id"]
+        empty_cycle = client.post(
+            cycle_path, json={"label": "SYN-PRIVATE-EMPTY-CYCLE"}, headers=_headers(client)
+        )
+        assert empty_cycle.status_code == 201, empty_cycle.text
+        visit_path = f"/api/v1/cycles/{cycle_id}/visits"
+        visit_payload = {
+            "expected_revision": 0,
+            "label": "SYN-PRIVATE-VISIT-LABEL",
+            "attendance": "unknown",
+            "assessment_state": "unknown",
+            "assessment_id": None,
+            "training_session_ids": [],
+        }
+        visit_first = client.post(visit_path, json=visit_payload, headers=_headers(client))
+        assert visit_first.status_code == 201, visit_first.text
+        visit_id = visit_first.json()["visit_id"]
+        revise_path = f"{visit_path}/{visit_id}"
+        visit_second = client.post(
+            revise_path,
+            json={
+                **visit_payload,
+                "expected_revision": 1,
+                "attendance": "attended",
+                "assessment_state": "recorded",
+                "assessment_id": revisit_id,
+                "training_session_ids": [session_id],
+                "change_reason": "SYN-PRIVATE-CHANGE",
+            },
+            headers=_headers(client),
+        )
+        assert visit_second.status_code == 201, visit_second.text
+        visit_third = client.post(
+            revise_path,
+            json={
+                **visit_payload,
+                "expected_revision": 2,
+                "attendance": "not_attended",
+                "assessment_state": "declined",
+                "change_reason": "SYN-PRIVATE-CHANGE",
+            },
+            headers=_headers(client),
+        )
+        assert visit_third.status_code == 201, visit_third.text
         exported = client.get(export_path)
         assert exported.status_code == 200, exported.text
         assert exported.headers["x-export-mode"] == "live-demo"
         assert exported.headers["cache-control"] == "no-store"
         assert exported.headers["content-disposition"].endswith('-live-demo.csv"')
         rows = list(csv.DictReader(io.StringIO(exported.text)))
-        assert len(rows) == 15
+        assert len(rows) == 20
         assert exported.headers["x-row-count"] == str(len(rows))
         assert exported.headers["x-content-sha256"] == hashlib.sha256(exported.content).hexdigest()
         assert {row["participant_code"] for row in rows} == {participant_code}
+        cycle_rows = [row for row in rows if row["record_type"] == "synthetic_cycle"]
+        visit_rows = sorted(
+            (row for row in rows if row["record_type"] == "synthetic_visit_revision"),
+            key=lambda row: int(row["revision_no"]),
+        )
+        assert {row["cycle_id"] for row in cycle_rows} == {
+            cycle_id, empty_cycle.json()["id"]
+        }
+        assert [row["revision_no"] for row in visit_rows] == ["1", "2", "3"]
+        assert all(
+            row["cycle_id"] == cycle_id and row["parent_id"] == visit_id
+            for row in visit_rows
+        )
+        assert [row["visit_attendance"] for row in visit_rows] == [
+            "unknown", "attended", "not_attended"
+        ]
+        assert [row["visit_assessment_state"] for row in visit_rows] == [
+            "unknown", "recorded", "declined"
+        ]
+        assert visit_rows[0]["linked_assessment_id"] == ""
+        assert visit_rows[0]["linked_training_session_ids"] == "[]"
+        assert visit_rows[1]["linked_assessment_id"] == revisit_id
+        assert visit_rows[1]["linked_training_session_ids"] == f'["{session_id}"]'
+        assert visit_rows[2]["linked_assessment_id"] == ""
+        assert visit_rows[2]["linked_training_session_ids"] == "[]"
         assert [row["record_type"] for row in rows].count("assessment_revision") == 6
         raw_rows = [row for row in rows if row["record_type"] == "manual_observation_revision"]
         assert len(raw_rows) == 5
@@ -280,6 +355,10 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
                 "SYN-PRIVATE-EVENT-TEXT",
                 "SYN-PRIVATE-RAW-TEXT",
                 "SYN-RAW-CORRECTION",
+                "SYN-PRIVATE-CYCLE-LABEL",
+                "SYN-PRIVATE-EMPTY-CYCLE",
+                "SYN-PRIVATE-VISIT-LABEL",
+                "SYN-PRIVATE-CHANGE",
             ]
         )
         assert client.get(export_path).content == exported.content
