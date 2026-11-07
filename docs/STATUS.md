@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-07 ENG-04G 早期失败的合成诊断附件
+
+审计发现 `scripts/run_eng04b_browser.py` 原在数据库、API 和前端启动后才创建 `exports/eng04b-*/`，早期构建/迁移/启动失败会让 CI 的 `if-no-files-found: ignore` 跳过附件。现在先以随机 ID 创建独立目录，再执行构建；失败时仅追加固定阶段名及 Python 错误类型到 `failure.txt`，不写命令、密码、页面或患者数据，并保留原异常与资源清理。脚本单测 **5 passed**、Ruff 通过；一次未提权的受控运行在 Docker buildx 权限处失败，确实生成 `exports/eng04b-ebdbf7b2d025/failure.txt`（仅 `build backend image` / `CalledProcessError`），资源清理核对成功；获准环境的完整隔离 PostgreSQL→Chromium **10 passed**，清理核对成功。更新后的远端 CI 待运行；既有 GitHub `upload-artifact` 在失败时是否实际上传仍未远端验证。无业务 API、数据库、临床规则或原共享卷修改。
+
 ## 2026-11-07 ENG-04F 同一合成对象纵向浏览器回归
 
 在现有 `frontend/e2e/real-business.real.ts` 的同一对象流程中，原先通过浏览器内直接 API 调用插入的训练观察改为实际页面表单录入，并通过反馈页面追加 RPE 7。刷新后核对训练观察序列的部分完成、未知时长、已录入反馈和 RPE；随后手工访视关联这条已发生训练、复评缺失、访视更正与历史，以及单对象 CSV 中的训练反馈修订。首轮隔离 Chromium **9 passed/1 failed**：测试错误地要求训练观察序列表显示动作名称，实际表格只呈现状态/时长/反馈/RPE；失败合成附件留在忽略目录 `exports/eng04b-0b034e6b07fb`。改为核对实际列后完整复跑 **10 passed**，脚本确认本次临时容器/网络/镜像消失。Windows 本地 `pnpm --dir frontend typecheck` 因现有 `node_modules` 缺少 `@playwright/test` 和 `@testing-library/react` 失败，未将其记作本地通过；[远端 Actions #24](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42359796120) 的完整依赖环境中后端/前端/文档/ML/浏览器五项均通过，浏览器 10 passed、资源清理成功、失败附件为空。没有改业务 API、数据库、临床规则或共享服务。

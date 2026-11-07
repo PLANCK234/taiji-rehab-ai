@@ -2,7 +2,7 @@
 
 import subprocess
 import unittest
-from unittest.mock import patch
+from unittest.mock import mock_open, patch
 
 import run_eng04b_browser as runner
 
@@ -59,10 +59,25 @@ class CleanupResourcesTest(unittest.TestCase):
             patch.object(runner, "free_port", side_effect=[12345, 12346]),
             patch.object(runner, "docker", side_effect=build_error),
             patch.object(runner, "cleanup_resources", side_effect=RuntimeError("cleanup check failed")),
+            patch.object(runner.Path, "mkdir"),
+            patch.object(runner, "record_failure_summary") as summary,
             self.assertRaises(subprocess.CalledProcessError) as raised,
         ):
             runner.main()
         self.assertIn("cleanup check failed", raised.exception.__notes__)
+        self.assertEqual([call.args[1] for call in summary.call_args_list], [
+            "build backend image", "cleanup disposable resources",
+        ])
+
+    def test_early_failure_summary_omits_command_and_password(self):
+        opened = mock_open()
+        build_error = subprocess.CalledProcessError(1, ["docker", "build", "synthetic-secret"])
+        with patch.object(runner.Path, "open", opened):
+            runner.record_failure_summary(runner.ROOT / "exports" / "eng04b-test", "build backend image", build_error)
+        saved = "".join(call.args[0] for call in opened().write.call_args_list)
+        self.assertIn("stage: build backend image", saved)
+        self.assertIn("error_type: CalledProcessError", saved)
+        self.assertNotIn("synthetic-secret", saved)
 
 
 if __name__ == "__main__":

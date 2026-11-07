@@ -268,3 +268,7 @@
 从干净 `f6a4793` 继续，复用现有 `real-business.real.ts` 的建档→模拟同意→人工基线/缺失复评→趋势→手工访视→CSV 流程；把原先浏览器内直接 API 插入的训练观察改为页面表单，随后页面录入 RPE 7 并刷新，核对同对象训练序列、访视关联与 CSV 反馈修订。隔离 PostgreSQL/Chromium 首轮 9 passed/1 failed，原因是新增断言要求训练观察表展示动作名称，而实际表仅显示状态、时长、反馈及 RPE；失败截图/trace 留在忽略的合成目录 `exports/eng04b-0b034e6b07fb`。修正为实际列断言后完整复测 10 passed，临时容器/网络/镜像已由脚本核对消失。本机 typecheck 因现有 `node_modules` 缺少测试依赖失败；远端完整依赖 CI 待验收。未改业务代码、数据库、临床阈值或共享服务。
 
 远端补验：[Actions #24](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42359796120) 在 `94b7b7b` 上整体成功，后端、前端、文档、ML 与 synthetic-browser 五项通过；浏览器日志 4 项清理测试、10 项 Chromium 用例及本次资源已消失，失败附件为空。ENG-04F 标记 DONE；父任务的正式临床流程和冻结研究导出仍未验收。
+
+## 2026-11-07 ENG-04G 早期失败诊断附件
+
+从干净 `e899641` 继续，发现已有合成浏览器失败截图/trace，但附件目录在全部服务启动后才创建；构建、迁移或启动失败时 CI 的 `if-no-files-found: ignore` 可能跳过附件。脚本改为先建本次唯一目录，失败时写入不含命令/密码/页面数据的阶段与异常类型，原始错误和清理流程保留。单测 5 passed、Ruff 通过；未提权受控运行在 buildx 权限处失败，生成 `exports/eng04b-ebdbf7b2d025/failure.txt`，内容只有固定阶段和异常类型，清理核对通过；获准 Docker 环境的完整 Chromium 10 passed、清理核对通过。更新后的远端 CI 尚未运行，失败时 GitHub 上传动作也尚未直接验收；未改共享服务、数据卷或临床规则。

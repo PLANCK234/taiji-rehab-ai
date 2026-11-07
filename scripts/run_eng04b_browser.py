@@ -14,6 +14,15 @@ FRONTEND = ROOT / "frontend"
 PASSWORD = "synthetic-eng04b-browser-only"
 
 
+def record_failure_summary(artifacts: Path, stage: str, error: BaseException) -> None:
+    """Keep a synthetic-only diagnostic even when Playwright never started."""
+    try:
+        with (artifacts / "failure.txt").open("a", encoding="utf-8") as summary:
+            summary.write(f"stage: {stage}\nerror_type: {type(error).__name__}\n")
+    except OSError:
+        error.add_note("could not save synthetic failure summary")
+
+
 def cleanup_resources(names: list[str], network: str | None, images: list[str]) -> None:
     """Remove and verify only the disposable resources created by this run."""
     errors: list[str] = []
@@ -61,16 +70,24 @@ def main() -> None:
         frontend_port = free_port()
     database_url = f"postgresql+psycopg://taiji:{PASSWORD}@db:5432/taiji_eng04b"
     artifacts = ROOT / "exports" / f"eng04b-{run_id}"
+    artifacts_created = False
+    stage = "prepare artifacts"
     try:
+        artifacts.mkdir(parents=True, exist_ok=False)
+        artifacts_created = True
+        stage = "build backend image"
         docker("build", "-t", backend_image, str(BACKEND))
         images.append(backend_image)
+        stage = "build frontend image"
         docker("build", "-t", frontend_image, str(FRONTEND))
         images.append(frontend_image)
+        stage = "build browser runner image"
         docker(
             "build", "-f", str(FRONTEND / "Dockerfile.e2e-real"),
             "-t", runner_image, str(FRONTEND),
         )
         images.append(runner_image)
+        stage = "start disposable database"
         docker("network", "create", network, capture=True)
         network_created = True
         docker(
@@ -97,9 +114,12 @@ def main() -> None:
             "-e", "SEED_DEMO_ADMIN=true",
             backend_image,
         ]
+        stage = "migrate disposable database"
         docker(*common, "uv", "run", "--no-dev", "alembic", "upgrade", "head")
+        stage = "seed synthetic data"
         docker(*common, "uv", "run", "--no-dev", "python", "-m", "app.seed_demo")
         docker(*common, "uv", "run", "--no-dev", "python", "-m", "app.seed_demo_actions")
+        stage = "start API"
         docker(
             "run", "--rm", "-d", "--name", backend, "--network", network,
             "--network-alias", "backend", "-p", f"127.0.0.1:{backend_port}:8000",
@@ -111,6 +131,7 @@ def main() -> None:
         )
         names.append(backend)
         wait_ready(f"http://127.0.0.1:{backend_port}/ready")
+        stage = "start frontend"
         docker(
             "run", "--rm", "-d", "--name", frontend, "--network", network,
             "--network-alias", "frontend", "-p", f"127.0.0.1:{frontend_port}:3000",
@@ -119,7 +140,7 @@ def main() -> None:
         )
         names.append(frontend)
         wait_ready(f"http://127.0.0.1:{frontend_port}/login")
-        artifacts.mkdir(parents=True, exist_ok=False)
+        stage = "run synthetic Chromium suite"
         docker(
             "run", "--rm", "--network", f"container:{frontend}",
             "--mount", f"type=bind,source={artifacts},target=/artifacts",
@@ -128,7 +149,9 @@ def main() -> None:
             runner_image,
         )
         print("ENG-04B browser OK: synthetic PostgreSQL → FastAPI → Next → Chromium")
-    except (OSError, RuntimeError, subprocess.CalledProcessError):
+    except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
+        if artifacts_created:
+            record_failure_summary(artifacts, stage, error)
         print(f"ENG-04B failure artifacts, if any: {artifacts}", file=sys.stderr)
         raise
     finally:
@@ -136,6 +159,8 @@ def main() -> None:
         try:
             cleanup_resources(names, network if network_created else None, images)
         except (OSError, RuntimeError) as cleanup_error:
+            if artifacts_created:
+                record_failure_summary(artifacts, "cleanup disposable resources", cleanup_error)
             if pending is not None:
                 pending.add_note(str(cleanup_error))
             else:
