@@ -2,7 +2,7 @@
 
 ## 2026-11-07 ENG-04D 隔离浏览器资源清理核对
 
-ENG-04C 的远端通过日志只证明脚本走到 `finally`，不能证明本次容器/网络/镜像实际消失。`scripts/run_eng04b_browser.py` 现在逐项查询并按本次唯一名称核对残留；资源仍在或 Docker 查询失败会令作业失败，原浏览器错误仍保留为主错误并附清理说明。`.github/workflows/ci.yaml` 增加清理契约单测。当前本地 4 项 `unittest` 与 Ruff 通过，一次性 PostgreSQL→FastAPI→Next→Chromium **10 passed**，脚本输出清理核对成功；未操作共享服务或原有数据卷。远端更新后的 Actions 尚待推送验收；`ENG-04` 父任务仍有完整业务 E2E 和新会话恢复范围待核对。
+ENG-04C 的远端通过日志只证明脚本走到 `finally`，不能证明本次容器/网络/镜像实际消失。`scripts/run_eng04b_browser.py` 现在逐项查询并按本次唯一名称核对残留；资源仍在或 Docker 查询失败会令作业失败，原浏览器错误仍保留为主错误并附清理说明。`.github/workflows/ci.yaml` 增加清理契约单测。本地 4 项 `unittest` 与 Ruff 通过，一次性 PostgreSQL→FastAPI→Next→Chromium **10 passed**，脚本输出清理核对成功；[远端 Actions #21](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42357806932) 的 5 个作业均通过，清理 4 tests、浏览器 10 passed 且输出资源已消失，失败附件为空。未操作共享服务或原有数据卷；`ENG-04` 父任务仍有完整业务 E2E 和新会话恢复范围待核对。
 
 ## 2026-11-07 ENG-04C 隔离浏览器门禁接入 CI
 

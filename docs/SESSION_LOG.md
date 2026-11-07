@@ -256,3 +256,5 @@
 ## 2026-11-07 ENG-04D 一次性资源清理核对
 
 从干净的 `80dfdc3` 继续，实际代码发现脚本 `finally` 忽略 Docker 清理命令的返回码，远端作业通过不能证明本次资源消失。新增仅按本次随机名称核对容器、网络和镜像；残留或 Docker 查询失败让作业失败，浏览器原失败仍作为主错误。CI 在完整浏览器前运行 4 项清理契约测试。本地单测 4 passed、Ruff 通过、隔离 PostgreSQL→FastAPI→Next→Chromium 10 passed，随后脚本输出本次临时资源均已消失。共享服务及原卷未触碰；更新后的远端 Actions 待推送实测。ENG-04 父任务的完整业务 E2E 与新会话恢复未由本任务覆盖。
+
+远端补验：[Actions #21](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42357806932) 在 `c4079c3` 上 5 个作业均成功；浏览器作业先运行清理 4 tests，再运行 Chromium 10 tests，日志输出本次临时容器、网络和镜像均不存在，失败附件列表为空。ENG-04D 因此标记 DONE；完整业务 E2E 和新会话恢复仍属 ENG-04 父任务缺口。
