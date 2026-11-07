@@ -2,7 +2,7 @@
 
 ## 2026-11-07 ENG-04F 同一合成对象纵向浏览器回归
 
-在现有 `frontend/e2e/real-business.real.ts` 的同一对象流程中，原先通过浏览器内直接 API 调用插入的训练观察改为实际页面表单录入，并通过反馈页面追加 RPE 7。刷新后核对训练观察序列的部分完成、未知时长、已录入反馈和 RPE；随后手工访视关联这条已发生训练、复评缺失、访视更正与历史，以及单对象 CSV 中的训练反馈修订。首轮隔离 Chromium **9 passed/1 failed**：测试错误地要求训练观察序列表显示动作名称，实际表格只呈现状态/时长/反馈/RPE；失败合成附件留在忽略目录 `exports/eng04b-0b034e6b07fb`。改为核对实际列后完整复跑 **10 passed**，脚本确认本次临时容器/网络/镜像消失。Windows 本地 `pnpm --dir frontend typecheck` 因现有 `node_modules` 缺少 `@playwright/test` 和 `@testing-library/react` 失败，未将其记作代码通过；远端 CI 的完整依赖环境待验收。没有改业务 API、数据库、临床规则或共享服务。
+在现有 `frontend/e2e/real-business.real.ts` 的同一对象流程中，原先通过浏览器内直接 API 调用插入的训练观察改为实际页面表单录入，并通过反馈页面追加 RPE 7。刷新后核对训练观察序列的部分完成、未知时长、已录入反馈和 RPE；随后手工访视关联这条已发生训练、复评缺失、访视更正与历史，以及单对象 CSV 中的训练反馈修订。首轮隔离 Chromium **9 passed/1 failed**：测试错误地要求训练观察序列表显示动作名称，实际表格只呈现状态/时长/反馈/RPE；失败合成附件留在忽略目录 `exports/eng04b-0b034e6b07fb`。改为核对实际列后完整复跑 **10 passed**，脚本确认本次临时容器/网络/镜像消失。Windows 本地 `pnpm --dir frontend typecheck` 因现有 `node_modules` 缺少 `@playwright/test` 和 `@testing-library/react` 失败，未将其记作本地通过；[远端 Actions #24](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42359796120) 的完整依赖环境中后端/前端/文档/ML/浏览器五项均通过，浏览器 10 passed、资源清理成功、失败附件为空。没有改业务 API、数据库、临床规则或共享服务。
 
 ## 2026-11-07 ENG-04E 新会话恢复演练与浏览器范围核对
 
