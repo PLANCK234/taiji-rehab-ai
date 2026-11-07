@@ -13,9 +13,11 @@ from sqlalchemy.orm import Session
 from app.models import (
     Assessment,
     AssessmentRevision,
+    ConsentRecord,
     DemoPatientReportRevision,
     ManualObservationRevision,
     SafetyEvent,
+    ScreeningRecord,
     SyntheticCycle,
     SyntheticVisitRevision,
     TrainingFeedbackRevision,
@@ -54,6 +56,13 @@ COLUMNS = [
     "patient_activity_state",
     "patient_discomfort_state",
     "report_source",
+    "intake_source",
+    "consent_decision",
+    "consent_document_version",
+    "consent_purpose_code",
+    "consent_photo_scope",
+    "screening_item_code",
+    "screening_answer",
 ]
 
 
@@ -71,6 +80,38 @@ def build_coded_export(
     """All revisions are exported; free text and identity fields are excluded."""
     base = {"study_code": study_code, "participant_code": participant_code}
     rows: list[dict[str, str | int]] = []
+    for consent in db.scalars(
+        select(ConsentRecord)
+        .where(ConsentRecord.participant_id == participant_id)
+        .order_by(ConsentRecord.recorded_at, ConsentRecord.id)
+    ):
+        rows.append({
+            **base,
+            "record_type": "synthetic_consent_record",
+            "record_id": str(consent.id),
+            "recorded_at_utc": _utc(consent.recorded_at),
+            "recorded_by": str(consent.recorded_by),
+            "intake_source": "synthetic_demo_record",
+            "consent_decision": consent.decision,
+            "consent_document_version": consent.document_version,
+            "consent_purpose_code": consent.purpose_code,
+            "consent_photo_scope": str(consent.photo_scope).lower(),
+        })
+    for screening in db.scalars(
+        select(ScreeningRecord)
+        .where(ScreeningRecord.participant_id == participant_id)
+        .order_by(ScreeningRecord.recorded_at, ScreeningRecord.id)
+    ):
+        rows.append({
+            **base,
+            "record_type": "synthetic_screening_record",
+            "record_id": str(screening.id),
+            "recorded_at_utc": _utc(screening.recorded_at),
+            "recorded_by": str(screening.recorded_by),
+            "intake_source": "synthetic_demo_record",
+            "screening_item_code": screening.item_code,
+            "screening_answer": screening.answer,
+        })
     assessments = db.scalars(
         select(Assessment).where(Assessment.participant_id == participant_id)
     ).all()

@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-07 REAL-01F4 合成模拟同意与筛查历史导出
+
+单对象实时 Demo CSV 增加 `synthetic_consent_record` 与 `synthetic_screening_record`，逐条保留模拟同意决定/编码/照片范围以及筛查条目/yes-no-unknown 原始答案、合成来源、人员和记录时间。更正原因与任何真实签署信息排除；未导出筛查“安全”或入组结论。原有服务器端角色/研究/对象权限、审计、行数/哈希、`live-demo` 标记不变。修改前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；一次性 tmpfs PostgreSQL 迁移及 5 项集成测试通过，核对同意撤回、同条目筛查更正、撤回后写入拒绝、28 行/哈希与脱敏；隔离 Chromium 10 passed，含实际 CSV 下载；前端完整依赖容器 build/lint/typecheck/24 tests 通过。隔离容器、网络和本次门禁镜像已清理；原有共享服务保持运行。未改临床规则、已有共享卷或真实数据准入；未部署共享网站、未推送。
+
 ## 2026-11-07 REAL-01C0 人工多指标契约
 
 完成 [录入契约](product/MANUAL_METRICS_CONTRACT.md)，核对当前请求/响应只支持 SPPB 总分、确认耦合 Demo 分级、趋势/CSV 读取旧评估版本。首批设计为四种人工原始观察及追加更正；FRAIL 版本和分项计分继续待批准。本轮仅设计，未新增多指标 API、数据库或页面。后端 Ruff 通过，现有人工评估测试 5 passed；前端/浏览器未运行。下一项 REAL-01C1 实现此合成子集，父任务 REAL-01C 保持 IN_PROGRESS。

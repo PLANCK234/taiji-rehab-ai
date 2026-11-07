@@ -232,3 +232,7 @@
 ## 2026-11-07 REAL-01F3 合成患者自报结构化导出
 
 从干净工作区与 `1ffe38e` 继续。确认患者自报为独立追加式事实，新增 CSV 的全部版本、状态、可空时长、发生/登记时间和患者来源；不导出不适描述/更正原因，也不把自报当医护观察。修改前后端 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；临时 tmpfs PostgreSQL 迁移与 5 个集成测试通过；隔离 Chromium 10 passed，含授权医护实际下载与脱敏；前端完整依赖容器 build/lint/typecheck/24 tests 通过。临时容器、网络和门禁镜像已清理；未改临床规则或已有共享卷，未部署/推送。下一建议 REAL-01F4，真实患者和研究数据审批仍未完成。
+
+## 2026-11-07 REAL-01F4 模拟同意与筛查历史导出
+
+从干净工作区与 `d4cbcbf` 继续。现有模拟同意/筛查仅可在业务页面读取，单对象 CSV 未覆盖；新增两类逐条记录、合成来源、人员和时间，保留 granted→withdrawn 及 unknown→yes/no 原始历史，不输出更正原因、真实签署或安全/资格结论。修改前后端 Ruff/52 passed、4 skipped；修改后同样通过；临时 tmpfs PostgreSQL 迁移与 5 项集成测试、实际 Chromium 10 项含下载、前端 build/lint/typecheck/24 tests 均通过。隔离容器、网络和门禁镜像清理，原有共享服务保持运行；未改临床规则或已有共享卷，未部署/推送。REAL-01F 父任务的研究级导出仍需 Q-07/09 批准。

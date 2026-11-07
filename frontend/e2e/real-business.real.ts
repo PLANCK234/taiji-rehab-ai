@@ -128,6 +128,10 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
     page.getByRole("link", { name: "下载编号化 CSV" }).click(),
   ]);
   const csv = await readFile((await download.path())!, "utf8");
+  expect(csv).toContain("synthetic_consent_record");
+  expect(csv).toContain("synthetic_screening_record");
+  expect(csv).toContain("SYN-ITEM-01");
+  expect(csv).toContain("unknown");
   expect(csv).toContain("synthetic_cycle");
   expect(csv).toContain("synthetic_visit_revision");
   expect(csv).toContain(observed);

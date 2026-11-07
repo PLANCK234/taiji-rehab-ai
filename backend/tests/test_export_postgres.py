@@ -169,6 +169,22 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
     with TestClient(app) as client:
         assert client.get(export_path).status_code == 401
         _login(client, clinician_email)
+        screening_path = f"{path}/screenings"
+        for item_code, answer, reason in (
+            ("SYN-SCREEN-ONE", "unknown", None),
+            ("SYN-SCREEN-ONE", "yes", "SYN-PRIVATE-SCREEN-CHANGE"),
+            ("SYN-SCREEN-TWO", "no", None),
+        ):
+            screening = client.post(
+                screening_path,
+                json={
+                    "item_code": item_code,
+                    "answer": answer,
+                    "change_reason": reason,
+                },
+                headers=_headers(client),
+            )
+            assert screening.status_code == 201, screening.text
         _assessment(client, participant_id, "baseline", 0)
         revisit_id = _assessment(client, participant_id, "revisit", None)
         raw_path = f"{path}/manual-observations"
@@ -302,16 +318,43 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
             headers=_headers(client),
         )
         assert visit_third.status_code == 201, visit_third.text
+        withdrawn = client.post(
+            f"{path}/consents",
+            json={
+                "document_version": "SYN-FORM-V1",
+                "purpose_code": "SYN-DEMO-USE",
+                "decision": "withdrawn",
+                "photo_scope": False,
+                "change_reason": "SYN-PRIVATE-CONSENT-CHANGE",
+            },
+            headers=_headers(client),
+        )
+        assert withdrawn.status_code == 201, withdrawn.text
+        assert client.post(
+            screening_path,
+            json={"item_code": "SYN-SCREEN-THREE", "answer": "unknown"},
+            headers=_headers(client),
+        ).status_code == 403
         exported = client.get(export_path)
         assert exported.status_code == 200, exported.text
         assert exported.headers["x-export-mode"] == "live-demo"
         assert exported.headers["cache-control"] == "no-store"
         assert exported.headers["content-disposition"].endswith('-live-demo.csv"')
         rows = list(csv.DictReader(io.StringIO(exported.text)))
-        assert len(rows) == 23
+        assert len(rows) == 28
         assert exported.headers["x-row-count"] == str(len(rows))
         assert exported.headers["x-content-sha256"] == hashlib.sha256(exported.content).hexdigest()
         assert {row["participant_code"] for row in rows} == {participant_code}
+        consent_rows = [row for row in rows if row["record_type"] == "synthetic_consent_record"]
+        screen_rows = [row for row in rows if row["record_type"] == "synthetic_screening_record"]
+        assert [row["consent_decision"] for row in consent_rows] == ["granted", "withdrawn"]
+        assert all(row["consent_photo_scope"] == "false" for row in consent_rows)
+        intake_rows = consent_rows + screen_rows
+        assert all(row["intake_source"] == "synthetic_demo_record" for row in intake_rows)
+        assert {row["screening_answer"] for row in screen_rows} == {"unknown", "yes", "no"}
+        assert [row["screening_answer"] for row in screen_rows
+                if row["screening_item_code"] == "SYN-SCREEN-ONE"] == ["unknown", "yes"]
+        assert all(row["recorded_at_utc"] and row["recorded_by"] for row in intake_rows)
         patient_rows = sorted(
             (row for row in rows if row["record_type"] == "patient_report_revision"
              and row["parent_id"] == report_id),
@@ -432,6 +475,8 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
                 "SYN-PRIVATE-CHANGE",
                 "SYN-PRIVATE-PATIENT-NOTE",
                 "SYN-PRIVATE-PATIENT-CHANGE",
+                "SYN-PRIVATE-CONSENT-CHANGE",
+                "SYN-PRIVATE-SCREEN-CHANGE",
             ]
         )
         assert client.get(export_path).content == exported.content

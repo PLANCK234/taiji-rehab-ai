@@ -29,6 +29,7 @@
 
 - Coded creation accepts only `SYN-` codes, checks role and study assignment, then atomically assigns the creator. List/detail and all consent/screening routes require server-side study **and** object assignment. Writes additionally require CSRF and an idempotency key; audit records permitted and denied operations without form contents.
 - Consent and screening entries append revisions with staff actor and UTC time. Subsequent consent entries and same-item screening corrections require a synthetic reason code. Without the latest simulated `granted` consent, screening writes return 403. Absent screening returns `not_assessed`; any entries return `needs_review`, never a safety or enrollment clearance.
+- REAL-01F4 adds these synthetic intake entries to the existing audited, participant-scoped live Demo CSV. It exports codes, explicit states, source, actor UUID and record time; correction reasons and signatures stay out. Consent withdrawal preserves earlier history but continues to block new screening writes. Patient and out-of-scope staff remain unable to download; no real-data export is authorized.
 - No name/contact fields, verified signature, clinical screening questions, identity mapping, file storage or image upload endpoint is implemented. A recorded photo scope does not enable upload. Q-01/Q-07/Q-10 remain unresolved; no real data collection is authorized.
 
 ## S2-01 synthetic assessment boundary
