@@ -75,3 +75,5 @@ ENG-04C（工程门禁、AT-01/AT-05/AT-DEMO 合成回归）：[CI 工作流](..
 ENG-04D（工程门禁）：[隔离浏览器脚本](../scripts/run_eng04b_browser.py) 在 `finally` 后按当前唯一名称查询容器、网络和镜像；残留或查询失败时报错，原浏览器错误保留。[清理契约测试](../scripts/test_run_eng04b_browser.py) 覆盖正常、残留、Docker 不可用和双重失败；CI 在完整浏览器套件前执行。2026-11-07 本地 4 tests/Ruff、Chromium 10 passed、清理后核对成功；[远端 Actions #21](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42357806932) 5 作业通过，清理 4 tests、浏览器 10 passed，日志确认本次资源消失且无失败附件。无共享资源清理或真实数据处理。
 
 ENG-04E（恢复与测试范围）：[恢复演练](testing/RECOVERY_TEST.md#2026-11-07-eng-04e-独立克隆恢复演练) 在 `1bfd730` 的独立本地克隆内核对 Git、台账、阻断、10 项真实浏览器用例及迁移/清理脚本，运行 `check_handoff.py` → 61 Task ID 和本地链接通过；临时克隆已清理。[测试策略](testing/TEST_STRATEGY.md) 区分现有合成子集与未来获批准的完整临床 E2E。AT-01/05/AT-DEMO 仅有分散的合成回归，同对象纵向浏览器用例留给 ENG-04F；AT-04/09 等正式审核/冻结未验收。
+
+ENG-04F（AT-01/AT-05 合成纵向子集）：[实际浏览器用例](../frontend/e2e/real-business.real.ts) 对同一编码对象依次验证模拟同意、人工基线/缺失复评及趋势、页面训练观察与反馈 RPE、手工周期访视关联/更正、刷新持久和编号化实时 CSV。首次本地 9 passed/1 failed 是测试断言要求未展示的动作名称；修正为真实表格列后隔离 Chromium 10 passed、清理核对成功。远端更新后 CI 待验收。无正式临床审核、规定训练次数、冻结快照或真实数据。

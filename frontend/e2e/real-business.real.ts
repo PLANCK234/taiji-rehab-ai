@@ -17,7 +17,7 @@ test("unauthenticated synthetic workspace redirects to login", async ({ page }) 
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test("synthetic enrollment through confirmed baseline and missing revisit persists", async ({ page }) => {
+test("synthetic longitudinal enrollment, revisit, observed training and export persist", async ({ page }) => {
   await login(page, "demo-clinician-a@example.org");
   await expect(page.getByRole("region", { name: "已分配研究" })
     .locator("li").filter({ hasText: "SYN-STUDY-A" })).toBeVisible();
@@ -78,25 +78,28 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await expect(table.locator("meter")).toHaveCount(1);
   await expect(table.locator("tbody tr").nth(1)).toContainText("缺失（拒测）");
   await expect(table.locator("tbody tr").nth(1).locator("meter")).toHaveCount(0);
-  const observed = await page.evaluate(async () => {
-    const participantId = location.pathname.split("/").at(-1);
-    const csrf = document.cookie.split("; ").find((part) => part.startsWith("taiji_csrf="))?.split("=")[1];
-    if (!participantId || !csrf) throw new Error("missing synthetic object or CSRF token");
-    const response = await fetch(`/api/v1/participants/${participantId}/training-sessions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json", "X-CSRF-Token": decodeURIComponent(csrf),
-        "Idempotency-Key": crypto.randomUUID(),
-      },
-      body: JSON.stringify({
-        session_at: "2026-11-06T08:00:00+08:00", action_label: "SYN-CYCLE-OBS",
-        actual_minutes: null, completion_status: "partial", notes: null,
-      }),
-    });
-    if (response.status !== 201) throw new Error(`synthetic observation failed: ${response.status}`);
-    return (await response.json() as { id: string }).id;
-  });
+  const participantPath = new URL(page.url()).pathname;
+  const training = page.locator('form:has(input[name="session_at"])');
+  await training.locator('input[name="session_at"]').fill("2026-11-06T08:00");
+  await training.locator('input[name="action_label"]').fill("SYN-CYCLE-OBS");
+  await training.locator('select[name="completion_status"]').selectOption("partial");
+  await training.getByRole("button", { name: "保存训练观察" }).click();
+  await expect(page).toHaveURL(/\/training\/[0-9a-f-]+$/);
+  const observed = new URL(page.url()).pathname.split("/").at(-1)!;
+  const feedback = page.locator('form:has(select[name="state"])');
+  await feedback.locator('select[name="state"]').selectOption("recorded");
+  await feedback.locator('input[name="rpe"]').fill("7");
+  await feedback.getByRole("button", { name: "保存反馈版本" }).click();
+  await expect(page.getByText("第 1 版", { exact: false })).toBeVisible();
   await page.reload();
+  await expect(page.getByText("RPE 7", { exact: false })).toBeVisible();
+  await page.goto(participantPath);
+  const timeline = page.getByRole("table", { name: "编号对象的已记录训练观察" });
+  await expect(timeline.locator("tbody tr")).toHaveCount(1);
+  await expect(timeline.locator("tbody tr td").nth(1)).toHaveText("记录为部分完成");
+  await expect(timeline.locator("tbody tr td").nth(2)).toHaveText("未记录");
+  await expect(timeline.locator("tbody tr td").nth(3)).toHaveText("已记录");
+  await expect(timeline.locator("tbody tr td").nth(4)).toHaveText("7");
   await page.getByLabel("周期名称").fill("合成周期一");
   await page.getByRole("button", { name: "保存周期" }).click();
   await expect(page.getByText("合成周期已保存。")).toBeVisible();
@@ -117,8 +120,8 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   const linkedTraining = page.getByRole("list", { name: "人工复评访视 的关联训练观察" });
   await expect(linkedTraining).toContainText("记录为部分完成");
   await expect(linkedTraining).toContainText("实际时长未知");
-  await expect(linkedTraining).toContainText("反馈未填写");
-  await expect(linkedTraining).toContainText("RPE 未记录");
+  await expect(linkedTraining).toContainText("反馈已记录");
+  await expect(linkedTraining).toContainText("RPE 7");
   expect(observed).toMatch(/^[0-9a-f-]{36}$/);
   await page.getByRole("button", { name: "更正访视" }).click();
   await page.getByLabel("评估情况").selectOption("declined");
@@ -140,6 +143,7 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   expect(csv).toContain("unknown");
   expect(csv).toContain("synthetic_cycle");
   expect(csv).toContain("synthetic_visit_revision");
+  expect(csv).toContain("training_feedback_revision");
   expect(csv).toContain(observed);
   expect(csv).not.toContain("合成周期一");
   expect(csv).not.toContain("人工复评访视");
