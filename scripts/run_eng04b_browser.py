@@ -14,6 +14,36 @@ FRONTEND = ROOT / "frontend"
 PASSWORD = "synthetic-eng04b-browser-only"
 
 
+def cleanup_resources(names: list[str], network: str | None, images: list[str]) -> None:
+    """Remove and verify only the disposable resources created by this run."""
+    errors: list[str] = []
+    for name in reversed(names):
+        subprocess.run(["docker", "stop", name], check=False, capture_output=True)
+    if network is not None:
+        subprocess.run(["docker", "network", "rm", network], check=False, capture_output=True)
+    for image in reversed(images):
+        subprocess.run(["docker", "image", "rm", image], check=False, capture_output=True)
+
+    for kind, command, expected in (
+        ("container", ["docker", "ps", "-a", "--format", "{{.Names}}"], names),
+        ("network", ["docker", "network", "ls", "--format", "{{.Name}}"], [network] if network else []),
+        ("image", ["docker", "image", "ls", "--format", "{{.Repository}}:{{.Tag}}"], images),
+    ):
+        if not expected:
+            continue
+        result = subprocess.run(command, check=False, capture_output=True, text=True)
+        if result.returncode:
+            errors.append(f"{kind} verification failed: docker unavailable")
+            continue
+        remaining = set(result.stdout.splitlines()).intersection(expected)
+        if remaining:
+            errors.append(f"{kind} still exists: {', '.join(sorted(remaining))}")
+
+    if errors:
+        raise RuntimeError("ENG-04B cleanup failed: " + "; ".join(errors))
+    print("ENG-04B cleanup OK: disposable containers, network and images absent")
+
+
 def main() -> None:
     run_id = uuid.uuid4().hex[:12]
     network = f"taiji-eng04b-{run_id}"
@@ -102,12 +132,14 @@ def main() -> None:
         print(f"ENG-04B failure artifacts, if any: {artifacts}", file=sys.stderr)
         raise
     finally:
-        for name in reversed(names):
-            subprocess.run(["docker", "stop", name], check=False, capture_output=True)
-        if network_created:
-            subprocess.run(["docker", "network", "rm", network], check=False, capture_output=True)
-        for image in reversed(images):
-            subprocess.run(["docker", "image", "rm", image], check=False, capture_output=True)
+        pending = sys.exc_info()[1]
+        try:
+            cleanup_resources(names, network if network_created else None, images)
+        except (OSError, RuntimeError) as cleanup_error:
+            if pending is not None:
+                pending.add_note(str(cleanup_error))
+            else:
+                raise
 
 
 if __name__ == "__main__":

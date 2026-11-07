@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-07 ENG-04D 隔离浏览器资源清理核对
+
+ENG-04C 的远端通过日志只证明脚本走到 `finally`，不能证明本次容器/网络/镜像实际消失。`scripts/run_eng04b_browser.py` 现在逐项查询并按本次唯一名称核对残留；资源仍在或 Docker 查询失败会令作业失败，原浏览器错误仍保留为主错误并附清理说明。`.github/workflows/ci.yaml` 增加清理契约单测。当前本地 4 项 `unittest` 与 Ruff 通过，一次性 PostgreSQL→FastAPI→Next→Chromium **10 passed**，脚本输出清理核对成功；未操作共享服务或原有数据卷。远端更新后的 Actions 尚待推送验收；`ENG-04` 父任务仍有完整业务 E2E 和新会话恢复范围待核对。
+
 ## 2026-11-07 ENG-04C 隔离浏览器门禁接入 CI
 
 远端补验：经用户明确授权，仅将功能分支 `codex/real-01b0-synthetic-profile-revisions` 的 `9dc13ef` 推送到 origin；[GitHub Actions push 运行 #19](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42356649612) 中 backend、frontend、synthetic-browser、docs、ml 五项均通过。浏览器作业日志显示一次性 PostgreSQL 迁移及真实 Chromium **10 passed**，作业成功；失败附件列表为空。脚本的 `finally` 会停止任务容器并移除网络/镜像，但远端日志没有独立的清理后残留核对，因此远端资源清理仅有脚本执行路径证据。本次未创建 PR，未合并或推送 main。下段保留首次本地验收时的原始记录。

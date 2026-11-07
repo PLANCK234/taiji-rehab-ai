@@ -67,6 +67,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify isolated browser cleanup contract
+        run: python -m unittest discover -s scripts -p 'test_run_eng04b_browser.py'
       - name: Run isolated synthetic PostgreSQL browser flow
         run: python scripts/run_eng04b_browser.py
       - name: Upload synthetic browser failure evidence
