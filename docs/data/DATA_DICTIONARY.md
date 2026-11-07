@@ -40,6 +40,7 @@
 | training_sessions.session_at / action_label | UTC datetime / text | manual staff observation, D0 | actual activity only, not a planned dose or approved action code |
 | training_sessions.actual_minutes | integer minutes or null | manual staff observation, D0 | null unknown; 0 observed zero; no automatic completion inference |
 | training_sessions.completion_status | completed/partial/interrupted/not_started | manual staff observation, D0 | descriptive, no clinical clearance |
+| training_timeline.entries | observed sessions ordered by session_at/ID | authorized read-only projection, ENG-02B | latest feedback revision only; null feedback_state means never recorded, missing feedback has null RPE; null actual_minutes is unknown and 0 remains observed zero; no completion rate denominator |
 | training_feedback_revisions.state | recorded/missing; no row = unfilled | manual staff entry, D0 | missing requires explicit reason and cannot contain observed values |
 | training_feedback_revisions.missing_reason | declined/interrupted/technical_failure/unknown or null | manual staff entry, D0 | null only for recorded state; not interpreted as no symptoms |
 | training_feedback_revisions.rpe | integer 6–20 or null | staff-recorded report, D0 | null unknown; no effectiveness/safety label |

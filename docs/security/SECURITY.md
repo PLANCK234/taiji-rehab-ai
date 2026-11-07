@@ -51,6 +51,8 @@
 - The read-only assessment trend route reuses server-side role, study assignment and explicit participant assignment checks. Analyst/admin roles cannot directly read a coded participant trend; denied reads are audited through the participant guard, and allowed reads add an `assessment_trend` audit event.
 - The response contains only the authorized coded participant ID and existing assessment revisions, with no identity mapping or export. Latest confirmed values and pending drafts remain distinct; missing, invalid and unconfirmed records do not become zero scores or a clinical conclusion. Responses retain `Cache-Control: no-store`.
 
+ENG-02B training timeline reuses the same server-side staff role, study and explicit participant assignment guard. Allowed reads add a `training_timeline` audit event; denied attempts use the participant guard audit. Only structured observed state/minutes and latest feedback state/RPE leave this route; free-text observations, older feedback contents, patient reports and a fabricated completion rate are excluded. A null value remains unknown, not zero or safe.
+
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.
 - PI/clinical approver: approves clinical adaptation rules and significant changes.

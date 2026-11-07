@@ -19,6 +19,8 @@ from app.models import (
     ParticipantAssignment,
     Study,
     StudyAssignment,
+    TrainingFeedbackRevision,
+    TrainingSession,
     User,
 )
 from app.security import password_hash
@@ -160,6 +162,66 @@ def _login(client: TestClient, name: str) -> None:
         headers={"Origin": "http://localhost:3000"},
     )
     assert response.status_code == 200
+
+
+def test_training_timeline_uses_latest_feedback_and_enforces_scope(trend_api) -> None:
+    client, engine, ids = trend_api
+    path = f"/api/v1/participants/{ids['assigned']}/training-timeline"
+    assert client.get(path).status_code == 401
+    with Session(engine) as db:
+        session_ids = [uuid.uuid4() for _ in range(3)]
+        db.add_all([
+            TrainingSession(
+                id=session_id, participant_id=ids["assigned"],
+                session_at=datetime(2026, 10, day, tzinfo=timezone.utc),
+                action_label=f"SYN-ACTION-{day}", actual_minutes=minutes,
+                completion_status=status, notes="private observation",
+                source="manual_staff_entry", recorded_by=ids["actor"],
+            )
+            for session_id, day, minutes, status in zip(
+                session_ids, (3, 1, 2), (None, 0, 12),
+                ("interrupted", "completed", "partial"), strict=True,
+            )
+        ])
+        db.flush()
+        db.add_all([
+            TrainingFeedbackRevision(
+                session_id=session_ids[1], revision_no=1, state="recorded",
+                rpe=12, recorded_by=ids["actor"],
+            ),
+            TrainingFeedbackRevision(
+                session_id=session_ids[1], revision_no=2, state="missing",
+                missing_reason="declined", recorded_by=ids["actor"],
+            ),
+            TrainingFeedbackRevision(
+                session_id=session_ids[2], revision_no=1, state="recorded",
+                rpe=6, recorded_by=ids["actor"],
+            ),
+        ])
+        db.commit()
+    _login(client, "clinician")
+    response = client.get(path)
+    assert response.status_code == 200, response.text
+    assert response.headers["cache-control"] == "no-store"
+    entries = response.json()["entries"]
+    assert [row["session_id"] for row in entries] == [
+        str(session_ids[1]), str(session_ids[2]), str(session_ids[0]),
+    ]
+    assert [(row["actual_minutes"], row["feedback_state"], row["rpe"]) for row in entries] == [
+        (0, "missing", None), (12, "recorded", 6), (None, None, None),
+    ]
+    assert all("notes" not in row and "rate" not in row for row in entries)
+    for key in ("hidden", "cross"):
+        assert client.get(f"/api/v1/participants/{ids[key]}/training-timeline").status_code == 403
+    _login(client, "peer")
+    assert client.get(path).status_code == 403
+    _login(client, "analyst")
+    assert client.get(path).status_code == 403
+    with Session(engine) as db:
+        assert db.scalar(select(AuditEvent).where(
+            AuditEvent.resource_type == "training_timeline",
+            AuditEvent.actor_id == ids["actor"], AuditEvent.outcome == "allowed",
+        ))
 
 
 def test_trend_uses_last_confirmed_and_preserves_missing_and_drafts(trend_api) -> None:

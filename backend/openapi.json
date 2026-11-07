@@ -2687,6 +2687,99 @@
         "title": "TrainingSessionView",
         "type": "object"
       },
+      "TrainingTimeline": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TrainingTimelineEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "entries"
+        ],
+        "title": "TrainingTimeline",
+        "type": "object"
+      },
+      "TrainingTimelineEntry": {
+        "properties": {
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "completion_status": {
+            "enum": [
+              "completed",
+              "partial",
+              "interrupted",
+              "not_started"
+            ],
+            "title": "Completion Status",
+            "type": "string"
+          },
+          "feedback_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "recorded",
+                  "missing"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback State"
+          },
+          "rpe": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpe"
+          },
+          "session_at": {
+            "format": "date-time",
+            "title": "Session At",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "session_at",
+          "completion_status",
+          "actual_minutes",
+          "feedback_state",
+          "rpe"
+        ],
+        "title": "TrainingTimelineEntry",
+        "type": "object"
+      },
       "UserView": {
         "properties": {
           "email": {
@@ -5211,6 +5304,46 @@
           }
         },
         "summary": "Create Training Session"
+      }
+    },
+    "/api/v1/participants/{participant_id}/training-timeline": {
+      "get": {
+        "operationId": "get_training_timeline_api_v1_participants__participant_id__training_timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingTimeline"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Training Timeline"
       }
     },
     "/api/v1/patient/me": {

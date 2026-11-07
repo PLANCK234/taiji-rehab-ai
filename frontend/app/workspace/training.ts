@@ -13,6 +13,18 @@ export type TrainingSession = {
   recorded_at: string;
 };
 
+export type TrainingTimeline = {
+  participant_id: string;
+  entries: Array<{
+    session_id: string;
+    session_at: string;
+    completion_status: TrainingSession["completion_status"];
+    actual_minutes: number | null;
+    feedback_state: "recorded" | "missing" | null;
+    rpe: number | null;
+  }>;
+};
+
 export type TrainingFeedback = {
   id: string;
   session_id: string;
@@ -60,6 +72,12 @@ async function read<T>(
 export function getTrainingSessions(id: string, cookies: string, fetcher?: typeof fetch) {
   return read<TrainingSession[]>(
     `/participants/${encodeURIComponent(id)}/training-sessions`, cookies, fetcher,
+  );
+}
+
+export function getTrainingTimeline(id: string, cookies: string, fetcher?: typeof fetch) {
+  return read<TrainingTimeline>(
+    `/participants/${encodeURIComponent(id)}/training-timeline`, cookies, fetcher,
   );
 }
 

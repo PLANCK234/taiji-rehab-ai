@@ -34,6 +34,11 @@ test("synthetic training observation, early event and revised feedback survive r
 
   // The event intake is usable before any feedback has been entered.
   await page.goto(participantPath);
+  const timeline = page.getByRole("table", { name: "编号对象的已记录训练观察" });
+  await expect(timeline.locator("tbody tr")).toHaveCount(1);
+  await expect(timeline.locator("tbody tr")).toContainText("0 分钟");
+  await expect(timeline.locator("tbody tr td").nth(3)).toHaveText("未填写");
+  await expect(timeline.locator("tbody tr td").nth(4)).toHaveText("未记录");
   const eventForm = page.locator('form:has(input[name="event_at"])');
   await eventForm.locator('input[name="event_at"]').fill("2026-10-30T09:35");
   await eventForm.locator('select[name="session_id"]').selectOption({ index: 1 });
@@ -62,6 +67,8 @@ test("synthetic training observation, early event and revised feedback survive r
   await expect(page.getByText("第 2 版", { exact: false })).toBeVisible();
 
   await page.goto(participantPath);
+  await expect(timeline.locator("tbody tr td").nth(3)).toHaveText("已记录");
+  await expect(timeline.locator("tbody tr td").nth(4)).toHaveText("6");
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("link", { name: "下载编号化 CSV" }).click(),
@@ -89,6 +96,10 @@ test("synthetic training observation, early event and revised feedback survive r
     `/api/v1/participants/${participantPath.split("/").at(-1)}/research-export.csv`,
   );
   expect(deniedExport.status()).toBe(403);
+  const deniedTimeline = await other.request.get(
+    `/api/v1/participants/${participantPath.split("/").at(-1)}/training-timeline`,
+  );
+  expect(deniedTimeline.status()).toBe(403);
   await other.goto(sessionPath);
   await expect(other).toHaveURL(/\/training\/[0-9a-f-]+$/);
   await expect(other.getByText("合成测试补录")).toHaveCount(0);

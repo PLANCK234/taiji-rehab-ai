@@ -7,8 +7,9 @@ import { getAssessmentTrend, getParticipantAssessments, measurementText } from "
 import IntakeForms from "./intake-forms";
 import CreateAssessmentForm from "./create-assessment-form";
 import AssessmentTrendSection from "./assessment-trend";
+import TrainingTimelineSection from "./training-timeline";
 import TrainingForms from "./training-forms";
-import { getSafetyEvents, getTrainingSessions } from "../../workspace/training";
+import { getSafetyEvents, getTrainingSessions, getTrainingTimeline } from "../../workspace/training";
 import { getDemoPlan } from "../../workspace/demo";
 import { getPublicationHistory } from "../../workspace/patient-publication";
 import PublicationControls from "./publication-controls";
@@ -35,7 +36,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory, patientReports, cycles, profileHistory] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory, patientReports, cycles, profileHistory, trainingTimeline] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
@@ -47,6 +48,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
     getPatientReports(cookieHeader, id),
     getCycles(id, cookieHeader),
     getDemoProfileHistory(id, cookieHeader),
+    getTrainingTimeline(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
   const canExport = canWrite || user.role === "clinical_approver";
@@ -113,6 +115,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
         </a>
       </section> : null}
       <AssessmentTrendSection trend={trend} />
+      <TrainingTimelineSection timeline={trainingTimeline} />
       <CycleForms participantId={id} initialCycles={cycles} assessments={assessments ?? []} sessions={sessions ?? []} canWrite={canWrite && consents?.state === "granted"} />
       <section aria-labelledby="training-heading">
         <h2 id="training-heading">训练观察与反馈</h2>

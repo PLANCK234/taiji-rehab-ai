@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-07 ENG-02B 合成训练观察只读序列
+
+对象页新增 PostgreSQL 支撑的训练观察序列表，按发生时间和 ID 排序，显示已录入会话的完成状态、实际分钟、最新反馈状态与 RPE。无反馈、最新反馈缺失和未录入时长均保留未知；确实记录的 0 分钟显示为 0。接口沿用工作人员角色、研究和对象权限，读取留审计、响应禁缓存；不暴露自由文本，不计算没有计划分母的完成率或临床/疗效结论。见 [ADR-0021](decisions/0021-observed-training-timeline-no-rate.md)。修改前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/53 passed、4 skipped，API 契约快照同步；一次性 tmpfs PostgreSQL 迁移与 5 项集成测试通过；隔离 Chromium 10 passed，包含 0 分钟、无反馈、RPE 更正/刷新和跨研究 403；前端完整依赖容器 build/lint/typecheck/24 tests 通过。隔离容器、网络和本次门禁镜像已清理，原有共享服务保持运行。未改数据库迁移、共享数据卷、临床规则或真实数据准入；未部署共享网站、未推送。
+
 ## 2026-11-07 REAL-01F4 合成模拟同意与筛查历史导出
 
 单对象实时 Demo CSV 增加 `synthetic_consent_record` 与 `synthetic_screening_record`，逐条保留模拟同意决定/编码/照片范围以及筛查条目/yes-no-unknown 原始答案、合成来源、人员和记录时间。更正原因与任何真实签署信息排除；未导出筛查“安全”或入组结论。原有服务器端角色/研究/对象权限、审计、行数/哈希、`live-demo` 标记不变。修改前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；一次性 tmpfs PostgreSQL 迁移及 5 项集成测试通过，核对同意撤回、同条目筛查更正、撤回后写入拒绝、28 行/哈希与脱敏；隔离 Chromium 10 passed，含实际 CSV 下载；前端完整依赖容器 build/lint/typecheck/24 tests 通过。隔离容器、网络和本次门禁镜像已清理；原有共享服务保持运行。未改临床规则、已有共享卷或真实数据准入；未部署共享网站、未推送。
