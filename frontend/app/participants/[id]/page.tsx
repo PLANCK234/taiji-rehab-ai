@@ -116,7 +116,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       </section> : null}
       <AssessmentTrendSection trend={trend} />
       <TrainingTimelineSection timeline={trainingTimeline} />
-      <CycleForms participantId={id} initialCycles={cycles} assessments={assessments ?? []} sessions={sessions ?? []} canWrite={canWrite && consents?.state === "granted"} />
+      <CycleForms participantId={id} initialCycles={cycles} assessments={assessments ?? []} sessions={sessions ?? []} trainingTimeline={trainingTimeline} canWrite={canWrite && consents?.state === "granted"} />
       <section aria-labelledby="training-heading">
         <h2 id="training-heading">训练观察与反馈</h2>
         <p className="note">仅记录已发生的合成训练观察，不表示处方、疗效或临床安全结论。</p>

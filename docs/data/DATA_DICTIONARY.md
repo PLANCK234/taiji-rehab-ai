@@ -69,6 +69,8 @@ REAL-01F1 扩展：`record_type=manual_observation_revision` 表示一条合成�
 
 REAL-01F2 扩展：`record_type=synthetic_cycle` 为手工周期容器，`record_id=cycle_id`，`recorded_at_utc/recorded_by` 为创建时间和人员；`synthetic_visit_revision` 为访视的每个修订，`parent_id` 为访视 ID、`cycle_id` 为所属周期。新增 `visit_attendance`（unknown/attended/not_attended）、`visit_assessment_state`（unknown/recorded/declined/not_measured）、`linked_assessment_id` 和 `linked_training_session_ids`（JSON UUID 数组）。无关联评估时单元格为空；无关联训练时为 `[]`。周期/访视手工名称、更正原因不导出；没有正式访视时间，`event_at_utc` 留空。上述 ID 由服务端确认属于同一对象；这是实时分组历史，不是研究方案日程或冻结快照。
 
+ENG-02C 页面投影：仅对每个访视的最新修订，从 `training_session_ids` 取同对象的当前 `training_timeline.entries`；逐条显示已记录完成状态、实际分钟和最新反馈/RPE。缺少条目或读取失败标为“关联训练详情暂不可用”，不当成零、未发生或已完成。旧访视修订仍保留，但不回填当前训练状态作为当时快照。
+
 REAL-01F3 扩展：`record_type=patient_report_revision` 表示合成患者自报事实的每个版本，`parent_id` 为报告 ID，`event_at_utc` 为本人填报的发生时间，`recorded_at_utc/recorded_by` 为系统登记时间和合成账号 UUID。新增 `patient_activity_state`（performed/not_performed/unknown）、`patient_discomfort_state`（reported/none/unknown）、`report_source=patient_self_report`；沿用 `actual_minutes`，空表示未知，确实填报的 0 保留。`discomfort_note` 和 `change_reason` 不导出；“none”是明确填报，“unknown”不是安全结论。该行独立于医护训练观察，不构成事件严重度或处置判断。
 
 REAL-01F4 扩展：`record_type=synthetic_consent_record` 逐条导出模拟决定 `consent_decision=granted|refused|withdrawn`、`consent_document_version`、`consent_purpose_code`、`consent_photo_scope=true|false`；`record_type=synthetic_screening_record` 逐条导出 `screening_item_code` 和 `screening_answer=yes|no|unknown`。两类行均有 `record_id`、`recorded_at_utc`、`recorded_by` 和 `intake_source=synthetic_demo_record`，非适用列留空。更正原因及任何签署信息不进入 CSV；模拟 granted 与筛查回答均不表示真实同意、入组资格或安全结论。

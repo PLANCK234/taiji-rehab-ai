@@ -114,6 +114,11 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await expect(page.getByText(/人工复评访视 · 已到访 · 已关联人工评估 · 版本 1/)).toBeVisible();
   await expect(page.getByText(/当前人工总分：缺失（拒测）（已确认）/)).toBeVisible();
   await expect(page.getByText("关联训练 1 次")).toBeVisible();
+  const linkedTraining = page.getByRole("list", { name: "人工复评访视 的关联训练观察" });
+  await expect(linkedTraining).toContainText("记录为部分完成");
+  await expect(linkedTraining).toContainText("实际时长未知");
+  await expect(linkedTraining).toContainText("反馈未填写");
+  await expect(linkedTraining).toContainText("RPE 未记录");
   expect(observed).toMatch(/^[0-9a-f-]{36}$/);
   await page.getByRole("button", { name: "更正访视" }).click();
   await page.getByLabel("评估情况").selectOption("declined");
@@ -121,6 +126,7 @@ test("synthetic enrollment through confirmed baseline and missing revisit persis
   await page.getByRole("button", { name: "保存访视" }).click();
   await page.reload();
   await expect(page.getByText(/人工复评访视 · 已到访 · 拒测 · 版本 2/)).toBeVisible();
+  await expect(linkedTraining).toContainText("实际时长未知");
   await page.getByText("修订历史", { exact: true }).click();
   await expect(page.getByText(/版本 1 · 已到访 · 已关联人工评估/)).toBeVisible();
   const [download] = await Promise.all([

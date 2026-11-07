@@ -8,7 +8,7 @@
 
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
 
-**已可操作的合成纵向子流程**：工作人员登录→编码建档→演示资料追加更正与模拟同意→人工 SPPB 总分及复评→四种人工原始观察→对象页评估与训练观察序列→记录已发生训练观察→单独记录事件→录入/更正反馈→手工命名周期/访视并关联已有记录→单对象编号化 CSV 下载。页面刷新后从 PostgreSQL 读取记录；入口在对象详情。训练观察序列显示当前完成状态、实际分钟及最新反馈 RPE，不计算没有计划分母的完成率。导出含模拟同意/筛查历史、原始观察、手工周期/访视、合成患者自报状态等结构化数据与修订历史，不含身份或自由文本，并附行数与哈希；它是实时 Demo 下载，**不是周期冻结快照**。周期归组不自动安排日程或改变训练观察；正式量表、真实人员身份管理、研究级冻结导出与真实数据准入仍未完成。合成工作人员管理见 `/admin`，默认不创建管理员。见 [ADR-0012](docs/decisions/0012-training-observation-before-cycle.md)、[ADR-0013](docs/decisions/0013-live-coded-demo-export.md)、[ADR-0021](docs/decisions/0021-observed-training-timeline-no-rate.md)。
+**已可操作的合成纵向子流程**：工作人员登录→编码建档→演示资料追加更正与模拟同意→人工 SPPB 总分及复评→四种人工原始观察→对象页评估与训练观察序列→记录已发生训练观察→单独记录事件→录入/更正反馈→手工命名周期/访视、关联已有记录并查看关联训练详情→单对象编号化 CSV 下载。页面刷新后从 PostgreSQL 读取记录；入口在对象详情。训练观察序列显示当前完成状态、实际分钟及最新反馈 RPE，不计算没有计划分母的完成率。导出含模拟同意/筛查历史、原始观察、手工周期/访视、合成患者自报状态等结构化数据与修订历史，不含身份或自由文本，并附行数与哈希；它是实时 Demo 下载，**不是周期冻结快照**。周期归组不自动安排日程或改变训练观察；正式量表、真实人员身份管理、研究级冻结导出与真实数据准入仍未完成。合成工作人员管理见 `/admin`，默认不创建管理员。见 [ADR-0012](docs/decisions/0012-training-observation-before-cycle.md)、[ADR-0013](docs/decisions/0013-live-coded-demo-export.md)、[ADR-0021](docs/decisions/0021-observed-training-timeline-no-rate.md)。
 
 [![Status](https://img.shields.io/badge/status-synthetic--demo-yellow)](docs/STATUS.md)
 

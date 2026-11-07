@@ -53,6 +53,8 @@
 
 ENG-02B training timeline reuses the same server-side staff role, study and explicit participant assignment guard. Allowed reads add a `training_timeline` audit event; denied attempts use the participant guard audit. Only structured observed state/minutes and latest feedback state/RPE leave this route; free-text observations, older feedback contents, patient reports and a fabricated completion rate are excluded. A null value remains unknown, not zero or safe.
 
+ENG-02C uses only the already scoped cycle and training-timeline reads for the same participant page. It does not accept a client-selected participant for linked details or add an export route. Missing linked details are displayed as unavailable; the page does not infer an unobserved session, completion rate or clinical result.
+
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.
 - PI/clinical approver: approves clinical adaptation rules and significant changes.

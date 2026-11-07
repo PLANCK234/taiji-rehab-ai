@@ -3,16 +3,22 @@
 import { useRef, useState } from "react";
 import { postIntake } from "../../workspace/intake";
 import { measurementText, type AssessmentSummary } from "../../workspace/assessments";
-import type { TrainingSession } from "../../workspace/training";
+import type { TrainingSession, TrainingTimeline } from "../../workspace/training";
 import {
   assessmentStateText, attendanceText, type SyntheticCycle, type VisitRevision,
 } from "../../workspace/cycles";
 
-export default function CycleForms({ participantId, initialCycles, assessments, sessions, canWrite }: {
+const completionText = {
+  completed: "记录为完成", partial: "记录为部分完成",
+  interrupted: "记录为中断", not_started: "记录为未开始",
+};
+
+export default function CycleForms({ participantId, initialCycles, assessments, sessions, trainingTimeline, canWrite }: {
   participantId: string;
   initialCycles: SyntheticCycle[] | null;
   assessments: AssessmentSummary[];
   sessions: TrainingSession[];
+  trainingTimeline: TrainingTimeline | null;
   canWrite: boolean;
 }) {
   const [cycles, setCycles] = useState(initialCycles);
@@ -107,7 +113,20 @@ export default function CycleForms({ participantId, initialCycles, assessments, 
               {(() => { const linked = assessments.find((item) => item.id === row.assessment_id);
                 return linked ? ` · 当前人工总分：${measurementText(linked.current)}（${linked.current.state === "confirmed" ? "已确认" : "草稿"}）` : " · 关联评估暂不可用";
               })()}</> : null}
-            {row.training_session_ids.length ? <> · 关联训练 {row.training_session_ids.length} 次</> : " · 尚未关联训练观察"}
+            {row.training_session_ids.length ? <>
+              {` · 关联训练 ${row.training_session_ids.length} 次`}
+              <ul aria-label={`${row.label} 的关联训练观察`}>{row.training_session_ids.map((sessionId) => {
+                const observed = trainingTimeline?.entries.find((item) => item.session_id === sessionId);
+                return <li key={sessionId}>{observed ? <>
+                  <a href={`/participants/${participantId}/training/${sessionId}`}>
+                    {new Date(observed.session_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
+                  </a>{` · ${completionText[observed.completion_status]} · `}
+                  {observed.actual_minutes === null ? "实际时长未知" : `实际 ${observed.actual_minutes} 分钟`}
+                  {` · ${observed.feedback_state === null ? "反馈未填写" : observed.feedback_state === "missing" ? "反馈已记缺失" : "反馈已记录"}`}
+                  {` · RPE ${observed.rpe === null ? "未记录" : observed.rpe}`}
+                </> : "关联训练详情暂不可用；不能推断完成、时长或 RPE。"}</li>;
+              })}</ul>
+            </> : " · 尚未关联训练观察"}
             {canWrite ? <button type="button" onClick={() => beginCorrection(cycle, row)}>更正访视</button> : null}
             {row.revision_no > 1 ? <details><summary>修订历史</summary><ul>{cycle.visits.filter(
               (old) => old.visit_id === row.visit_id && old.id !== row.id,
