@@ -78,4 +78,4 @@ ENG-04E（恢复与测试范围）：[恢复演练](testing/RECOVERY_TEST.md#202
 
 ENG-04F（AT-01/AT-05 合成纵向子集）：[实际浏览器用例](../frontend/e2e/real-business.real.ts) 对同一编码对象依次验证模拟同意、人工基线/缺失复评及趋势、页面训练观察与反馈 RPE、手工周期访视关联/更正、刷新持久和编号化实时 CSV。首次本地 9 passed/1 failed 是测试断言要求未展示的动作名称；修正为真实表格列后隔离 Chromium 10 passed、清理核对成功。[远端 Actions #24](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42359796120) 5 作业通过、Chromium 10 passed、清理成功、无失败附件。无正式临床审核、规定训练次数、冻结快照或真实数据。
 
-ENG-04G（工程失败诊断）：[隔离浏览器脚本](../scripts/run_eng04b_browser.py) 在镜像构建前创建本次合成附件目录，失败时只写阶段/异常类型；[针对性测试](../scripts/test_run_eng04b_browser.py) 验证早期失败保留主错误、清理失败附加说明且摘要不含命令文字。2026-11-07 本地 5 tests/Ruff，受控 buildx 权限失败确实生成 `failure.txt`，完整隔离 Chromium 10 passed 并核对清理；远端更新后 CI 及失败上传步骤尚待实测。无临床或真实数据。
+ENG-04G（工程失败诊断）：[隔离浏览器脚本](../scripts/run_eng04b_browser.py) 在镜像构建前创建本次合成附件目录，失败时只写阶段/异常类型；[针对性测试](../scripts/test_run_eng04b_browser.py) 验证早期失败保留主错误、清理失败附加说明且摘要不含命令文字。2026-11-07 本地 5 tests/Ruff，受控 buildx 权限失败确实生成 `failure.txt`，完整隔离 Chromium 10 passed 并核对清理；[远端 Actions #26](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42374281253) 5 作业通过、单测 5/浏览器 10 passed。红色运行的 GitHub 上传步骤尚未直接实测。无临床或真实数据。

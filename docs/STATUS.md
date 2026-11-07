@@ -2,7 +2,7 @@
 
 ## 2026-11-07 ENG-04G 早期失败的合成诊断附件
 
-审计发现 `scripts/run_eng04b_browser.py` 原在数据库、API 和前端启动后才创建 `exports/eng04b-*/`，早期构建/迁移/启动失败会让 CI 的 `if-no-files-found: ignore` 跳过附件。现在先以随机 ID 创建独立目录，再执行构建；失败时仅追加固定阶段名及 Python 错误类型到 `failure.txt`，不写命令、密码、页面或患者数据，并保留原异常与资源清理。脚本单测 **5 passed**、Ruff 通过；一次未提权的受控运行在 Docker buildx 权限处失败，确实生成 `exports/eng04b-ebdbf7b2d025/failure.txt`（仅 `build backend image` / `CalledProcessError`），资源清理核对成功；获准环境的完整隔离 PostgreSQL→Chromium **10 passed**，清理核对成功。更新后的远端 CI 待运行；既有 GitHub `upload-artifact` 在失败时是否实际上传仍未远端验证。无业务 API、数据库、临床规则或原共享卷修改。
+审计发现 `scripts/run_eng04b_browser.py` 原在数据库、API 和前端启动后才创建 `exports/eng04b-*/`，早期构建/迁移/启动失败会让 CI 的 `if-no-files-found: ignore` 跳过附件。现在先以随机 ID 创建独立目录，再执行构建；失败时仅追加固定阶段名及 Python 错误类型到 `failure.txt`，不写命令、密码、页面或患者数据，并保留原异常与资源清理。脚本单测 **5 passed**、Ruff 通过；一次未提权的受控运行在 Docker buildx 权限处失败，确实生成 `exports/eng04b-ebdbf7b2d025/failure.txt`（仅 `build backend image` / `CalledProcessError`），资源清理核对成功；获准环境的完整隔离 PostgreSQL→Chromium **10 passed**，清理核对成功。[远端 Actions #26](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42374281253) 的 5 个作业均通过，脚本 5 tests、浏览器 10 passed、资源清理成功。既有 GitHub `upload-artifact` 在红色运行时是否实际上传仍未验证；绿色运行没有失败附件属预期。无业务 API、数据库、临床规则或原共享卷修改。
 
 ## 2026-11-07 ENG-04F 同一合成对象纵向浏览器回归
 

@@ -272,3 +272,5 @@
 ## 2026-11-07 ENG-04G 早期失败诊断附件
 
 从干净 `e899641` 继续，发现已有合成浏览器失败截图/trace，但附件目录在全部服务启动后才创建；构建、迁移或启动失败时 CI 的 `if-no-files-found: ignore` 可能跳过附件。脚本改为先建本次唯一目录，失败时写入不含命令/密码/页面数据的阶段与异常类型，原始错误和清理流程保留。单测 5 passed、Ruff 通过；未提权受控运行在 buildx 权限处失败，生成 `exports/eng04b-ebdbf7b2d025/failure.txt`，内容只有固定阶段和异常类型，清理核对通过；获准 Docker 环境的完整 Chromium 10 passed、清理核对通过。更新后的远端 CI 尚未运行，失败时 GitHub 上传动作也尚未直接验收；未改共享服务、数据卷或临床规则。
+
+远端补验：[Actions #26](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42374281253) 在 `9fae4c7` 上 5 个作业均成功，synthetic-browser 先运行 5 项单测，再运行 Chromium 10 项，资源清理日志成功且无失败附件。ENG-04G 的生成端与正常路径因此标记 DONE；红色运行的 GitHub 附件上传仍未直接验证。
