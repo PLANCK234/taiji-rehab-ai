@@ -16,6 +16,7 @@ from app.main import app
 from app.models import (
     AuditEvent,
     ConsentRecord,
+    DemoPatientBinding,
     Participant,
     ParticipantAssignment,
     Study,
@@ -81,6 +82,7 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
     clinician_email = f"export-clinician-{suffix}@example.org"
     peer_email = f"export-peer-{suffix}@example.org"
     analyst_email = f"export-analyst-{suffix}@example.org"
+    patient_email = f"export-patient-{suffix}@example.org"
     with Session(engine) as db:
         study = Study(code=f"SYN-EXPORT-{suffix.upper()}")
         users = [
@@ -91,8 +93,12 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
                 (analyst_email, "analyst"),
             ]
         ]
+        patient_user = User(
+            email=patient_email, password_hash=password_hash.hash(PASSWORD), role="patient"
+        )
         db.add(study)
         db.add_all(users)
+        db.add(patient_user)
         db.flush()
         participant = Participant(study_id=study.id, study_code=f"SYN-EXP-{suffix.upper()}")
         db.add(participant)
@@ -101,6 +107,7 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
             db.add(StudyAssignment(user_id=user.id, study_id=study.id))
         for user in (users[0], users[2]):
             db.add(ParticipantAssignment(user_id=user.id, participant_id=participant.id))
+        db.add(DemoPatientBinding(user_id=patient_user.id, participant_id=participant.id))
         db.add(
             ConsentRecord(
                 participant_id=participant.id,
@@ -113,10 +120,52 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
         )
         participant_id = participant.id
         participant_code = participant.study_code
+        patient_user_id = patient_user.id
         db.commit()
 
     path = f"/api/v1/participants/{participant_id}"
     export_path = f"{path}/research-export.csv"
+    with TestClient(app) as patient_client:
+        _login(patient_client, patient_email)
+        assert patient_client.get(export_path).status_code == 403
+        first_report = patient_client.post(
+            "/api/v1/patient/reports",
+            json={
+                "expected_revision": 0,
+                "observed_at": AT,
+                "activity_state": "unknown",
+                "actual_minutes": None,
+                "discomfort_state": "reported",
+                "discomfort_note": "SYN-PRIVATE-PATIENT-NOTE",
+            },
+            headers=_headers(patient_client),
+        )
+        assert first_report.status_code == 201, first_report.text
+        report_id = first_report.json()["report_id"]
+        revised_report = patient_client.post(
+            f"/api/v1/patient/reports/{report_id}",
+            json={
+                "expected_revision": 1,
+                "observed_at": AT,
+                "activity_state": "performed",
+                "actual_minutes": 0,
+                "discomfort_state": "none",
+                "change_reason": "SYN-PRIVATE-PATIENT-CHANGE",
+            },
+            headers=_headers(patient_client),
+        )
+        assert revised_report.status_code == 201, revised_report.text
+        second_report = patient_client.post(
+            "/api/v1/patient/reports",
+            json={
+                "expected_revision": 0,
+                "observed_at": AT,
+                "activity_state": "not_performed",
+                "discomfort_state": "unknown",
+            },
+            headers=_headers(patient_client),
+        )
+        assert second_report.status_code == 201, second_report.text
     with TestClient(app) as client:
         assert client.get(export_path).status_code == 401
         _login(client, clinician_email)
@@ -259,10 +308,32 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
         assert exported.headers["cache-control"] == "no-store"
         assert exported.headers["content-disposition"].endswith('-live-demo.csv"')
         rows = list(csv.DictReader(io.StringIO(exported.text)))
-        assert len(rows) == 20
+        assert len(rows) == 23
         assert exported.headers["x-row-count"] == str(len(rows))
         assert exported.headers["x-content-sha256"] == hashlib.sha256(exported.content).hexdigest()
         assert {row["participant_code"] for row in rows} == {participant_code}
+        patient_rows = sorted(
+            (row for row in rows if row["record_type"] == "patient_report_revision"
+             and row["parent_id"] == report_id),
+            key=lambda row: int(row["revision_no"]),
+        )
+        assert len(patient_rows) == 2
+        assert [row["patient_activity_state"] for row in patient_rows] == [
+            "unknown", "performed"
+        ]
+        assert [row["patient_discomfort_state"] for row in patient_rows] == [
+            "reported", "none"
+        ]
+        assert [row["actual_minutes"] for row in patient_rows] == ["", "0"]
+        assert all(row["report_source"] == "patient_self_report" for row in patient_rows)
+        assert all(row["recorded_by"] == str(patient_user_id) for row in patient_rows)
+        assert any(
+            row["record_type"] == "patient_report_revision"
+            and row["patient_activity_state"] == "not_performed"
+            and row["patient_discomfort_state"] == "unknown"
+            and row["actual_minutes"] == ""
+            for row in rows
+        )
         cycle_rows = [row for row in rows if row["record_type"] == "synthetic_cycle"]
         visit_rows = sorted(
             (row for row in rows if row["record_type"] == "synthetic_visit_revision"),
@@ -359,6 +430,8 @@ def test_live_coded_csv_is_scoped_complete_and_audited() -> None:
                 "SYN-PRIVATE-EMPTY-CYCLE",
                 "SYN-PRIVATE-VISIT-LABEL",
                 "SYN-PRIVATE-CHANGE",
+                "SYN-PRIVATE-PATIENT-NOTE",
+                "SYN-PRIVATE-PATIENT-CHANGE",
             ]
         )
         assert client.get(export_path).content == exported.content

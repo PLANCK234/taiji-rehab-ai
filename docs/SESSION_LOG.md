@@ -228,3 +228,7 @@
 ## 2026-11-07 REAL-01F2 合成周期/访视历史导出
 
 从干净工作区与 `c6a4491` 继续。核对 E0 只实现手工周期与追加式访视状态/关联，新增实时 Demo CSV 的周期行和全部访视修订；仅出结构化状态与同对象关联 ID，不出标签/更正原因，也不把记录时间当计划或到访时间。修改前后端 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；临时 tmpfs PostgreSQL 迁移及 5 个集成测试通过；实际 Chromium 10 passed；前端完整依赖容器 build/lint/typecheck/24 tests 通过。临时容器、网络及门禁镜像清理；已有共享 Demo 卷未操作，未部署/推送。下一建议 REAL-01F3；父 REAL-01F 与真实数据审批仍未完成。
+
+## 2026-11-07 REAL-01F3 合成患者自报结构化导出
+
+从干净工作区与 `1ffe38e` 继续。确认患者自报为独立追加式事实，新增 CSV 的全部版本、状态、可空时长、发生/登记时间和患者来源；不导出不适描述/更正原因，也不把自报当医护观察。修改前后端 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；临时 tmpfs PostgreSQL 迁移与 5 个集成测试通过；隔离 Chromium 10 passed，含授权医护实际下载与脱敏；前端完整依赖容器 build/lint/typecheck/24 tests 通过。临时容器、网络和门禁镜像已清理；未改临床规则或已有共享卷，未部署/推送。下一建议 REAL-01F4，真实患者和研究数据审批仍未完成。

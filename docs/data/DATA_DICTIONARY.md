@@ -68,6 +68,8 @@ REAL-01F1 扩展：`record_type=manual_observation_revision` 表示一条合成�
 
 REAL-01F2 扩展：`record_type=synthetic_cycle` 为手工周期容器，`record_id=cycle_id`，`recorded_at_utc/recorded_by` 为创建时间和人员；`synthetic_visit_revision` 为访视的每个修订，`parent_id` 为访视 ID、`cycle_id` 为所属周期。新增 `visit_attendance`（unknown/attended/not_attended）、`visit_assessment_state`（unknown/recorded/declined/not_measured）、`linked_assessment_id` 和 `linked_training_session_ids`（JSON UUID 数组）。无关联评估时单元格为空；无关联训练时为 `[]`。周期/访视手工名称、更正原因不导出；没有正式访视时间，`event_at_utc` 留空。上述 ID 由服务端确认属于同一对象；这是实时分组历史，不是研究方案日程或冻结快照。
 
+REAL-01F3 扩展：`record_type=patient_report_revision` 表示合成患者自报事实的每个版本，`parent_id` 为报告 ID，`event_at_utc` 为本人填报的发生时间，`recorded_at_utc/recorded_by` 为系统登记时间和合成账号 UUID。新增 `patient_activity_state`（performed/not_performed/unknown）、`patient_discomfort_state`（reported/none/unknown）、`report_source=patient_self_report`；沿用 `actual_minutes`，空表示未知，确实填报的 0 保留。`discomfort_note` 和 `change_reason` 不导出；“none”是明确填报，“unknown”不是安全结论。该行独立于医护训练观察，不构成事件严重度或处置判断。
+
 ## DEMO-V2 专用字段
 
 `demo_participant_profiles.age/sex/needs_assistance/note` 为可选虚构展示资料，`null` 为未知；不映射真实身份。`demo_grade_results.functional_grade` 为 `I|II|III|IV|UNASSESSED`，`demo_training_mode` 独立且 IV/UNASSESSED 为空；`rule_version=demo-rule-v1`、`evidence.marker=DEMO_RULE` 及 `assessment_revision_id` 记录依据。`demo_actions.marker=DEMO_ONLY`，不含临床剂量；`demo_runs.status` 为 in_progress/paused/awaiting_feedback/completed/stopped，`current_index` 为浏览进度，`completed_action_ids` 为实际完成动作的可空独立记录，`training_session_id` 关联原有观察。计划动作或浏览进度不得充当实际完成动作。`actual_minutes` 和 RPE 未记录均为 null，绝不默认为 0。

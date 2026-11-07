@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.models import (
     Assessment,
     AssessmentRevision,
+    DemoPatientReportRevision,
     ManualObservationRevision,
     SafetyEvent,
     SyntheticCycle,
@@ -50,6 +51,9 @@ COLUMNS = [
     "actual_minutes",
     "rpe",
     "feedback_state",
+    "patient_activity_state",
+    "patient_discomfort_state",
+    "report_source",
 ]
 
 
@@ -218,6 +222,27 @@ def build_coded_export(
                 "recorded_by": str(event.recorded_by),
             }
         )
+    for revision in db.scalars(
+        select(DemoPatientReportRevision)
+        .where(DemoPatientReportRevision.participant_id == participant_id)
+        .order_by(DemoPatientReportRevision.report_id, DemoPatientReportRevision.revision_no)
+    ):
+        rows.append({
+            **base,
+            "record_type": "patient_report_revision",
+            "record_id": str(revision.id),
+            "parent_id": str(revision.report_id),
+            "revision_no": revision.revision_no,
+            "event_at_utc": _utc(revision.observed_at),
+            "recorded_at_utc": _utc(revision.recorded_at),
+            "recorded_by": str(revision.recorded_by),
+            "actual_minutes": (
+                revision.actual_minutes if revision.actual_minutes is not None else ""
+            ),
+            "patient_activity_state": revision.activity_state,
+            "patient_discomfort_state": revision.discomfort_state,
+            "report_source": "patient_self_report",
+        })
     # Stable order for rows read in this live request; this is not a frozen dataset.
     rows.sort(
         key=lambda row: (

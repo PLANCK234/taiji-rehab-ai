@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 
 const password = process.env.E2E_PASSWORD;
@@ -70,6 +71,15 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(page.getByText(/版本 2/)).toBeVisible();
     await staffPage.reload();
     await expect(staffPage.getByText(/更正原因：SYN-SELF-CORRECTION/)).toBeVisible();
+    const [download] = await Promise.all([
+      staffPage.waitForEvent("download"),
+      staffPage.getByRole("link", { name: "下载编号化 CSV" }).click(),
+    ]);
+    const csv = await readFile((await download.path())!, "utf8");
+    expect(csv).toContain("patient_report_revision");
+    expect(csv).toContain("patient_self_report");
+    expect(csv).not.toContain("合成演示不适描述");
+    expect(csv).not.toContain("SYN-SELF-CORRECTION");
     await staffPage.getByRole("checkbox", { name: /合成流程测试/ }).check();
     await staffPage.getByRole("button", { name: "撤回测试卡片" }).click();
     await expect(staffPage.getByText(/版本 2 · 撤回/)).toBeVisible();
