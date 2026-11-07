@@ -73,7 +73,7 @@ uv sync --frozen
 uv run uvicorn app.main:app --reload
 ```
 
-前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。完整真实数据库浏览器测试：`uv run --no-project python scripts/run_eng04b_browser.py`（临时 PostgreSQL）。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。系统没有真实身份字段；Demo 展示等级与临床审批分离。
+前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。完整真实数据库浏览器测试：`uv run --no-project python scripts/run_eng04b_browser.py`（临时 PostgreSQL）；同一脚本已列入 GitHub Actions 的 push/PR 工作流，远端通过情况以实际运行记录为准。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。系统没有真实身份字段；Demo 展示等级与临床审批分离。
 
 ## 研究安全边界
 - 数据是敏感研究数据；真实患者数据只进入获批准的环境。

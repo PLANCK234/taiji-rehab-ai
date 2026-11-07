@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-07 ENG-04C 隔离浏览器门禁接入 CI
+
+核对实际 CI 后确认 `.github/workflows/ci.yaml` 只有后端、前端、ML 和文档任务，虽然 `scripts/run_eng04b_browser.py` 已能启动一次性 PostgreSQL→FastAPI→Next→Chromium 并运行 10 个真实浏览器用例，但之前没有自动执行。新增独立 `synthetic-browser` job，在 push/PR 上运行现有脚本；仅授予仓库读取权限，失败时把 `exports/eng04b-*/` 的合成附件（含隐藏状态文件）保留 7 天。脚本自身在 finally 清理任务容器、网络和镜像；原共享服务不受影响。本地完整脚本复跑 10 passed，核对无残留 `taiji-eng04b` 容器/网络；工作流 YAML 使用临时 PyYAML 解析并核对任务和附件路径。远端 GitHub Actions **尚未运行**，需分支推送或 PR 后才能验收实际 CI 结果。本轮未改业务代码、临床规则或已有数据卷，未推送。
+
 ## 2026-11-07 ENG-02C 手工周期关联训练事实展示
 
 核对实际代码后发现 E0 已显示手工周期/最新访视、关联评估当前值、关联训练次数与修订历史；台账原 ENG-02C 范围因此收窄。对象页现在对最新访视逐条展示已关联训练的完成状态、实际分钟、最新反馈状态及 RPE，复用既有同对象授权 `training-timeline` 数据；缺失关联或读取失败明确显示详情不可用，不推断训练发生、完成或安全。旧访视版本不回填当前训练状态，且不计算没有获批计划分母的完成率。无后端 API、数据库或临床规则修改。修改前后端基线 Ruff/53 passed、4 skipped；前端完整依赖容器 build/lint/typecheck/25 tests 通过；隔离 tmpfs PostgreSQL→FastAPI→Next→Chromium 10 passed，含访视创建、更正、刷新、关联训练未知时长/RPE及跨研究拒绝。临时容器、网络和本次门禁镜像已清理，原共享服务保留；未部署共享网站、未推送。
