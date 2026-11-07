@@ -482,7 +482,7 @@ def test_production_environment_cannot_open_intake_database(monkeypatch) -> None
 
 
 def test_manual_observation_revisions(intake_api):
-    client, _, ids = intake_api
+    client, engine, ids = intake_api
     path = f"/api/v1/participants/{ids['assigned']}/manual-observations"
     assert client.get(path).status_code == 401
     login(client)
@@ -543,9 +543,82 @@ def test_manual_observation_revisions(intake_api):
             == 422
         )
     assert client.post(path, json={**payload, "unit": "kg"}, headers=headers).status_code == 422
+    assert (
+        client.post(
+            path, json={**payload, "metric_code": "frail_total"}, headers=headers
+        ).status_code
+        == 422
+    )
+    for index, (metric, unit) in enumerate(
+        (("sit_to_stand_5_seconds", "s"), ("tug_seconds", "s"), ("grip_strength_kg", "kg")), start=2
+    ):
+        observed = client.post(
+            path,
+            json={
+                **payload,
+                "metric_code": metric,
+                "unit": unit,
+                "raw_value": "0.25",
+                "side": "left" if unit == "kg" else "unknown",
+            },
+            headers=write_headers(client, f"manual-observation-000{index}"),
+        )
+        assert observed.status_code == 201, observed.text
+        assert observed.json()["snapshot"]["raw_value"] == "0.25"
+    missing = client.post(
+        path,
+        json={
+            **payload,
+            "validity": "missing",
+            "raw_value": None,
+            "performed_at": None,
+            "missing_reason": "declined",
+        },
+        headers=write_headers(client, "manual-observation-missing"),
+    )
+    assert missing.status_code == 201
+    assert missing.json()["snapshot"]["raw_value"] is None
+    invalid = client.post(
+        path,
+        json={
+            **payload,
+            "validity": "invalid",
+            "raw_value": "2.4",
+            "missing_reason": "technical_failure",
+        },
+        headers=write_headers(client, "manual-observation-invalid"),
+    )
+    assert invalid.status_code == 201
+    assert (
+        client.post(
+            path,
+            json={**payload, "validity": "missing", "raw_value": None, "performed_at": None},
+            headers=write_headers(client, "manual-missing-no-reason"),
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post(
+            path,
+            json={**payload, "validity": "valid", "performed_at": None},
+            headers=write_headers(client, "manual-valid-no-time"),
+        ).status_code
+        == 422
+    )
     for other in (ids["unassigned"], ids["cross_study"]):
         other_path = f"/api/v1/participants/{other}/manual-observations"
         assert client.get(other_path).status_code == 403
         assert client.post(other_path, json=payload, headers=headers).status_code == 403
+    with Session(engine) as db:
+        clinician = db.scalar(select(User).where(User.email == "intake-clinician@example.org"))
+        db.delete(db.get(StudyAssignment, (clinician.id, ids["study_a"])))
+        db.commit()
+    assert client.get(path).status_code == 403
+    assert (
+        client.post(
+            path, json=payload, headers=write_headers(client, "manual-after-revoke-01")
+        ).status_code
+        == 403
+    )
     login(client, "intake-analyst@example.org")
     assert client.get(path).status_code == 403

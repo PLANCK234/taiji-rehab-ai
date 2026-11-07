@@ -216,3 +216,7 @@
 ## 2026-11-07 REAL-01C1 合成原始观察检查点
 
 新增 0014 追加版本表与 manual-observations API、对象页录入/更正。四种指标固定单位，十进制原值以最长 40 字符字符串保存，拒绝非有限数；按对象权限、当前模拟同意、CSRF、幂等与预期版本核验。独立于 SPPB 和 Demo 分级，旧 CSV 暂不含这些观察，页面明确说明。后端 Ruff/52 passed、4 skipped；前端 build/lint/typecheck/24 tests；临时 PostgreSQL 迁移升/check/空库降/升与旧 API 5 passed；Chromium 10 passed。首次浏览器发现幂等 route_key 超过 PostgreSQL 80 字符限制，缩短后复测通过；失败附件 exports/eng04b-c62151e22521 保留。最终展示文字补充录入人/时间尚待前端复验。REAL-01C1 保持 IN_PROGRESS：需补齐四指标/缺失/无效与撤权边界验收、独立浏览器夹具及完整契约核对；不宣称多指标功能全面验收。共享网站未部署、未推送。
+
+## 2026-11-07 REAL-01C1 完成复验
+
+补齐四指标/单位、小数、零值、缺失/无效、必填校验、未知指标和撤权后旧会话 API 测试；页面补测量时间/原因并固定更正指标。浏览器夹具自行建立合成同意，避免依赖测试顺序。Ruff 通过、pytest 52 passed/4 skipped；前次临时 PostgreSQL 迁移/旧 API 5 passed；最终隔离 Chromium 10 passed，脚本清理新建容器、网络与镜像。前端完整依赖容器 build/lint/typecheck/24 tests 通过；本机 typecheck 因 node_modules 缺少测试依赖失败，见 STATUS。REAL-01C1 完成，父 REAL-01C 未完成；旧 CSV 暂不含新观察，下一任务 REAL-01F1。共享网站未部署，未推送/合并。

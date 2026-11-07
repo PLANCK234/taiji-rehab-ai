@@ -27,6 +27,27 @@ test("synthetic display profile correction persists and retains the original", a
   const latest = section.getByRole("listitem").filter({ hasText: /版本 2 · 年龄：68/ });
   await expect(latest).toBeVisible();
   await expect(latest).toContainText("更正原因：SYN-DEMO-CORRECTION");
+  const consentChanged = await page.evaluate(async () => {
+    const id = location.pathname.split("/").at(-1);
+    const history = await (await fetch(`/api/v1/participants/${id}/consents`)).json() as { state: string };
+    if (history.state === "granted") return false;
+    const csrf = document.cookie.split("; ").find((item) => item.startsWith("taiji_csrf="))?.split("=")[1];
+    if (!csrf) throw new Error("synthetic clinician has no CSRF token");
+    const response = await fetch(`/api/v1/participants/${id}/consents`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", "X-CSRF-Token": decodeURIComponent(csrf),
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({
+        document_version: "SYN-DEMO-V1", purpose_code: "SYN-RAW-OBSERVATION",
+        decision: "granted", photo_scope: false,
+      }),
+    });
+    if (response.status !== 201) throw new Error(`synthetic consent failed: ${response.status}`);
+    return true;
+  });
+  if (consentChanged) await page.reload();
   const raw = page.getByRole("region", { name: "人工原始观察" });
   await raw.getByLabel("原始数值").fill("4.120");
   await raw.getByLabel("测量时间").fill("2026-11-07T10:00");

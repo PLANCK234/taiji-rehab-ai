@@ -20,7 +20,7 @@ export default function ManualObservations({ participantId, canWrite }: { partic
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError("");
     const f = new FormData(event.currentTarget);
-    const metric = String(f.get("metric"));
+    const metric = editing?.snapshot.metric_code ?? String(f.get("metric"));
     const state = String(f.get("validity"));
     const time = String(f.get("time") ?? "");
     const payload = { metric_code: metric, unit: metric === "grip_strength_kg" ? "kg" : "s",
@@ -41,11 +41,13 @@ export default function ManualObservations({ participantId, canWrite }: { partic
     {rows === null ? <p>观察数据暂不可用。</p> : rows.length ? <ul>{rows.map(row => <li key={row.id}>
       {metrics[row.snapshot.metric_code as keyof typeof metrics]} · 版本 {row.revision_no} · {row.snapshot.raw_value ?? "未测"} {row.snapshot.unit} · {({ valid: "有效原值", missing: "缺失", invalid: "无效原值" } as Record<string, string>)[row.snapshot.validity]}
       {` · 录入人：${row.recorded_by} · ${new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}`}
-      {row.snapshot.change_reason ? ` · ${row.snapshot.change_reason}` : ""}
+      {row.snapshot.missing_reason ? ` · 原因：${row.snapshot.missing_reason}` : ""}
+      {row.snapshot.performed_at ? ` · 测量：${new Date(row.snapshot.performed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}` : ""}
+      {row.snapshot.change_reason ? ` · 更正：${row.snapshot.change_reason}` : ""}
       {canWrite && !rows.some(other => other.observation_id === row.observation_id && other.revision_no > row.revision_no) ? <button onClick={() => setEditing(row)}>更正此观察</button> : null}
     </li>)}</ul> : <p>暂无原始观察。</p>}
     {canWrite && rows !== null ? <form key={editing?.id ?? "new"} onSubmit={submit}>
-      <label>指标<select name="metric" defaultValue={editing?.snapshot.metric_code ?? "gait_4m_seconds"}>{Object.entries(metrics).map(([id, text]) => <option key={id} value={id}>{text}</option>)}</select></label>
+      <label>指标<select name="metric" disabled={!!editing} defaultValue={editing?.snapshot.metric_code ?? "gait_4m_seconds"}>{Object.entries(metrics).map(([id, text]) => <option key={id} value={id}>{text}</option>)}</select></label>
       <label>记录状态<select name="validity" defaultValue={editing?.snapshot.validity ?? "valid"}><option value="valid">有效原值</option><option value="missing">缺失</option><option value="invalid">无效原值</option></select></label>
       <label>原始数值<input name="value" defaultValue={editing?.snapshot.raw_value ?? ""} maxLength={40} /></label>
       <label>测量时间<input name="time" type="datetime-local" /></label>

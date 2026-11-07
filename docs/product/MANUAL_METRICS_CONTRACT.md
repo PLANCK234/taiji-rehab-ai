@@ -1,6 +1,6 @@
 # REAL-01C0 合成多指标人工录入契约
 
-日期：2026-11-07。状态：工程设计，尚未实现多指标 API/UI；不构成测量 SOP 或临床批准。来源：[PRD](PRD.md)、[数据字典](../data/DATA_DICTIONARY.md)、[待决问题](../OPEN_QUESTIONS.md)。
+日期：2026-11-07。状态：REAL-01C1 的 Demo 合成工程子集已实现并验收；本文件保留实施前的基线描述与验收要求，不构成测量 SOP 或临床批准。来源：[PRD](PRD.md)、[数据字典](../data/DATA_DICTIONARY.md)、[待决问题](../OPEN_QUESTIONS.md)。
 
 ## 实际基线与兼容要求
 
@@ -39,3 +39,5 @@
 6. Chromium 从对象页录入、追加更正、刷新，并核对 PostgreSQL 当前值与历史；错误响应不得显示为成功或空记录。
 
 下一独立实现任务建议命名 `REAL-01C1`，开工时复查任务占用和本契约。REAL-01C 父任务继续 IN_PROGRESS；正式量表与真实数据准入仍由 Q-02/Q-07 等控制。
+
+实施结果（2026-11-07）：REAL-01C1 已在 Demo 合成环境通过四指标 API、权限/撤权、缺失/无效/零值、版本更正、临时 PostgreSQL 与实际 Chromium 验收；证据见 [STATUS](../STATUS.md) 和 [TRACEABILITY](../TRACEABILITY.md)。既有编号化 CSV 尚不包含新原始观察，后续由 REAL-01F1 承接。正式量表、SOP 与真实数据准入未获此工程验收授权。

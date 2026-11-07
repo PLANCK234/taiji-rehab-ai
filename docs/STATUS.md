@@ -161,3 +161,7 @@ S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A`、`ENG-02A` 和 `ENG-03A` 的限�
 ## 2026-11-07 REAL-01C1 合成原始观察检查点
 
 新增 0014 追加版本表与 manual-observations API、对象页录入/更正。四种指标固定单位，十进制原值以最长 40 字符字符串保存，拒绝非有限数；按对象权限、当前模拟同意、CSRF、幂等与预期版本核验。独立于 SPPB 和 Demo 分级，旧 CSV 暂不含这些观察，页面明确说明。后端 Ruff/52 passed、4 skipped；前端 build/lint/typecheck/24 tests；临时 PostgreSQL 迁移升/check/空库降/升与旧 API 5 passed；Chromium 10 passed。首次浏览器发现幂等 route_key 超过 PostgreSQL 80 字符限制，缩短后复测通过；失败附件 exports/eng04b-c62151e22521 保留。最终展示文字补充录入人/时间尚待前端复验。REAL-01C1 保持 IN_PROGRESS：需补齐四指标/缺失/无效与撤权边界验收、独立浏览器夹具及完整契约核对；不宣称多指标功能全面验收。共享网站未部署、未推送。
+
+## 2026-11-07 REAL-01C1 完成复验
+
+四指标与单位、小数、有效零、缺失、无效、必填原因/时间、未知指标拒绝和撤权后旧会话拒绝已补 API 测试；原始观察页面显示测量时间、原因、录入人/时间，更正时锁定原指标。浏览器夹具在未有模拟同意时自行建立合成同意，减少对其他测试顺序的依赖。后端 Ruff 全过，pytest 52 passed/4 skipped；临时 PostgreSQL 迁移升/check/空库降/升及旧 API 5 passed（本任务先前检查点）；最终隔离 Chromium 10 passed，实际 API/Next/临时 PostgreSQL，容器、网络与镜像已清理。前端完整依赖容器的 build/lint/typecheck/24 tests 均通过；本机 `pnpm typecheck` 因本地 node_modules 缺少测试依赖而失败，非源码编译失败。REAL-01C1 标记 DONE，父任务 REAL-01C 仍 IN_PROGRESS；正式 FRAIL/SPPB 分项 SOP 和真实数据准入未批准。旧编号化 CSV 不含新增原始观察，后续 REAL-01F1 单独补齐。未部署共享网站、未推送。

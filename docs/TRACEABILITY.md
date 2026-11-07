@@ -55,3 +55,5 @@ When a feature is implemented, add links to actual source files, migrations, tes
 REAL-01C0：[人工多指标契约](product/MANUAL_METRICS_CONTRACT.md) 对应 FR-003/FR-010、AT-01/AT-05 合成子集；2026-11-07 仅设计完成，现有人工评估基线 5 passed。多指标实现/数据库/浏览器验收由 REAL-01C1 承担，未通过前不标功能完成。
 
 REAL-01C1 检查点：`backend/app/manual_observations.py`、迁移 `0014`、对象页 `manual-observations.tsx`；API 基础授权/更正和真实浏览器保存/刷新已通过，完整 C0 验收仍未完成，见 STATUS。
+
+REAL-01C1 完成复验（FR-003/FR-010、AT-01/AT-05 合成子集）：[C0 契约](product/MANUAL_METRICS_CONTRACT.md) 六项由 `backend/tests/test_synthetic_intake.py` 四指标/状态/撤权测试、既有 PostgreSQL 迁移与旧评估回归、`frontend/e2e/profile.real.ts` 的独立合成同意及录入/更正/刷新覆盖。后端 52 passed/4 skipped、临时 PostgreSQL 5 passed、最终隔离 Chromium 10 passed；前端门禁见 STATUS。旧 CSV 范围仍不含原始观察，由 REAL-01F1 处理；真实数据/临床验收未声明通过。
