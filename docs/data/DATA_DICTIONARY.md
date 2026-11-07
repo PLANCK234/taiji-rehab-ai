@@ -64,6 +64,8 @@ For every measurement save `source`, `performed_at`, `recorded_at`, `validity`, 
 
 `study_code,participant_code` 为合成研究/对象编码；`record_type` 为 `assessment_revision|training_session|training_feedback_revision|safety_event`；`record_id,parent_id,revision_no` 保留记录与修订关联；`event_at_utc,recorded_at_utc,recorded_by` 为 UTC ISO 时间及员工 UUID。评估列为 `visit_kind,protocol_version,measurement_state,metric_code,metric_value,metric_unit,validity,missing_reason`；训练/反馈列为 `completion_status,actual_minutes,rpe,feedback_state`。非适用或未知值为空单元格，确实观测到的 0 输出 `0`。所有评估/反馈修订均分行导出；无身份映射、员工邮箱、自由文本、疗效或临床等级。响应行数和 SHA-256 仅验证本次 UTF-8 文件，不构成冻结数据集。真实导出策略待 Q-07/Q-09。
 
+REAL-01F1 扩展：`record_type=manual_observation_revision` 表示一条合成原始观察的一个修订；`parent_id` 是观察 ID，`revision_no` 保留原始版和更正版。沿用 `metric_code,metric_value,metric_unit,validity,missing_reason,event_at_utc,recorded_at_utc,recorded_by`；新增 `measurement_source=manual_staff_entry` 与 `measurement_side=left|right|unknown`。这些列对既有记录为空。缺失值和未测时间为空单元格；观察到的零及小数原始字符串保留。`context_note` 与更正原因不导出，仍不构成临床解释或冻结数据集。
+
 ## DEMO-V2 专用字段
 
 `demo_participant_profiles.age/sex/needs_assistance/note` 为可选虚构展示资料，`null` 为未知；不映射真实身份。`demo_grade_results.functional_grade` 为 `I|II|III|IV|UNASSESSED`，`demo_training_mode` 独立且 IV/UNASSESSED 为空；`rule_version=demo-rule-v1`、`evidence.marker=DEMO_RULE` 及 `assessment_revision_id` 记录依据。`demo_actions.marker=DEMO_ONLY`，不含临床剂量；`demo_runs.status` 为 in_progress/paused/awaiting_feedback/completed/stopped，`current_index` 为浏览进度，`completed_action_ids` 为实际完成动作的可空独立记录，`training_session_id` 关联原有观察。计划动作或浏览进度不得充当实际完成动作。`actual_minutes` 和 RPE 未记录均为 null，绝不默认为 0。

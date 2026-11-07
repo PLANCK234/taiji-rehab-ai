@@ -220,3 +220,7 @@
 ## 2026-11-07 REAL-01C1 完成复验
 
 补齐四指标/单位、小数、零值、缺失/无效、必填校验、未知指标和撤权后旧会话 API 测试；页面补测量时间/原因并固定更正指标。浏览器夹具自行建立合成同意，避免依赖测试顺序。Ruff 通过、pytest 52 passed/4 skipped；前次临时 PostgreSQL 迁移/旧 API 5 passed；最终隔离 Chromium 10 passed，脚本清理新建容器、网络与镜像。前端完整依赖容器 build/lint/typecheck/24 tests 通过；本机 typecheck 因 node_modules 缺少测试依赖失败，见 STATUS。REAL-01C1 完成，父 REAL-01C 未完成；旧 CSV 暂不含新观察，下一任务 REAL-01F1。共享网站未部署，未推送/合并。
+
+## 2026-11-07 REAL-01F1 单对象合成原始观察导出
+
+从干净工作区与 `4484472` 继续。确认旧 CSV 未含 0014 的原始观察，保留旧权限/审计/行数/哈希，只增量导出四指标的全部修订及结构化来源/侧别；自由说明和更正原因不导出。前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；临时 tmpfs PostgreSQL 迁移及 5 个集成测试通过；实际 Chromium 10 passed；前端完整依赖容器 build/lint/typecheck/24 tests 通过。临时容器、网络和门禁镜像已清理。未改临床阈值、生产配置和既有数据卷，未部署/推送。任务完成，下一建议 REAL-01F2；父 REAL-01F 与真实数据审批仍未完成。

@@ -23,7 +23,7 @@
 | GET `/api/v1/training-sessions/{id}` | Scoped, audited observation detail |
 | GET/PUT `/api/v1/training-sessions/{id}/feedback` | Ordered append-only feedback history / expected-revision write; first revision 0, later corrections require reason; missing vs recorded mutually exclusive |
 | GET/POST `/api/v1/participants/{id}/safety-events` | Scoped list / independent idempotent fact report, possible before feedback; no clinical severity, escalation SLA or notification |
-| GET `/api/v1/participants/{id}/research-export.csv` | Audited, single-object live Demo CSV for existing read roles only; all assessment/feedback revisions, training sessions and event existence, no identity/free text; response has `X-Row-Count`, `X-Content-SHA256`, `X-Export-Mode: live-demo` and `Cache-Control: no-store` |
+| GET `/api/v1/participants/{id}/research-export.csv` | Audited, single-object live Demo CSV for existing read roles only; all assessment/manual-observation/feedback revisions, training sessions and event existence, no identity/free text; response has `X-Row-Count`, `X-Content-SHA256`, `X-Export-Mode: live-demo` and `Cache-Control: no-store` |
 | GET `/api/v1/patient/me` | Demo-only patient role with active binding; returns own synthetic `study_code` and optional current non-actionable publication card; audit; no staff data, Demo plan or clinical advice |
 | POST `/api/v1/participants/{id}/demo-patient-binding/revoke` | Assigned clinician with CSRF revokes the active synthetic patient binding and its active sessions; audited; 404 if no active binding |
 | GET `/api/v1/participants/{id}/demo-patient-publications` | Assigned staff reads append-only synthetic publication/withdrawal versions; patient role denied |
@@ -120,4 +120,4 @@ All endpoints use the existing staff session and server-side study/participant s
 
 Assessment confirmation (`POST /assessments/{id}/confirm`) additionally persists one `demo_grade_results` per confirmed revision. Existing assessment/training response shapes and endpoints remain valid. The generated OpenAPI snapshot is `backend/openapi.json`.
 
-REAL-01C1 Demo 合成子集：GET/POST `/api/v1/participants/{id}/manual-observations`，POST `.../{observation_id}` 追加更正。快照含固定指标/单位、十进制字符串、有效性/缺失原因、时间/侧别/说明，服务端记录来源/操作者/时间；更正需预期版本与 SYN 原因。当前模拟同意、对象范围、CSRF 和幂等必需；不触发 SPPB 分级，不进入旧 CSV。工程验收证据见 STATUS；真实数据与临床使用未批准。
+REAL-01C1 Demo 合成子集：GET/POST `/api/v1/participants/{id}/manual-observations`，POST `.../{observation_id}` 追加更正。快照含固定指标/单位、十进制字符串、有效性/缺失原因、时间/侧别/说明，服务端记录来源/操作者/时间；更正需预期版本与 SYN 原因。当前模拟同意、对象范围、CSRF 和幂等必需；不触发 SPPB 分级。REAL-01F1 已将结构化观察及修订纳入单对象 Demo CSV，说明文字仍排除；真实数据与临床使用未批准。

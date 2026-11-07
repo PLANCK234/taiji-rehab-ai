@@ -165,3 +165,7 @@ S2-01、S6-01、S6-02、`ENG-04A`、`ENG-01A`、`ENG-02A` 和 `ENG-03A` 的限�
 ## 2026-11-07 REAL-01C1 完成复验
 
 四指标与单位、小数、有效零、缺失、无效、必填原因/时间、未知指标拒绝和撤权后旧会话拒绝已补 API 测试；原始观察页面显示测量时间、原因、录入人/时间，更正时锁定原指标。浏览器夹具在未有模拟同意时自行建立合成同意，减少对其他测试顺序的依赖。后端 Ruff 全过，pytest 52 passed/4 skipped；临时 PostgreSQL 迁移升/check/空库降/升及旧 API 5 passed（本任务先前检查点）；最终隔离 Chromium 10 passed，实际 API/Next/临时 PostgreSQL，容器、网络与镜像已清理。前端完整依赖容器的 build/lint/typecheck/24 tests 均通过；本机 `pnpm typecheck` 因本地 node_modules 缺少测试依赖而失败，非源码编译失败。REAL-01C1 标记 DONE，父任务 REAL-01C 仍 IN_PROGRESS；正式 FRAIL/SPPB 分项 SOP 和真实数据准入未批准。旧编号化 CSV 不含新增原始观察，后续 REAL-01F1 单独补齐。未部署共享网站、未推送。
+
+## 2026-11-07 REAL-01F1 合成原始观察导出
+
+单对象实时 Demo CSV 现增加 `manual_observation_revision` 行，保留四指标每次修订、原始十进制字符串、零、缺失/无效、单位、来源、侧别与记录者/时间；上下文说明和更正原因不导出。原有服务端对象权限、审计、行数、哈希与 `live-demo` 标记不变；页面明确新增覆盖范围。修改前后端基线 Ruff/52 passed、4 skipped；修改后 Ruff/52 passed、4 skipped；一次性 tmpfs PostgreSQL 迁移升/check/空库降/升及 5 个集成测试通过；实际隔离 Chromium 10 passed，包含新 CSV 内容；完整依赖前端容器 build/lint/typecheck/24 tests 通过。隔离容器、网络和本次门禁镜像已清理。未更改数据库结构、临床规则或真实导出权限，未部署共享站点、未推送。

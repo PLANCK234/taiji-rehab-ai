@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 
 const password = process.env.E2E_PASSWORD;
@@ -62,4 +63,13 @@ test("synthetic display profile correction persists and retains the original", a
   await page.reload();
   await expect(raw.getByText(/版本 1 · 4.120 s/)).toBeVisible();
   await expect(raw.getByText(/版本 2 · 4.250 s/)).toBeVisible();
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: "下载编号化 CSV" }).click(),
+  ]);
+  const csv = await readFile((await download.path())!, "utf8");
+  expect(csv).toContain("manual_observation_revision");
+  expect(csv).toContain("4.120");
+  expect(csv).toContain("4.250");
+  expect(csv).not.toContain("SYN-RAW-CORRECTION");
 });

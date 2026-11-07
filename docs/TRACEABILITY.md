@@ -57,3 +57,5 @@ REAL-01C0：[人工多指标契约](product/MANUAL_METRICS_CONTRACT.md) 对应 F
 REAL-01C1 检查点：`backend/app/manual_observations.py`、迁移 `0014`、对象页 `manual-observations.tsx`；API 基础授权/更正和真实浏览器保存/刷新已通过，完整 C0 验收仍未完成，见 STATUS。
 
 REAL-01C1 完成复验（FR-003/FR-010、AT-01/AT-05 合成子集）：[C0 契约](product/MANUAL_METRICS_CONTRACT.md) 六项由 `backend/tests/test_synthetic_intake.py` 四指标/状态/撤权测试、既有 PostgreSQL 迁移与旧评估回归、`frontend/e2e/profile.real.ts` 的独立合成同意及录入/更正/刷新覆盖。后端 52 passed/4 skipped、临时 PostgreSQL 5 passed、最终隔离 Chromium 10 passed；前端门禁见 STATUS。旧 CSV 范围仍不含原始观察，由 REAL-01F1 处理；真实数据/临床验收未声明通过。
+
+REAL-01F1（FR-009/FR-010、AT-01/AT-05 合成子集）：`backend/app/research_export.py` 增加四指标原始观察的所有修订及来源/侧别结构化列；[字典](data/DATA_DICTIONARY.md)、[API](api/API_CONTRACT.md)、[ADR-0013](decisions/0013-live-coded-demo-export.md) 记录边界。`backend/tests/test_export_postgres.py` 在临时 PostgreSQL 核对 5 个观察版本、零/缺失/无效、原始小数、脱敏、权限、行数/哈希；`frontend/e2e/profile.real.ts` 在实际 Chromium 核对更正后的 CSV。后端 52 passed/4 skipped、临时 PostgreSQL 5 passed、浏览器 10 passed；前端门禁见 STATUS。真实/批量/冻结导出不在此验收范围。

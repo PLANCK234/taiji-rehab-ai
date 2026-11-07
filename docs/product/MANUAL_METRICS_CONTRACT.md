@@ -40,4 +40,4 @@
 
 下一独立实现任务建议命名 `REAL-01C1`，开工时复查任务占用和本契约。REAL-01C 父任务继续 IN_PROGRESS；正式量表与真实数据准入仍由 Q-02/Q-07 等控制。
 
-实施结果（2026-11-07）：REAL-01C1 已在 Demo 合成环境通过四指标 API、权限/撤权、缺失/无效/零值、版本更正、临时 PostgreSQL 与实际 Chromium 验收；证据见 [STATUS](../STATUS.md) 和 [TRACEABILITY](../TRACEABILITY.md)。既有编号化 CSV 尚不包含新原始观察，后续由 REAL-01F1 承接。正式量表、SOP 与真实数据准入未获此工程验收授权。
+实施结果（2026-11-07）：REAL-01C1 已在 Demo 合成环境通过四指标 API、权限/撤权、缺失/无效/零值、版本更正、临时 PostgreSQL 与实际 Chromium 验收；证据见 [STATUS](../STATUS.md) 和 [TRACEABILITY](../TRACEABILITY.md)。REAL-01F1 将结构化原始观察及全部修订纳入单对象 Demo CSV，排除说明文字；正式量表、SOP 与真实数据准入未获工程验收授权。

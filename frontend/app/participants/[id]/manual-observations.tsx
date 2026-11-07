@@ -37,7 +37,7 @@ export default function ManualObservations({ participantId, canWrite }: { partic
     setEditing(null); await reload();
   }
   return <section aria-labelledby="raw-heading"><h2 id="raw-heading">人工原始观察</h2>
-    <p>仅合成演示；不自动计分。以下记录暂不包含在旧编号化 CSV 中。</p>
+    <p>仅合成演示；不自动计分。编号化 CSV 包含原始观察的结构化字段与全部修订版本，不含说明文字。</p>
     {rows === null ? <p>观察数据暂不可用。</p> : rows.length ? <ul>{rows.map(row => <li key={row.id}>
       {metrics[row.snapshot.metric_code as keyof typeof metrics]} · 版本 {row.revision_no} · {row.snapshot.raw_value ?? "未测"} {row.snapshot.unit} · {({ valid: "有效原值", missing: "缺失", invalid: "无效原值" } as Record<string, string>)[row.snapshot.validity]}
       {` · 录入人：${row.recorded_by} · ${new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}`}
