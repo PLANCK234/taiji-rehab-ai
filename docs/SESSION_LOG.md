@@ -284,3 +284,9 @@
 ## 2026-11-10 DEMO-V2-16A 合成视频工程契约
 
 从干净 `ba9edf6` 核对：患者页只有视频待添加，API 固定 `awaiting_review`，仓库无视频文件。本机 `ffmpeg` 不在 PATH，项目 Python 环境无视频编码库；现有隔离测试镜像有 Playwright 包但缺 Chromium 可执行文件。新增合成素材来源/授权/哈希、实际观看、追加核对、发布快照、患者逐次授权和撤回失效的工程契约，更新验收与交接。没有改应用代码、数据库或临床规则，也没有宣称视频可播放。开始时 `check_handoff.py` 通过（66 Task ID）；最终文档检查与 Git 状态见本次提交。DEMO-V2-16 实现等待可核验授权的非指导性合成视频，正式视频仍受 Q-15 阻断。
+
+## 2026-11-11 DEMO-V2-17 合成发布条件提示
+
+从干净 `d029c12` 建立 `codex/demo-publication-readiness`。用户要求跳过视频继续完善；核对实际页面发现缺模拟同意时发布按钮禁用不够明确，缺活跃绑定时只给笼统错误。新增获分配医护的只读、审计、no-store 条件 API；对象页分别显示模拟同意与活跃合成患者绑定，读取失败单独提示，重新检查使用全页刷新。发布 POST 的原有权限/同意/绑定/CSRF/幂等/版本门禁未变，撤回仍可操作；视频、临床规则、数据库模型与共享数据卷未改。
+
+验证：Ruff 通过，后端 pytest 54 passed/4 skipped；本机前端缺 jsdom、@testing-library/react、@playwright/test，Vitest/typecheck 失败不算通过；复用完整依赖隔离镜像 lint/typecheck/27 tests/build 通过。一次性 PostgreSQL→FastAPI→Next→Chromium 10 passed，脚本核对临时容器/网络/镜像清理成功。本机合成站点仅重建前后端，/login 与 /ready 均 200。未推送或运行远端 CI；视频 DEMO-V2-16 仍待合成素材。

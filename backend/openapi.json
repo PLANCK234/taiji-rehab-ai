@@ -1892,6 +1892,29 @@
         "title": "PatientReportWrite",
         "type": "object"
       },
+      "PublicationReadinessView": {
+        "properties": {
+          "active_patient_binding": {
+            "title": "Active Patient Binding",
+            "type": "boolean"
+          },
+          "can_publish": {
+            "title": "Can Publish",
+            "type": "boolean"
+          },
+          "simulated_consent_granted": {
+            "title": "Simulated Consent Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "simulated_consent_granted",
+          "active_patient_binding",
+          "can_publish"
+        ],
+        "title": "PublicationReadinessView",
+        "type": "object"
+      },
       "PublicationView": {
         "properties": {
           "card_code": {
@@ -4412,6 +4435,46 @@
           }
         },
         "summary": "Card Options"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-patient-publication-readiness": {
+      "get": {
+        "operationId": "publication_readiness_api_v1_participants__participant_id__demo_patient_publication_readiness_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationReadinessView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publication Readiness"
       }
     },
     "/api/v1/participants/{participant_id}/demo-patient-publications": {

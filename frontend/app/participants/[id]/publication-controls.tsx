@@ -2,16 +2,16 @@
 
 import { useRef, useState } from "react";
 import { postIntake } from "../../workspace/intake";
-import type { PatientPublication, SyntheticCardOption } from "../../workspace/patient-publication";
+import type { PatientPublication, PublicationReadiness, SyntheticCardOption } from "../../workspace/patient-publication";
 
 export default function PublicationControls({
-  participantId, initialHistory, cardOptions, canPublish, consentGranted,
+  participantId, initialHistory, cardOptions, readiness, canPublish,
 }: {
   participantId: string;
   initialHistory: PatientPublication[] | null;
   cardOptions: SyntheticCardOption[] | null;
+  readiness: PublicationReadiness | null;
   canPublish: boolean;
-  consentGranted: boolean;
 }) {
   const [history, setHistory] = useState(initialHistory);
   const [acknowledged, setAcknowledged] = useState(false);
@@ -49,7 +49,9 @@ export default function PublicationControls({
         ? "版本已变化，请刷新页面后重试。"
         : result.status === 422
           ? "请选择演示卡片并确认本次选择。"
-          : "操作未完成，请检查权限、模拟同意与患者绑定。");
+          : result.status === 403
+            ? "发布条件或权限已变化，请重新检查发布条件。"
+            : "操作未完成，请稍后重新检查发布条件。");
     }
   }
 
@@ -63,6 +65,13 @@ export default function PublicationControls({
       ))}</ul> : <p>尚无发布历史。</p>}
     </>}
     {canPublish && history !== null ? <>
+      <h3>发布条件</h3>
+      {readiness ? <ul>
+        <li>当前模拟同意：{readiness.simulated_consent_granted ? "已记录，可用于合成发布" : "未记录或已撤回"}</li>
+        <li>合成患者绑定：{readiness.active_patient_binding ? "有效" : "无活跃绑定"}</li>
+      </ul> : <p role="status">发布条件暂不可用，不能发布新卡片。</p>}
+      {readiness && !readiness.active_patient_binding ? <p className="note">请选择已绑定合成患者的测试对象；当前页面不能建立真实患者绑定。</p> : null}
+      <p><a href={`/participants/${participantId}#publication-heading`}>重新检查发布条件</a></p>
       <label htmlFor="synthetic-card-select">选择演示卡片</label>
       <select id="synthetic-card-select" value={selectedCode} onChange={(event) => { setSelectedCode(event.target.value); setSelectionConfirmed(false); key.current = ""; }} disabled={!cardOptions?.length}>
         <option value="">请选择</option>
@@ -72,10 +81,10 @@ export default function PublicationControls({
       <label><input type="checkbox" checked={selectionConfirmed} onChange={(event) => setSelectionConfirmed(event.target.checked)} disabled={!selectedCode} /> 我确认本次选择仅用于合成演示，不是临床审核</label>
       <label><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /> 我确认这只是合成流程测试，不是患者训练指导</label>
       <div className="button-row">
-        <button type="button" disabled={pending || !acknowledged || !selectionConfirmed || !selectedCode || !consentGranted} onClick={() => submit("publish")}>发布所选测试卡片</button>
+        <button type="button" disabled={pending || !acknowledged || !selectionConfirmed || !selectedCode || !readiness?.can_publish} onClick={() => submit("publish")}>发布所选测试卡片</button>
         <button type="button" disabled={pending || !acknowledged || latest?.state !== "published"} onClick={() => submit("withdraw")}>撤回测试卡片</button>
       </div>
-      {!consentGranted ? <p className="note">发布需要当前模拟同意；撤回仍可操作。</p> : null}
+      {readiness && !readiness.simulated_consent_granted ? <p className="note">发布需要当前模拟同意；撤回仍可操作。记录同意后请重新检查发布条件。</p> : null}
       {error ? <p role="alert">{error}</p> : null}
     </> : null}
   </section>;

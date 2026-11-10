@@ -10,6 +10,12 @@ export type PatientPublication = {
 
 export type SyntheticCardOption = { code: string; title: string };
 
+export type PublicationReadiness = {
+  simulated_consent_granted: boolean;
+  active_patient_binding: boolean;
+  can_publish: boolean;
+};
+
 export type PatientHome = {
   study_code: string;
   publication: PatientPublication | null;
@@ -42,6 +48,22 @@ export async function getSyntheticCardOptions(
       { headers: { cookie: cookies }, cache: "no-store" },
     );
     return response.ok ? await response.json() as SyntheticCardOption[] : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getPublicationReadiness(
+  participantId: string,
+  cookies: string,
+): Promise<PublicationReadiness | null> {
+  try {
+    const baseUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
+    const response = await fetch(
+      `${baseUrl}/api/v1/participants/${encodeURIComponent(participantId)}/demo-patient-publication-readiness`,
+      { headers: { cookie: cookies }, cache: "no-store" },
+    );
+    return response.ok ? await response.json() as PublicationReadiness : null;
   } catch {
     return null;
   }

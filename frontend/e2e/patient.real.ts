@@ -46,6 +46,8 @@ test("synthetic patient sees only own portal and loses access after binding revo
       return id;
     });
     await staffPage.goto(`/participants/${id}`);
+    await expect(staffPage.getByText(/当前模拟同意：已记录，可用于合成发布/)).toBeVisible();
+    await expect(staffPage.getByText(/合成患者绑定：有效/)).toBeVisible();
     await staffPage.getByLabel("选择演示卡片").selectOption("SYN-CARD-B");
     await staffPage.getByRole("checkbox", { name: /确认本次选择/ }).check();
     await staffPage.getByRole("checkbox", { name: /合成流程测试/ }).check();

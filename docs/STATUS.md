@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-11 DEMO-V2-17 合成发布条件提示
+
+从干净 `d029c12` 建立 `codex/demo-publication-readiness`。核对实际代码发现对象页已能选择两张非指导卡片，但缺模拟同意时发布按钮禁用原因不够清楚，缺活跃患者绑定时仅有笼统写入错误。新增仅限获分配医护的只读、审计、`no-store` 发布条件 API，分别返回当前模拟同意、活跃合成患者绑定及两者均满足的提示状态。对象页明确区分前提缺失与读取失败，提供完整刷新入口；新发布按钮据此禁用，撤回不受影响。真正发布仍按原服务端角色、对象、同意、绑定、CSRF、版本与幂等检查，页面提示不构成临床审批。没有视频、真实患者或数据库模型变更。
+
+验证：后端 Ruff 通过、pytest **54 passed / 4 skipped**（新增未登录、未分配、患者/分析员拒绝与同意/绑定变化）；本机前端因缺 `jsdom`、`@testing-library/react` 和 `@playwright/test` 无法完成门禁，改用完整依赖的隔离镜像，lint/typecheck/**27 tests**/build 全通过；一次性 PostgreSQL→FastAPI→Next→Chromium **10 passed**，含医护页两个条件显示与患者发布/撤回，脚本核对本次临时容器/网络/镜像均已清理。现有本机合成站点仅重建 backend/frontend，数据库卷保留；本机 `/login` 与 `/ready` 均返回 200。没有远端 CI 或临时外网验收。
+
 ## 2026-11-10 DEMO-V2-16A 合成视频工程契约
 
 核对 `ba9edf6` 的代码：患者页只显示“视频待添加”，API 固定返回 `video_status=awaiting_review`，仓库没有视频文件；现有 Docker 测试镜像虽有 Playwright 包，但 Chromium 可执行文件缺失，本机也未找到 ffmpeg。新增[合成视频核对与播放契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md)，界定素材来源/权利与哈希、实际观看、追加式合成核对、发布快照、患者逐次授权及撤回失效的下一实现标准。没有改应用代码、数据库或临床规则；没有素材、审核记录或可播放功能。DEMO-V2-16 实现继续等待可核验授权的非指导性合成视频，真实视频仍受 Q-15 阻断。文档门禁见本次 SESSION_LOG；本条不作为 AT-PAT-02 播放验收证据。

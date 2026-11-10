@@ -18,6 +18,7 @@
 | DEMO-V2-15 | 医护选择并确认合成测试卡片后发布 | DEMO-V2-12；用户确认先做 Demo，Q-03/09/15 临床内容仍未决 | DONE | `0015` 向前迁移，服务端两张固定无动作卡片、医护选择/明确演示确认、追加式卡片快照、本人当前投影与撤回；后端 53 passed/4 skipped、临时 PostgreSQL 5 passed、前端 25 tests/build/lint/typecheck、隔离 Chromium 10 passed。视频仍待审核，非正式计划；见 ADR-0022 |
 | DEMO-V2-16A | 合成视频核对与播放的工程契约 | DEMO-V2-15；现有权限/发布边界 | DONE | [契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md) 定义来源/权利/哈希、追加核对、发布快照、本人逐次授权和撤回；`check_handoff.py`、`git diff --check` 通过。仅设计，无素材或播放实现 |
 | DEMO-V2-16 | 视频核对与患者播放的合成实现 | DEMO-V2-16A；需有可核验来源/授权的非指导性合成视频文件 | BLOCKED | 按契约实现核对事件、固定素材发布、本人受保护播放及数据库/浏览器验收；无素材不得伪造“已审核”或播放。真实临床视频仍受 Q-15 阻断 |
+| DEMO-V2-17 | 合成卡片发布条件可见与重新检查 | DEMO-V2-15；不依赖视频 | DONE | 医护对象页从受保护 API 区分当前模拟同意、活跃患者绑定及读取失败；缺条件禁用新发布并给出重新检查入口，撤回不受影响。后端 54 passed/4 skipped、前端 27 tests/lint/typecheck/build、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-02 合成易用性子集 |
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 

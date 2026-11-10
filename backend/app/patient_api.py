@@ -3,7 +3,7 @@
 import uuid
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -49,6 +49,12 @@ class CardOptionView(BaseModel):
     title: str
 
 
+class PublicationReadinessView(BaseModel):
+    simulated_consent_granted: bool
+    active_patient_binding: bool
+    can_publish: bool
+
+
 class PatientHomeView(BaseModel):
     study_code: str
     publication: PublicationView | None = None
@@ -89,6 +95,34 @@ def card_options(
     audit(db, "read", "demo_patient_card_options", "allowed", auth.user.id, participant_id)
     db.commit()
     return [CardOptionView(code=code, title=title) for code, title in CARD_OPTIONS.items()]
+
+
+@router.get(
+    "/participants/{participant_id}/demo-patient-publication-readiness",
+    response_model=PublicationReadinessView,
+)
+def publication_readiness(
+    participant_id: uuid.UUID,
+    response: Response,
+    auth: AuthContext = Depends(current_auth),
+    db: Session = Depends(get_db),
+) -> PublicationReadinessView:
+    participant = authorized_participant(
+        db, auth, participant_id, action="read", allowed_roles={"clinician"},
+        audit_success=False,
+    )
+    if not participant.study_code.startswith("SYN-"):
+        raise HTTPException(status_code=403, detail="synthetic participant required")
+    consent = has_current_synthetic_consent(db, participant_id)
+    binding = active_binding(db, participant_id)
+    audit(db, "read", "demo_patient_publication_readiness", "allowed", auth.user.id, participant_id)
+    db.commit()
+    response.headers["Cache-Control"] = "no-store"
+    return PublicationReadinessView(
+        simulated_consent_granted=consent,
+        active_patient_binding=binding,
+        can_publish=consent and binding,
+    )
 
 
 @router.get("/patient/me", response_model=PatientHomeView)

@@ -399,6 +399,62 @@ def test_synthetic_patient_self_scope_and_revocation(seeded_api) -> None:
         )
 
 
+def test_synthetic_publication_readiness_is_scoped_and_current(seeded_api) -> None:
+    client, engine, ids = seeded_api
+    path = f"/api/v1/participants/{ids['assigned']}/demo-patient-publication-readiness"
+    assert client.get(path).status_code == 401
+    assert login(client).status_code == 200
+    empty = client.get(path)
+    assert empty.status_code == 200
+    assert empty.headers["cache-control"] == "no-store"
+    assert empty.json() == {
+        "simulated_consent_granted": False,
+        "active_patient_binding": False,
+        "can_publish": False,
+    }
+    assert client.get(
+        f"/api/v1/participants/{ids['same_study_unassigned']}/"
+        "demo-patient-publication-readiness"
+    ).status_code == 403
+    with Session(engine) as db:
+        db.add(ConsentRecord(
+            participant_id=ids["assigned"], document_version="SYN-V1",
+            purpose_code="SYN-DEMO", decision="granted", photo_scope=False,
+            recorded_by=ids["clinician"],
+        ))
+        db.commit()
+    consent_only = client.get(path).json()
+    assert consent_only == {
+        "simulated_consent_granted": True,
+        "active_patient_binding": False,
+        "can_publish": False,
+    }
+    with Session(engine) as db:
+        patient = User(
+            email="readiness-patient@example.org",
+            password_hash=password_hash.hash("synthetic-password-123"),
+            role="patient",
+        )
+        db.add(patient)
+        db.flush()
+        db.add(DemoPatientBinding(user_id=patient.id, participant_id=ids["assigned"]))
+        db.commit()
+    assert client.get(path).json()["can_publish"] is True
+    with Session(engine) as db:
+        db.add(ConsentRecord(
+            participant_id=ids["assigned"], document_version="SYN-V1",
+            purpose_code="SYN-DEMO", decision="withdrawn", photo_scope=False,
+            change_reason="SYN-WITHDRAW", recorded_by=ids["clinician"],
+        ))
+        db.commit()
+    assert client.get(path).json()["can_publish"] is False
+    with TestClient(app) as analyst_client, TestClient(app) as patient_client:
+        assert login(analyst_client, "analyst@example.org").status_code == 200
+        assert login(patient_client, "readiness-patient@example.org").status_code == 200
+        assert analyst_client.get(path).status_code == 403
+        assert patient_client.get(path).status_code == 403
+
+
 def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> None:
     _, engine, ids = seeded_api
     with Session(engine) as db:
