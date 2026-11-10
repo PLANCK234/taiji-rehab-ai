@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-10 DEMO-V2-15 可选择的合成患者测试卡片
+
+从干净 `f5abe1b` 建立 `codex/demo-patient-card-selection`。两张服务端固定且不可执行的合成卡片可由获对象授权的医护选择；页面要求明确确认本次仅用于演示，发布事件在 `0015_demo_patient_card_selection` 中追加选项代码与标题快照，旧发布行保持不变并显示原固定卡片标题。患者只见本人当前已发布的所选标题和固定非指导文字；撤回、模拟同意/活跃绑定/权限/版本/CSRF/幂等门禁不变。未知选项、缺少选择确认或额外视频地址被拒绝。视频仍为待审核占位，没有素材或审核结论；未复用 `DEMO_ONLY` 动作方案作为患者指导。见 [ADR-0022](decisions/0022-selectable-synthetic-patient-cards.md)。
+
+验证：后端 Ruff、pytest **53 passed / 4 skipped**；完整前端依赖 Docker 镜像 build/lint/typecheck/**25 tests**；一次性 PostgreSQL 迁移/API **5 passed**；隔离 PostgreSQL→FastAPI→Next→Chromium **10 passed**，含选卡片、患者本人查看和撤回，脚本确认临时容器/网络/镜像消失。本机原 `uv` 缓存和不完整 `node_modules` 运行失败，不作为通过证据；改用项目 `.venv` 与完整依赖镜像。共享本机合成演示库升级前备份为忽略目录 `exports/local-demo-pre-card-selection-20261110-232050.dump`（SHA-256 `CACBEBB4613DFE722A6FB98DBDB52E4EA70D6154D6DF7C18C301D9A940A64419`）；向前迁移到 `0015` 后对象 9、评估 4、发布历史 5，均与迁移前相同，登录 200/ready 成功。未运行 populated DB downgrade，未触碰 Research，未使用真实患者数据或发布真实计划。本地功能分支尚未推送；远端 CI 未验收。
+
 ## 2026-11-07 ENG-04G 早期失败的合成诊断附件
 
 审计发现 `scripts/run_eng04b_browser.py` 原在数据库、API 和前端启动后才创建 `exports/eng04b-*/`，早期构建/迁移/启动失败会让 CI 的 `if-no-files-found: ignore` 跳过附件。现在先以随机 ID 创建独立目录，再执行构建；失败时仅追加固定阶段名及 Python 错误类型到 `failure.txt`，不写命令、密码、页面或患者数据，并保留原异常与资源清理。脚本单测 **5 passed**、Ruff 通过；一次未提权的受控运行在 Docker buildx 权限处失败，确实生成 `exports/eng04b-ebdbf7b2d025/failure.txt`（仅 `build backend image` / `CalledProcessError`），资源清理核对成功；获准环境的完整隔离 PostgreSQL→Chromium **10 passed**，清理核对成功。[远端 Actions #26](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42374281253) 的 5 个作业均通过，脚本 5 tests、浏览器 10 passed、资源清理成功。既有 GitHub `upload-artifact` 在红色运行时是否实际上传仍未验证；绿色运行没有失败附件属预期。无业务 API、数据库、临床规则或原共享卷修改。

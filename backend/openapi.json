@@ -385,6 +385,24 @@
         "title": "AssignmentChange",
         "type": "object"
       },
+      "CardOptionView": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "title"
+        ],
+        "title": "CardOptionView",
+        "type": "object"
+      },
       "ConsentCreate": {
         "additionalProperties": false,
         "properties": {
@@ -1876,6 +1894,21 @@
       },
       "PublicationView": {
         "properties": {
+          "card_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Code"
+          },
+          "card_title": {
+            "title": "Card Title",
+            "type": "string"
+          },
           "marker": {
             "title": "Marker",
             "type": "string"
@@ -1907,13 +1940,31 @@
           "state",
           "marker",
           "message",
-          "video_status"
+          "video_status",
+          "card_code",
+          "card_title"
         ],
         "title": "PublicationView",
         "type": "object"
       },
       "PublicationWrite": {
+        "additionalProperties": false,
         "properties": {
+          "card_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "SYN-CARD-A",
+                  "SYN-CARD-B"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Code"
+          },
           "expected_version": {
             "minimum": 0.0,
             "title": "Expected Version",
@@ -1926,6 +1977,11 @@
             ],
             "title": "Operation",
             "type": "string"
+          },
+          "selection_confirmed": {
+            "default": false,
+            "title": "Selection Confirmed",
+            "type": "boolean"
           },
           "synthetic_only_acknowledged": {
             "const": true,
@@ -4312,6 +4368,50 @@
           }
         },
         "summary": "Revoke Patient Binding"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-patient-card-options": {
+      "get": {
+        "operationId": "card_options_api_v1_participants__participant_id__demo_patient_card_options_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CardOptionView"
+                  },
+                  "title": "Response Card Options Api V1 Participants  Participant Id  Demo Patient Card Options Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Card Options"
       }
     },
     "/api/v1/participants/{participant_id}/demo-patient-publications": {

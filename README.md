@@ -6,6 +6,8 @@
 
 > **双端产品方向（2026-11-05）**：已有合成患者账号、本人编号隔离和独立 `/patient` 入口、医护发布/撤回固定流程测试卡片，以及患者本人训练与不适事实记录、修订和授权工作人员只读查看。卡片没有可执行训练内容，视频仍待审核素材；自报记录不触发自动风险判断或处置。第一版目标仍是查看医护确认的本人计划和审核视频，并记录训练与不适；不自行填写评估量表或直接接收自动建议。真实患者使用仍待审批。见 [PRD](docs/product/PRD.md)、[ADR-0015](docs/decisions/0015-separate-patient-portal.md)、[ADR-0017](docs/decisions/0017-synthetic-patient-self-report.md)。
 
+> **DEMO-V2-15（2026-11-10）**：医护可从两张固定的无训练内容测试卡片中选择、确认演示用途后发布；合成患者只看到本人当前已发布的卡片标题。此确认不是临床审核，视频仍待审核且不可播放。本机共享合成演示站点已在备份后迁移到 `0015` 并部署此分支；临时外网网址未部署。
+
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
 
 **已可操作的合成纵向子流程**：工作人员登录→编码建档→演示资料追加更正与模拟同意→人工 SPPB 总分及复评→四种人工原始观察→对象页评估与训练观察序列→记录已发生训练观察→单独记录事件→录入/更正反馈→手工命名周期/访视、关联已有记录并查看关联训练详情→单对象编号化 CSV 下载。页面刷新后从 PostgreSQL 读取记录；入口在对象详情。训练观察序列显示当前完成状态、实际分钟及最新反馈 RPE，不计算没有计划分母的完成率。导出含模拟同意/筛查历史、原始观察、手工周期/访视、合成患者自报状态等结构化数据与修订历史，不含身份或自由文本，并附行数与哈希；它是实时 Demo 下载，**不是周期冻结快照**。周期归组不自动安排日程或改变训练观察；正式量表、真实人员身份管理、研究级冻结导出与真实数据准入仍未完成。合成工作人员管理见 `/admin`，默认不创建管理员。见 [ADR-0012](docs/decisions/0012-training-observation-before-cycle.md)、[ADR-0013](docs/decisions/0013-live-coded-demo-export.md)、[ADR-0021](docs/decisions/0021-observed-training-timeline-no-rate.md)。

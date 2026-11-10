@@ -11,7 +11,7 @@ import TrainingTimelineSection from "./training-timeline";
 import TrainingForms from "./training-forms";
 import { getSafetyEvents, getTrainingSessions, getTrainingTimeline } from "../../workspace/training";
 import { getDemoPlan } from "../../workspace/demo";
-import { getPublicationHistory } from "../../workspace/patient-publication";
+import { getPublicationHistory, getSyntheticCardOptions } from "../../workspace/patient-publication";
 import PublicationControls from "./publication-controls";
 import { activityText, discomfortText, getPatientReports } from "../../workspace/patient-reports";
 import { getCycles } from "../../workspace/cycles";
@@ -36,7 +36,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory, patientReports, cycles, profileHistory, trainingTimeline] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory, cardOptions, patientReports, cycles, profileHistory, trainingTimeline] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
@@ -45,6 +45,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
     getSafetyEvents(id, cookieHeader),
     getDemoPlan(id, cookieHeader),
     getPublicationHistory(id, cookieHeader),
+    getSyntheticCardOptions(id, cookieHeader),
     getPatientReports(cookieHeader, id),
     getCycles(id, cookieHeader),
     getDemoProfileHistory(id, cookieHeader),
@@ -62,7 +63,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <ProfileSection participantId={id} history={profileHistory} canWrite={canWrite} />
       <ManualObservations participantId={id} canWrite={canWrite && consents?.state === "granted"} />
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
-      <PublicationControls participantId={id} initialHistory={publicationHistory} canPublish={user.role === "clinician"} consentGranted={consents?.state === "granted"} />
+      <PublicationControls participantId={id} initialHistory={publicationHistory} cardOptions={cardOptions} canPublish={user.role === "clinician"} consentGranted={consents?.state === "granted"} />
       <section aria-labelledby="patient-reports-heading"><h2 id="patient-reports-heading">患者自报训练与不适</h2>
         <p className="note">仅显示合成患者本人填写的事实与修订历史；未提交不代表完成或无不适，系统不自动判定风险。</p>
         {patientReports === null ? <p>患者自报记录暂不可用。</p> : patientReports.length ? <ul>{patientReports.map((row) => <li key={row.id}>

@@ -127,6 +127,8 @@ class DemoPatientPublication(Base):
     version: Mapped[int] = mapped_column(nullable=False)
     state: Mapped[str] = mapped_column(String(20), nullable=False)
     marker: Mapped[str] = mapped_column(String(40), nullable=False)
+    card_code: Mapped[str | None] = mapped_column(String(40))
+    card_title: Mapped[str | None] = mapped_column(String(100))
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 

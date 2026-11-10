@@ -274,3 +274,9 @@
 从干净 `e899641` 继续，发现已有合成浏览器失败截图/trace，但附件目录在全部服务启动后才创建；构建、迁移或启动失败时 CI 的 `if-no-files-found: ignore` 可能跳过附件。脚本改为先建本次唯一目录，失败时写入不含命令/密码/页面数据的阶段与异常类型，原始错误和清理流程保留。单测 5 passed、Ruff 通过；未提权受控运行在 buildx 权限处失败，生成 `exports/eng04b-ebdbf7b2d025/failure.txt`，内容只有固定阶段和异常类型，清理核对通过；获准 Docker 环境的完整 Chromium 10 passed、清理核对通过。更新后的远端 CI 尚未运行，失败时 GitHub 上传动作也尚未直接验收；未改共享服务、数据卷或临床规则。
 
 远端补验：[Actions #26](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42374281253) 在 `9fae4c7` 上 5 个作业均成功，synthetic-browser 先运行 5 项单测，再运行 Chromium 10 项，资源清理日志成功且无失败附件。ENG-04G 的生成端与正常路径因此标记 DONE；红色运行的 GitHub 附件上传仍未直接验证。
+
+## 2026-11-10 DEMO-V2-15 选择合成患者测试卡片
+
+用户实操确认原固定测试卡片可发布但无法选择内容，并明确希望继续合成 Demo。先核对干净 `f5abe1b` 和 Q-03/09/15，建立 `codex/demo-patient-card-selection`。新增两张服务端白名单的非指导合成卡片、医护页面选择和明确演示确认、`0015` 发布事件标题快照、患者当前标题展示；旧无代码发布历史仍可读。后端拒绝未知卡片、未经确认选择及额外视频地址；原权限、模拟同意、活跃绑定、CSRF、版本、幂等、撤回和审计保留。没有视频素材、审核结论或正式训练计划。
+
+测试：后端 Ruff/53 passed、4 skipped；前端 Docker 完整依赖 build/lint/typecheck/25 tests；一次性 PostgreSQL 升级/API 5 passed；隔离 Chromium 10 passed 且临时资源清理成功。Windows 沙箱下 `uv` 缓存与本机不完整 `node_modules` 曾失败，改用项目 `.venv` 和镜像测试，不计为通过。共享本机合成库先 `pg_dump -Fc` 备份到 `exports/local-demo-pre-card-selection-20261110-232050.dump`（SHA-256 `CACBEBB4613DFE722A6FB98DBDB52E4EA70D6154D6DF7C18C301D9A940A64419`），再向前迁移 `0014→0015` 并部署新镜像；对象 9、评估 4、发布 5 行数不变，登录 200、ready 成功。未触碰 Research 或执行 populated downgrade；新分支未推送，远端 CI 未验收。下一患者任务 DEMO-V2-16 待合成视频素材及审核边界；真实患者与正式视频仍受审批。

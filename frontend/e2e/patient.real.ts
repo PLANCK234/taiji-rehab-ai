@@ -46,11 +46,14 @@ test("synthetic patient sees only own portal and loses access after binding revo
       return id;
     });
     await staffPage.goto(`/participants/${id}`);
+    await staffPage.getByLabel("选择演示卡片").selectOption("SYN-CARD-B");
+    await staffPage.getByRole("checkbox", { name: /确认本次选择/ }).check();
     await staffPage.getByRole("checkbox", { name: /合成流程测试/ }).check();
-    await staffPage.getByRole("button", { name: "发布测试卡片" }).click();
+    await staffPage.getByRole("button", { name: "发布所选测试卡片" }).click();
     await expect(staffPage.getByText(/合成卡片已发布/)).toBeVisible();
     await page.reload();
     await expect(page.getByText(/合成流程测试版本 1/)).toBeVisible();
+    await expect(page.getByText("当前卡片：演示卡片 B · 后续查看")).toBeVisible();
     await expect(page.getByText("视频待添加")).toBeVisible();
     await expect(page.getByText("尚未填写训练或不适记录；训练与不适状态均未知。")).toBeVisible();
     await page.getByLabel("发生时间").fill("2026-11-05T10:00");

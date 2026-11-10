@@ -10,6 +10,11 @@ from app.models import DemoPatientBinding, DemoPatientPublication
 MARKER = "SYNTHETIC_PROCESS_ONLY"
 MESSAGE = "合成发布流程测试卡片；没有可执行的训练计划。"
 VIDEO_STATUS = "awaiting_review"
+CARD_OPTIONS = {
+    "SYN-CARD-A": "演示卡片 A · 初次查看",
+    "SYN-CARD-B": "演示卡片 B · 后续查看",
+}
+LEGACY_CARD_TITLE = "原固定流程测试卡片"
 
 
 def active_binding(db: Session, participant_id: uuid.UUID) -> bool:

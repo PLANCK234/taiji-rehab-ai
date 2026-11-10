@@ -38,6 +38,7 @@ export default async function PatientPage() {
         <h2>训练计划与视频</h2>
         {home.publication ? <>
           <p role="status">合成流程测试版本 {home.publication.version} · 不可作为训练指导</p>
+          <p>当前卡片：{home.publication.card_title}</p>
           <p>{home.publication.message}</p>
           <div className="demo-video-frame"><div className="demo-video-empty" role="status">
             <span className="demo-video-icon" aria-hidden="true">▶</span>

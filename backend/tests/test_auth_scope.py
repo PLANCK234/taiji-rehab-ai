@@ -430,6 +430,14 @@ def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> Non
         assert login(patient_client, "demo-patient@example.org").status_code == 200
         assert staff.get(path).json() == []
         assert patient_client.get(path).status_code == 403
+        options_path = f"/api/v1/participants/{ids['assigned']}/demo-patient-card-options"
+        assert [row["code"] for row in staff.get(options_path).json()] == [
+            "SYN-CARD-A", "SYN-CARD-B"
+        ]
+        assert patient_client.get(options_path).status_code == 403
+        assert staff.get(
+            f"/api/v1/participants/{ids['same_study_unassigned']}/demo-patient-card-options"
+        ).status_code == 403
         payload = {
             "operation": "publish",
             "expected_version": 0,
@@ -452,6 +460,7 @@ def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> Non
         assert first.status_code == 201
         assert first.json()["version"] == 1
         assert first.json()["marker"] == "SYNTHETIC_PROCESS_ONLY"
+        assert first.json()["card_code"] is None
         assert staff.post(path, json=payload, headers=headers).json() == first.json()
         demo_path = f"/api/v1/participants/{ids['assigned']}/demo-plan"
         assert patient_client.get(demo_path).status_code == 403
@@ -472,13 +481,36 @@ def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> Non
         assert withdrawn.status_code == 201
         assert withdrawn.json()["version"] == 2
         assert patient_client.get("/api/v1/patient/me").json()["publication"] is None
+        assert staff.post(
+            path,
+            json={**payload, "expected_version": 2, "card_code": "SYN-CARD-A"},
+            headers={**headers, "Idempotency-Key": "synthetic-publish-no-confirm"},
+        ).status_code == 422
+        assert staff.post(
+            path,
+            json={
+                **payload, "expected_version": 2,
+                "card_code": "SYN-CARD-UNKNOWN", "selection_confirmed": True,
+            },
+            headers={**headers, "Idempotency-Key": "synthetic-publish-unknown-card"},
+        ).status_code == 422
+        assert staff.post(
+            path,
+            json={**payload, "expected_version": 2, "video_url": "https://example.org/demo.mp4"},
+            headers={**headers, "Idempotency-Key": "synthetic-publish-video-rejected"},
+        ).status_code == 422
         republished = staff.post(
             path,
-            json={**payload, "expected_version": 2},
+            json={
+                **payload, "expected_version": 2,
+                "card_code": "SYN-CARD-B", "selection_confirmed": True,
+            },
             headers={**headers, "Idempotency-Key": "synthetic-publish-0003"},
         )
         assert republished.status_code == 201
         assert republished.json()["version"] == 3
+        assert republished.json()["card_title"] == "演示卡片 B · 后续查看"
+        assert patient_client.get("/api/v1/patient/me").json()["publication"] == republished.json()
         assert [row["state"] for row in staff.get(path).json()] == [
             "published",
             "withdrawn",
@@ -513,7 +545,11 @@ def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> Non
         assert blocked_publish.status_code == 403
 
     with Session(engine) as db:
-        assert len(db.scalars(select(DemoPatientPublication)).all()) == 4
+        rows = db.scalars(
+            select(DemoPatientPublication).order_by(DemoPatientPublication.version)
+        ).all()
+        assert len(rows) == 4
+        assert [row.card_code for row in rows] == [None, None, "SYN-CARD-B", "SYN-CARD-B"]
         assert (
             db.scalar(
                 select(AuditEvent).where(

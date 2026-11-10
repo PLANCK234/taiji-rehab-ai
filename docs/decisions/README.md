@@ -24,5 +24,6 @@ Current proposals:
 - [ADR-0019](0019-opt-in-synthetic-staff-admin.md): opt-in synthetic staff administration with append-only changes and seed-safe revocation.
 - [ADR-0020](0020-synthetic-profile-revisions.md): append-only synthetic display profile corrections with explicit unknown legacy attribution.
 - [ADR-0021](0021-observed-training-timeline-no-rate.md): scoped synthetic training observation sequence with latest feedback and no invented completion rate.
+- [ADR-0022](0022-selectable-synthetic-patient-cards.md): two fixed non-actionable card choices with explicit demo confirmation and append-only selected-title snapshots; no clinical or video approval.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.
