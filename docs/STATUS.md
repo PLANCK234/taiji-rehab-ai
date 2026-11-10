@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-10 DEMO-V2-16A 合成视频工程契约
+
+核对 `ba9edf6` 的代码：患者页只显示“视频待添加”，API 固定返回 `video_status=awaiting_review`，仓库没有视频文件；现有 Docker 测试镜像虽有 Playwright 包，但 Chromium 可执行文件缺失，本机也未找到 ffmpeg。新增[合成视频核对与播放契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md)，界定素材来源/权利与哈希、实际观看、追加式合成核对、发布快照、患者逐次授权及撤回失效的下一实现标准。没有改应用代码、数据库或临床规则；没有素材、审核记录或可播放功能。DEMO-V2-16 实现继续等待可核验授权的非指导性合成视频，真实视频仍受 Q-15 阻断。文档门禁见本次 SESSION_LOG；本条不作为 AT-PAT-02 播放验收证据。
+
 ## 2026-11-10 DEMO-V2-15 可选择的合成患者测试卡片
 
 从干净 `f5abe1b` 建立 `codex/demo-patient-card-selection`。两张服务端固定且不可执行的合成卡片可由获对象授权的医护选择；页面要求明确确认本次仅用于演示，发布事件在 `0015_demo_patient_card_selection` 中追加选项代码与标题快照，旧发布行保持不变并显示原固定卡片标题。患者只见本人当前已发布的所选标题和固定非指导文字；撤回、模拟同意/活跃绑定/权限/版本/CSRF/幂等门禁不变。未知选项、缺少选择确认或额外视频地址被拒绝。视频仍为待审核占位，没有素材或审核结论；未复用 `DEMO_ONLY` 动作方案作为患者指导。见 [ADR-0022](decisions/0022-selectable-synthetic-patient-cards.md)。

@@ -5,7 +5,7 @@
 | 阅读顺序 | 文档 | 用途 |
 |---|---|---|
 | 1 | [PRD](product/PRD.md) / [范围](product/SCOPE.md) | 用户、关键流程、做与不做 |
-| Demo | [DEMO-V2 用户流程](product/DEMO_USER_FLOW.md) | 独立合成演示七步闭环与边界 |
+| Demo | [DEMO-V2 用户流程](product/DEMO_USER_FLOW.md) / [合成视频核对契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md) | 独立合成演示七步闭环、患者视频待实现边界 |
 | 2 | [验收矩阵](product/ACCEPTANCE.md) / [需求追踪](TRACEABILITY.md) | 可交付标准 |
 | 3 | [系统设计](architecture/SYSTEM_DESIGN.md) / [数据流](architecture/DATA_FLOW.md) | 模块边界 |
 | 4 | [数据模型](data/DATA_MODEL.md) / [字典](data/DATA_DICTIONARY.md) | 结构与完整性 |

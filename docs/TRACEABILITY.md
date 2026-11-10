@@ -35,6 +35,8 @@ When a feature is implemented, add links to actual source files, migrations, tes
 
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
+DEMO-V2-16A 对 AT-PAT-02 只有[工程契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md)与缺口核对：实际 `backend/app/patient_api.py` 固定 `awaiting_review`，`frontend/app/patient/page.tsx` 仍为待添加，仓库无视频文件。设计要求素材权利/哈希、实际观看、追加核对、发布快照及逐次本人授权；没有 API、播放器或临床审核验收证据。DEMO-V2-16 实现继续受素材依赖阻断。
+
 患者端方向见 [ADR-0015](decisions/0015-separate-patient-portal.md)、[ADR-0016](decisions/0016-synthetic-patient-publication-card.md)、[ADR-0017](decisions/0017-synthetic-patient-self-report.md)、[PRD](product/PRD.md)、[任务台账](TASKS.md) 与 [AT-PAT-01..03](product/ACCEPTANCE.md)。截至 2026-11-05，合成患者入口、不可执行卡片的发布/撤回和本人训练/不适事实录入、工作人员查看子集已实现；真实医护确认计划、审核视频与异常处置**未实现**，不得标为完整验收通过。
 
 | 验收 | 实现 | 证据与边界 |

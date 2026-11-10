@@ -280,3 +280,7 @@
 用户实操确认原固定测试卡片可发布但无法选择内容，并明确希望继续合成 Demo。先核对干净 `f5abe1b` 和 Q-03/09/15，建立 `codex/demo-patient-card-selection`。新增两张服务端白名单的非指导合成卡片、医护页面选择和明确演示确认、`0015` 发布事件标题快照、患者当前标题展示；旧无代码发布历史仍可读。后端拒绝未知卡片、未经确认选择及额外视频地址；原权限、模拟同意、活跃绑定、CSRF、版本、幂等、撤回和审计保留。没有视频素材、审核结论或正式训练计划。
 
 测试：后端 Ruff/53 passed、4 skipped；前端 Docker 完整依赖 build/lint/typecheck/25 tests；一次性 PostgreSQL 升级/API 5 passed；隔离 Chromium 10 passed 且临时资源清理成功。Windows 沙箱下 `uv` 缓存与本机不完整 `node_modules` 曾失败，改用项目 `.venv` 和镜像测试，不计为通过。共享本机合成库先 `pg_dump -Fc` 备份到 `exports/local-demo-pre-card-selection-20261110-232050.dump`（SHA-256 `CACBEBB4613DFE722A6FB98DBDB52E4EA70D6154D6DF7C18C301D9A940A64419`），再向前迁移 `0014→0015` 并部署新镜像；对象 9、评估 4、发布 5 行数不变，登录 200、ready 成功。未触碰 Research 或执行 populated downgrade；新分支未推送，远端 CI 未验收。下一患者任务 DEMO-V2-16 待合成视频素材及审核边界；真实患者与正式视频仍受审批。
+
+## 2026-11-10 DEMO-V2-16A 合成视频工程契约
+
+从干净 `ba9edf6` 核对：患者页只有视频待添加，API 固定 `awaiting_review`，仓库无视频文件。本机 `ffmpeg` 不在 PATH，项目 Python 环境无视频编码库；现有隔离测试镜像有 Playwright 包但缺 Chromium 可执行文件。新增合成素材来源/授权/哈希、实际观看、追加核对、发布快照、患者逐次授权和撤回失效的工程契约，更新验收与交接。没有改应用代码、数据库或临床规则，也没有宣称视频可播放。开始时 `check_handoff.py` 通过（66 Task ID）；最终文档检查与 Git 状态见本次提交。DEMO-V2-16 实现等待可核验授权的非指导性合成视频，正式视频仍受 Q-15 阻断。

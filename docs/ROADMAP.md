@@ -6,6 +6,8 @@
 
 新增患者端方向先按 [ADR-0015](decisions/0015-separate-patient-portal.md) 与 [任务台账](TASKS.md) 拆分：合成患者账号/本人隔离 → 医护确认计划的发布/撤回边界 → 经审核视频展示 → 患者训练与不适记录、医护查看。真实患者准入须独立完成临床、伦理、隐私及机构部署审批；不得直接复用 `DEMO_ONLY` 方案作为可执行计划。
 
+合成卡片选择/发布已实现；视频下一步依[DEMO-V2-16A 契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md)与实际可核验授权的非指导性素材推进。当前无视频文件，患者端只显示待添加；正式视频审核与真实患者使用继续等待 Q-15 等批准。
+
 REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01F0` adds single-object live Demo export; `REAL-01E0` adds manual synthetic cycle/visit grouping of existing observations. Approved visit scheduling, frozen datasets and Research activation remain separate. See [TASKS](TASKS.md), [ADR-0012](decisions/0012-training-observation-before-cycle.md) and [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md).
 
 | Stage | Deliverable | Prerequisite | Exit gate |
