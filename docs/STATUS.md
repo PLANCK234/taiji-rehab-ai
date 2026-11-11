@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-11 ENG-04H 红色远端附件上传实测
+
+从干净 `979cbf4` 建立 `codex/eng04h-failure-artifact`。本机 `run_eng04b_browser.py` 清理契约单测 **5 passed**，交接检查 **67 Task ID** 及本地链接通过。为核对此前未实测的 GitHub 失败附件上传，在 CI `synthetic-browser` 作业临时加入只生成两行合成诊断文字并退出 1 的受控探针，提交 `ec20180` 到功能分支。预期[红色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42936844446)中该作业失败，`Upload synthetic browser failure evidence` 步骤成功；GitHub 附件 `synthetic-browser-failure`（ID `13818941730`，233 字节，摘要 `sha256:e1f72b90142d56f2b0872d360b452c05f1cac377470cba857777ffedc84e3c47`）已下载核对：ZIP **仅含** `eng04b-eng04h-probe/failure.txt`，内容为 `stage: controlled upload probe` 与 `error_type: SyntheticProbe`。红色运行的其他四项作业通过；这不是自然浏览器故障，也不证明真实患者数据的附件安全。
+
+随后在 `fc95f45` 移除探针，最终 `.github/workflows/ci.yaml` 内容与任务前相同。[正常恢复运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42937146970) 五项作业全部通过，其中隔离 Chromium **10 passed**，日志确认本次容器、网络和镜像均已清理；成功路径的失败附件上传步骤按预期跳过。本次没有业务代码、数据库、临床规则或共享本机服务修改；仅推送此功能分支，未合并或推送 main。`ENG-04` 父任务继续 IN_PROGRESS，正式临床全链路仍受原审批阻断。
+
 ## 2026-11-11 DEMO-V2-17 合成发布条件提示
 
 从干净 `d029c12` 建立 `codex/demo-publication-readiness`。核对实际代码发现对象页已能选择两张非指导卡片，但缺模拟同意时发布按钮禁用原因不够清楚，缺活跃患者绑定时仅有笼统写入错误。新增仅限获分配医护的只读、审计、`no-store` 发布条件 API，分别返回当前模拟同意、活跃合成患者绑定及两者均满足的提示状态。对象页明确区分前提缺失与读取失败，提供完整刷新入口；新发布按钮据此禁用，撤回不受影响。真正发布仍按原服务端角色、对象、同意、绑定、CSRF、版本与幂等检查，页面提示不构成临床审批。没有视频、真实患者或数据库模型变更。

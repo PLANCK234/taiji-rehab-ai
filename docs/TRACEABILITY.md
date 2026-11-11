@@ -33,6 +33,8 @@
 
 When a feature is implemented, add links to actual source files, migrations, test names and CI run. **Do not mark complete solely because documents exist.**
 
+ENG-04H 为 CI 工程验收，不新增临床需求：`scripts/test_run_eng04b_browser.py` 本机 5 passed；[受控红色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42936844446) 的上传步骤成功，下载附件 `13818941730` 只含合成 `failure.txt`；[探针移除后的绿色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42937146970) 五作业通过，真实 Chromium 10 passed 且临时资源清理成功。最终工作流配置无永久变化。该证据覆盖失败附件上传路径，不等于真实患者数据可进入 CI。
+
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
 DEMO-V2-17 对 AT-PAT-02 合成发布易用性子集：`backend/app/patient_api.py` 只读条件投影、`backend/tests/test_auth_scope.py::test_synthetic_publication_readiness_is_scoped_and_current`、`frontend/app/participants/[id]/publication-controls.tsx` 及组件测试、`frontend/e2e/patient.real.ts`。本机后端 54 passed/4 skipped；隔离前端 27 tests/lint/typecheck/build；一次性 PostgreSQL→Chromium 10 passed 且临时资源清理成功。只验证操作提示与原发布门禁，不能代表临床计划或视频审核验收。

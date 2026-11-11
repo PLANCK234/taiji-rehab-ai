@@ -290,3 +290,9 @@
 从干净 `d029c12` 建立 `codex/demo-publication-readiness`。用户要求跳过视频继续完善；核对实际页面发现缺模拟同意时发布按钮禁用不够明确，缺活跃绑定时只给笼统错误。新增获分配医护的只读、审计、no-store 条件 API；对象页分别显示模拟同意与活跃合成患者绑定，读取失败单独提示，重新检查使用全页刷新。发布 POST 的原有权限/同意/绑定/CSRF/幂等/版本门禁未变，撤回仍可操作；视频、临床规则、数据库模型与共享数据卷未改。
 
 验证：Ruff 通过，后端 pytest 54 passed/4 skipped；本机前端缺 jsdom、@testing-library/react、@playwright/test，Vitest/typecheck 失败不算通过；复用完整依赖隔离镜像 lint/typecheck/27 tests/build 通过。一次性 PostgreSQL→FastAPI→Next→Chromium 10 passed，脚本核对临时容器/网络/镜像清理成功。本机合成站点仅重建前后端，/login 与 /ready 均 200。未推送或运行远端 CI；视频 DEMO-V2-16 仍待合成素材。
+
+## 2026-11-11 ENG-04H 红色远端附件上传验收
+
+从干净 `979cbf4` 建立 `codex/eng04h-failure-artifact`；本机浏览器清理契约 5 tests、交接检查 67 Task ID 通过。用临时工作流步骤生成仅两行合成文字的 `exports/eng04b-eng04h-probe/failure.txt` 并预期退出 1，提交 `ec20180` 到功能分支。[红色 Actions 42936844446](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42936844446) 中 synthetic-browser 作业按预期失败、附件上传步骤成功，其余四作业通过；下载附件 ID 13818941730 后核对 ZIP 只有 `eng04b-eng04h-probe/failure.txt`，内容为 `stage: controlled upload probe` 与 `error_type: SyntheticProbe`。附件摘要为 sha256:e1f72b90142d56f2b0872d360b452c05f1cac377470cba857777ffedc84e3c47；忽略目录 `exports/eng04h-probe.zip` 留作本机合成证据。
+
+`fc95f45` 移除探针，最终工作流与任务前相同。[正常 Actions 42937146970](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42937146970) 五作业均成功，真实 Chromium 10 passed，脚本确认本次容器、网络和镜像清理。未改业务代码、数据库或共享本机服务，未合并或推送 main；本分支已推送以运行测试。ENG-04 父任务仍进行中，正式临床流程受审批。
