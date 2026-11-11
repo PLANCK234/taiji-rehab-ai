@@ -69,11 +69,6 @@ jobs:
           python-version: '3.12'
       - name: Verify isolated browser cleanup contract
         run: python -m unittest discover -s scripts -p 'test_run_eng04b_browser.py'
-      - name: ENG-04H controlled synthetic upload probe
-        run: |
-          mkdir -p exports/eng04b-eng04h-probe
-          printf 'stage: controlled upload probe\nerror_type: SyntheticProbe\n' > exports/eng04b-eng04h-probe/failure.txt
-          exit 1
       - name: Run isolated synthetic PostgreSQL browser flow
         run: python scripts/run_eng04b_browser.py
       - name: Upload synthetic browser failure evidence
