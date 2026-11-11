@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-11 ENG-04J GitHub Actions Node.js 24 运行时
+
+核对上次远端 CI 的 Node.js 20 Action 弃用提示与各 Action 官方 `action.yml` 后，只将 `.github/workflows/ci.yaml` 的 `checkout` v4→v5、`setup-node` v4→v5、`setup-python` v5→v6、`setup-uv` v6→v7、失败附件 `upload-artifact` v4→v6。`setup-node` 显式设置 `package-manager-cache: false`，维持原来未开启的自动缓存；应用代码、临床规则、数据库及本机站点未改。工作流提交 `2ba611b04d5a2077091669a66ff2543c552b2c9d` 已推送至 `codex/demo-patient-report-order`，未合并 main。
+
+本地 `git diff --check` 和 `scripts/check_handoff.py` 通过；本机缺 PyYAML，未完成本地 YAML 解析。[远端 Actions 42954953230](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42954953230) 对该提交 `completed/success`，backend、frontend、synthetic-browser、ml、docs 五作业均通过：后端 58 passed、前端 33 tests、ML 4 passed、浏览器 10 passed、清理契约 5 tests，日志确认本次临时容器/网络/镜像已消失；五作业日志均无 Node.js 20 Action 弃用提示，附件为空。前端仍有 `punycode` 的 Node 弃用提示，与本项运行时提示不同。`upload-artifact@v6` 在绿色运行按条件跳过，升级后的红色上传尚未复验，列为 ENG-04K。合成工程验收不代表真实患者或临床批准。
+
 ## 2026-11-11 ENG-04I 最新合成双端分支远端 CI 验收
 
 从干净 `ce964bc` 的 `codex/demo-patient-report-order` 功能分支推送同名远端分支，仅为现有合成双端增量运行 CI；未合并或推送 main，也未改应用代码或工作流。对应[GitHub Actions 运行 42953445347](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42953445347) 的 `head_sha=ce964bc85b826f8c0da34c84df0dbf3ee44e1ab1`，整体 `completed/success`，backend、frontend、synthetic-browser、ml、docs 五作业全部成功。前端 33 tests，后端 58 passed；隔离浏览器 10 passed，清理契约 5 tests，日志确认一次性容器/网络/镜像已消失。成功路径没有失败附件。此证据只覆盖合成工程分支和该提交，不代表真实患者、临床规则或研究方案获批。

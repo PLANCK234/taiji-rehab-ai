@@ -332,3 +332,9 @@ Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离�
 从干净 `ce964bc` 的 `codex/demo-patient-report-order` 分支核对 origin 后，仅推送该功能分支以触发既有 GitHub Actions；未改源代码、工作流、main 或共享本机服务。远端同名分支此前不存在；推送的 commit 为 `ce964bc85b826f8c0da34c84df0dbf3ee44e1ab1`。
 
 [Actions 42953445347](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42953445347) 整体 completed/success，backend、frontend、synthetic-browser、ml、docs 五作业均成功；后端 58 passed、前端 33 tests、浏览器 10 passed、清理契约 5 tests。浏览器日志确认本次一次性容器、网络、镜像已消失，成功运行无失败附件。该证据只针对上述代码提交与合成数据，不代表正式临床或真实患者准入。本次验收文档检查点将保留在本地，是否同步以最终 Git 状态为准。
+
+## 2026-11-11 ENG-04J GitHub Actions Node.js 24 运行时维护
+
+在 `codex/demo-patient-report-order` 的干净检查点 `a42600f` 核对官方 `action.yml`：`checkout@v5`、`setup-node@v5`、`setup-python@v6`、`setup-uv@v7` 和 `upload-artifact@v6` 均声明 `node24`。只将工作流 Action 升级，`setup-node` 加 `package-manager-cache: false` 保持原缓存行为。工作流提交 `2ba611b` 已推送到该功能分支，未动 main。PyYAML 在本机缺失，本地 YAML 解析未运行；`git diff --check`、交接脚本通过。
+
+[Actions 42954953230](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42954953230) 对 `2ba611b` 完成且成功，五作业均通过；后端 58 passed、前端 33 tests、ML 4 passed、隔离浏览器 10 passed、清理契约 5 tests。本次临时容器/网络/镜像均已消失，五作业日志无 Node.js 20 Action 弃用提示。前端仍有 `punycode` 弃用提示。绿色运行按预期跳过失败附件上传，`upload-artifact@v6` 红色路径待 ENG-04K 复验。未改应用代码、本机站点、数据库或临床规则；本次文档检查点将保留在本地，以最终 Git 状态为准。

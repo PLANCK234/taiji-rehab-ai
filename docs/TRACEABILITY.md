@@ -37,6 +37,8 @@ ENG-04H 为 CI 工程验收，不新增临床需求：`scripts/test_run_eng04b_b
 
 ENG-04I 为最新合成双端分支的远端工程验收：[push 运行 42953445347](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42953445347) 与 `ce964bc` 一致，五作业成功；前端 33 tests、后端 58 passed、隔离 Chromium 10 passed、清理契约 5 tests，日志显示临时容器/网络/镜像消失，成功运行无失败附件。仅验证该合成分支提交，不扩展 AT-PAT-02/03 的临床或真实患者验收。
 
+ENG-04J 为同一合成工程门禁的运行时维护：[CI 工作流](../.github/workflows/ci.yaml) 的五种 Action 改用官方 Node.js 24 版本。[远端运行 42954953230](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42954953230) 对 `2ba611b` 五作业成功，后端 58、前端 33、ML 4、隔离浏览器 10 与清理契约 5 项通过，日志无 Node.js 20 Action 弃用提示且临时资源消失。成功运行跳过失败附件上传；`upload-artifact@v6` 红色路径待 ENG-04K 复验。此项不扩展临床/真实患者验收。
+
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
 DEMO-V2-22 对 AT-PAT-03 合成本人多记录展示子集：`frontend/app/patient/report-form.tsx` 将各报告当前修订按保存时间倒序稳定排列；`frontend/app/patient/report-form.test.tsx` 核对乱序多报告、提交更正及重新读取后的顺序和旧版归属；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中创建发生更早但保存更晚的第二报告，核对患者保存/刷新和工作人员端排序。隔离前端 lint/typecheck/build/33 tests、真实 Chromium 10 passed 且临时资源清理成功。无 API/数据库/临床或真实患者验收变化。

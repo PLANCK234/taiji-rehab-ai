@@ -2,6 +2,8 @@
 
 `ENG-04I` checks the cumulative synthetic patient/staff branch on GitHub Actions without changing the CI workflow. The push run must match the intended commit and finish with backend, frontend, ML, docs and synthetic-browser jobs successful; browser logs must show the cleanup contract, 10 real Chromium cases and disposal of only the run's containers, network and images. A successful run skips the failure-artifact upload. This remains synthetic engineering evidence, not real-patient or clinical approval.
 
+`ENG-04J` updates CI Action runtimes to Node.js 24 while keeping the same five jobs and disabling `setup-node@v5` automatic package-manager caching to preserve the previous behavior. Accept a run only when its SHA matches the workflow change, all five jobs pass, the browser cleanup evidence is present, and no job log contains a Node.js 20 Action deprecation annotation. A green run skips `upload-artifact@v6`; `ENG-04K` separately checks that failure-only upload with a controlled synthetic probe and restores the green workflow. The unrelated frontend `punycode` warning does not satisfy or fail this runtime check.
+
 ## Layers
 
 REAL-01D0 verification uses `backend/tests/test_training_observations.py` for feedback state/correction, idempotency, zero vs null, independent event and roles; `test_training_postgres.py` for committed rows after a new API session; `scripts/run_eng04_integration.py` for disposable PostgreSQL upgrade/check/downgrade/upgrade; and `frontend/e2e/training.real.ts` via `scripts/run_eng04b_browser.py` for real Chromium→Next→FastAPI→PostgreSQL persistence and scope. Browser test artifacts stay under ignored `exports/`. These cover D0 observation only, not protocol-bound training, clinical event disposition, cycles or export.
