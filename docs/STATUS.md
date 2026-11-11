@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-11 ENG-04I 最新合成双端分支远端 CI 验收
+
+从干净 `ce964bc` 的 `codex/demo-patient-report-order` 功能分支推送同名远端分支，仅为现有合成双端增量运行 CI；未合并或推送 main，也未改应用代码或工作流。对应[GitHub Actions 运行 42953445347](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42953445347) 的 `head_sha=ce964bc85b826f8c0da34c84df0dbf3ee44e1ab1`，整体 `completed/success`，backend、frontend、synthetic-browser、ml、docs 五作业全部成功。前端 33 tests，后端 58 passed；隔离浏览器 10 passed，清理契约 5 tests，日志确认一次性容器/网络/镜像已消失。成功路径没有失败附件。此证据只覆盖合成工程分支和该提交，不代表真实患者、临床规则或研究方案获批。
+
 ## 2026-11-11 DEMO-V2-22 患者端多条自报排序一致性
 
 从干净 `0067dc9` 建立 `codex/demo-patient-report-order`。患者端当前自报列表此前保留接口输入顺序，新保存则直接插到前面，未明确定义多条记录的稳定顺序。现在只展示各记录最高修订号，并按其保存时间倒序、同时间按报告 ID 稳定排序；更正后的列表和刷新后的列表使用同一规则，与医护端一致。旧版仍在原记录下按修订号倒序。仅合成患者展示与测试变化，API、数据库、权限和临床处置未变。隔离前端 lint/typecheck/**33 tests**/build 通过；一次性 PostgreSQL→FastAPI→Next→Chromium **10 passed**，含第二条较早发生但较晚保存的报告在患者保存/刷新及医护端排序，脚本确认临时容器/网络/镜像已清理。本机只重建原 Compose 前端，数据库卷与后端未动，`/login` 与 `/ready` 均 200。后端未改，远端 CI 未运行。

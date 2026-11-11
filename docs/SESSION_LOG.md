@@ -326,3 +326,9 @@ Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离�
 从干净 `0067dc9` 建立 `codex/demo-patient-report-order`。核对患者端多条自报沿接口原顺序展示，新保存直接前插，缺稳定排序规则。现以各记录当前修订的保存时间倒序排列，同时间按报告 ID 稳定排序；旧版继续归属原报告。合成患者与医护端排序含义一致，不把发生时间误作保存先后，也不改变写入、权限、数据库或临床处置。
 
 验证：隔离镜像前端 lint/typecheck/33 tests/build 通过；一次性 PostgreSQL→FastAPI→Next→Chromium 10 passed，包含发生较早但保存较晚的第二条报告在患者保存/刷新及医护端排序，脚本确认临时容器/网络/镜像清理；交接检查与差异检查见本次检查点。本机仅重建前端，`/login` 与 `/ready` 均 200，数据库卷保留。本分支未推送或运行远端 CI。视频继续待素材，真实患者审批不变。
+
+## 2026-11-11 ENG-04I 最新合成双端分支远端 CI 验收
+
+从干净 `ce964bc` 的 `codex/demo-patient-report-order` 分支核对 origin 后，仅推送该功能分支以触发既有 GitHub Actions；未改源代码、工作流、main 或共享本机服务。远端同名分支此前不存在；推送的 commit 为 `ce964bc85b826f8c0da34c84df0dbf3ee44e1ab1`。
+
+[Actions 42953445347](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42953445347) 整体 completed/success，backend、frontend、synthetic-browser、ml、docs 五作业均成功；后端 58 passed、前端 33 tests、浏览器 10 passed、清理契约 5 tests。浏览器日志确认本次一次性容器、网络、镜像已消失，成功运行无失败附件。该证据只针对上述代码提交与合成数据，不代表正式临床或真实患者准入。本次验收文档检查点将保留在本地，是否同步以最终 Git 状态为准。
