@@ -74,6 +74,12 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(page.getByText(/版本 2/)).toBeVisible();
     await page.reload();
     await expect(page.getByText(/版本 2/)).toBeVisible();
+    const previousReport = page.locator("details").filter({ hasText: "查看旧版本" });
+    await previousReport.locator("summary").click();
+    await expect(previousReport).toContainText("旧版本 1");
+    await expect(previousReport).toContainText("12 分钟");
+    await expect(previousReport).toContainText("自报有不适");
+    await expect(previousReport).toContainText("合成演示不适描述");
     await staffPage.reload();
     await expect(staffPage.getByText(/更正原因：SYN-SELF-CORRECTION/)).toBeVisible();
     const [download] = await Promise.all([

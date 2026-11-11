@@ -296,3 +296,9 @@
 从干净 `979cbf4` 建立 `codex/eng04h-failure-artifact`；本机浏览器清理契约 5 tests、交接检查 67 Task ID 通过。用临时工作流步骤生成仅两行合成文字的 `exports/eng04b-eng04h-probe/failure.txt` 并预期退出 1，提交 `ec20180` 到功能分支。[红色 Actions 42936844446](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42936844446) 中 synthetic-browser 作业按预期失败、附件上传步骤成功，其余四作业通过；下载附件 ID 13818941730 后核对 ZIP 只有 `eng04b-eng04h-probe/failure.txt`，内容为 `stage: controlled upload probe` 与 `error_type: SyntheticProbe`。附件摘要为 sha256:e1f72b90142d56f2b0872d360b452c05f1cac377470cba857777ffedc84e3c47；忽略目录 `exports/eng04h-probe.zip` 留作本机合成证据。
 
 `fc95f45` 移除探针，最终工作流与任务前相同。[正常 Actions 42937146970](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42937146970) 五作业均成功，真实 Chromium 10 passed，脚本确认本次容器、网络和镜像清理。未改业务代码、数据库或共享本机服务，未合并或推送 main；本分支已推送以运行测试。ENG-04 父任务仍进行中，正式临床流程受审批。
+
+## 2026-11-11 DEMO-V2-18 患者自报完整更正历史
+
+从干净 `7b27d5a` 建立 `codex/demo-patient-report-history`。实际患者历史原只对当前版本显示发生时间与时长，旧版本省略这些事实和更正原因。现将当前及旧修订分别展示发生时间、训练状态、时长或未知、不适及描述、保存时间和更正原因；旧修订按修订号倒序。仅变更患者端展示和测试，不改后端 API、数据库、视频、临床判断或异常处置。
+
+Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离镜像运行前端 lint/typecheck/28 tests/build，均通过；一次性 PostgreSQL→FastAPI→Next→Chromium 10 passed，包含患者更正后刷新并展开旧版本核对，脚本确认本次临时容器/网络/镜像清理。本机原 Compose 数据库卷保留并重建前端，/login 与 /ready 均 200。后端未修改，本分支未推送或运行远端 CI。下一患者视频任务 DEMO-V2-16 仍待素材，正式临床与真实患者审批未变。

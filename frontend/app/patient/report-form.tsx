@@ -4,6 +4,14 @@ import { useRef, useState } from "react";
 import { postIntake } from "../workspace/intake";
 import { activityText, discomfortText, type PatientReport } from "../workspace/patient-reports";
 
+function ReportFacts({ row }: { row: PatientReport }) {
+  return <>
+    发生时间：{new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""}
+    {row.change_reason ? ` · 更正原因：${row.change_reason}` : ""}
+    <br /><small>保存时间：{new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</small>
+  </>;
+}
+
 export default function PatientReportForm({ initialReports }: { initialReports: PatientReport[] | null }) {
   const [reports, setReports] = useState(initialReports);
   const [editing, setEditing] = useState<PatientReport | null>(null);
@@ -93,9 +101,9 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
       {message ? <p role="status">{message}</p> : null}
       <h3>本人记录历史</h3>
       {latest.length ? <ul>{latest.map((row) => <li key={row.report_id}>
-        {new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""} · 版本 {row.revision_no}
+        <p><strong>当前版本 {row.revision_no}</strong> · <ReportFacts row={row} /></p>
         <button type="button" onClick={() => edit(row)}>更正</button>
-        {row.revision_no > 1 ? <details><summary>查看旧版本</summary><ul>{reports.filter((old) => old.report_id === row.report_id && old.id !== row.id).map((old) => <li key={old.id}>版本 {old.revision_no} · {activityText[old.activity_state]} · {discomfortText[old.discomfort_state]}{old.discomfort_note ? `：${old.discomfort_note}` : ""}</li>)}</ul></details> : null}
+        {row.revision_no > 1 ? <details><summary>查看旧版本</summary><ul>{reports.filter((old) => old.report_id === row.report_id && old.id !== row.id).sort((a, b) => b.revision_no - a.revision_no).map((old) => <li key={old.id}><strong>旧版本 {old.revision_no}</strong> · <ReportFacts row={old} /></li>)}</ul></details> : null}
       </li>)}</ul> : <p>尚未填写训练或不适记录；训练与不适状态均未知。</p>}
     </>}
   </section>;

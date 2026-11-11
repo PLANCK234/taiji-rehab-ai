@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-11 DEMO-V2-18 患者自报完整更正历史
+
+从干净 `7b27d5a` 建立 `codex/demo-patient-report-history`。实际患者页面原先只对当前自报显示发生时间和实际时长，展开旧版本时只剩训练/不适状态及描述，患者难以核对更正前后的完整事实。现在当前和每条旧修订均显示各自的发生时间、训练状态、实际分钟或明确“时长未知”、不适状态及描述、保存时间和更正原因；旧版本按修订号由新到旧排序。只读取现有本人授权的追加式 API，未改变数据、权限、视频、临床判断或异常处置。
+
+验证：启动已安装但当时未运行的 Docker Desktop 后，用完整依赖隔离镜像运行前端 lint/typecheck/**28 tests**/build，均通过；末尾保存时间换行调整后定向组件 **1 passed**。一次性 PostgreSQL→FastAPI→Next→Chromium **10 passed**，患者用例含更正后刷新并展开核对旧版本的时长与不适，脚本确认本次容器/网络/镜像已清理。后端未修改，前一检查点的后端/远端基线见下文；本次不把它冒充新的后端测试结果。共享本机站点保留原 PostgreSQL 卷并重建最终前端，`/login` 与 `/ready` 均返回 200；未运行本新分支远端 CI。
+
 ## 2026-11-11 ENG-04H 红色远端附件上传实测
 
 从干净 `979cbf4` 建立 `codex/eng04h-failure-artifact`。本机 `run_eng04b_browser.py` 清理契约单测 **5 passed**，交接检查 **67 Task ID** 及本地链接通过。为核对此前未实测的 GitHub 失败附件上传，在 CI `synthetic-browser` 作业临时加入只生成两行合成诊断文字并退出 1 的受控探针，提交 `ec20180` 到功能分支。预期[红色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42936844446)中该作业失败，`Upload synthetic browser failure evidence` 步骤成功；GitHub 附件 `synthetic-browser-failure`（ID `13818941730`，233 字节，摘要 `sha256:e1f72b90142d56f2b0872d360b452c05f1cac377470cba857777ffedc84e3c47`）已下载核对：ZIP **仅含** `eng04b-eng04h-probe/failure.txt`，内容为 `stage: controlled upload probe` 与 `error_type: SyntheticProbe`。红色运行的其他四项作业通过；这不是自然浏览器故障，也不证明真实患者数据的附件安全。

@@ -19,6 +19,7 @@
 | DEMO-V2-16A | 合成视频核对与播放的工程契约 | DEMO-V2-15；现有权限/发布边界 | DONE | [契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md) 定义来源/权利/哈希、追加核对、发布快照、本人逐次授权和撤回；`check_handoff.py`、`git diff --check` 通过。仅设计，无素材或播放实现 |
 | DEMO-V2-16 | 视频核对与患者播放的合成实现 | DEMO-V2-16A；需有可核验来源/授权的非指导性合成视频文件 | BLOCKED | 按契约实现核对事件、固定素材发布、本人受保护播放及数据库/浏览器验收；无素材不得伪造“已审核”或播放。真实临床视频仍受 Q-15 阻断 |
 | DEMO-V2-17 | 合成卡片发布条件可见与重新检查 | DEMO-V2-15；不依赖视频 | DONE | 医护对象页从受保护 API 区分当前模拟同意、活跃患者绑定及读取失败；缺条件禁用新发布并给出重新检查入口，撤回不受影响。后端 54 passed/4 skipped、前端 27 tests/lint/typecheck/build、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-02 合成易用性子集 |
+| DEMO-V2-18 | 患者自报完整更正历史 | DEMO-V2-13；不依赖视频或临床判断 | DONE | 患者本人当前和旧版本均显示各自的发生时间、训练情况、实际时长或未知、不适及描述、保存时间和更正原因；旧版按修订号排序。前端 lint/typecheck/build/28 tests、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-03 合成可追溯子集 |
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 
