@@ -302,3 +302,9 @@
 从干净 `7b27d5a` 建立 `codex/demo-patient-report-history`。实际患者历史原只对当前版本显示发生时间与时长，旧版本省略这些事实和更正原因。现将当前及旧修订分别展示发生时间、训练状态、时长或未知、不适及描述、保存时间和更正原因；旧修订按修订号倒序。仅变更患者端展示和测试，不改后端 API、数据库、视频、临床判断或异常处置。
 
 Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离镜像运行前端 lint/typecheck/28 tests/build，均通过；一次性 PostgreSQL→FastAPI→Next→Chromium 10 passed，包含患者更正后刷新并展开旧版本核对，脚本确认本次临时容器/网络/镜像清理。本机原 Compose 数据库卷保留并重建前端，/login 与 /ready 均 200。后端未修改，本分支未推送或运行远端 CI。下一患者视频任务 DEMO-V2-16 仍待素材，正式临床与真实患者审批未变。
+
+## 2026-11-11 DEMO-V2-19 患者自报北京时间一致性
+
+从干净 `62dd00a` 建立 `codex/demo-patient-report-time`。核对发现历史展示固定北京时间，原更正预填和提交却依设备时区。表单现明确标注北京时间；更正预填与历史一致，新填时间按北京时间转换为带时区瞬时值，未改发生时间的更正保留原始秒数。仅前端和文档；已有行、API、数据库、权限、临床规则与视频状态均未改变。
+
+验证：隔离镜像前端 lint/typecheck/30 tests/build 通过，`TZ=America/Los_Angeles` 下定向组件 3 passed；一次性 PostgreSQL→FastAPI→Next→Chromium 10 passed，脚本核对本次临时容器/网络/镜像已清理；交接检查 70 Task ID 与链接通过，`git diff --check` 通过。本机仅重建前端，`/login` 与 `/ready` 均 200，原数据库卷保留。后端未改，本功能分支未推送或运行远端 CI。下一步可核对工作人员自报时间标注；视频 DEMO-V2-16 继续待素材，真实患者审批不变。

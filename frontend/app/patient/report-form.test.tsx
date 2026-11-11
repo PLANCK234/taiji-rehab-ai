@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
 import PatientReportForm from "./report-form";
 import type { PatientReport } from "../workspace/patient-reports";
+import { postIntake } from "../workspace/intake";
 
-afterEach(cleanup);
+vi.mock("../workspace/intake", () => ({ postIntake: vi.fn() }));
+afterEach(() => { cleanup(); vi.mocked(postIntake).mockReset(); });
 
 const first: PatientReport = {
   id: "revision-1", report_id: "report-1", participant_id: "synthetic-participant",
@@ -51,4 +53,26 @@ it("shows full current and previous synthetic facts in revision order", () => {
   expect(revisions[1]).toContain("10:00");
   expect(revisions[1]).toContain("时长未知");
   expect(revisions[1]).toContain("不适情况不清楚");
+});
+
+it("keeps Beijing observation time and exact instant when correcting without changing the time", async () => {
+  const report = { ...first, observed_at: "2026-11-05T02:00:42Z" };
+  vi.mocked(postIntake).mockResolvedValue({ status: 201, value: { ...report, revision_no: 2 } });
+  render(<PatientReportForm initialReports={[report]} />);
+  fireEvent.click(screen.getByRole("button", { name: "更正" }));
+  const input = screen.getByLabelText("发生时间（北京时间）") as HTMLInputElement;
+  expect(input.value).toBe("2026-11-05T10:00");
+  fireEvent.change(screen.getByLabelText("更正原因（以 SYN- 开头）"), { target: { value: "SYN-核对" } });
+  fireEvent.click(screen.getByRole("button", { name: "保存更正" }));
+  await waitFor(() => expect(postIntake).toHaveBeenCalled());
+  expect(vi.mocked(postIntake).mock.calls[0][1]).toMatchObject({ observed_at: report.observed_at });
+});
+
+it("submits a newly entered Beijing time as the matching UTC instant", async () => {
+  vi.mocked(postIntake).mockResolvedValue({ status: 201, value: first });
+  render(<PatientReportForm initialReports={[]} />);
+  fireEvent.change(screen.getByLabelText("发生时间（北京时间）"), { target: { value: "2026-11-05T10:00" } });
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await waitFor(() => expect(postIntake).toHaveBeenCalled());
+  expect(vi.mocked(postIntake).mock.calls[0][1]).toMatchObject({ observed_at: "2026-11-05T02:00:00.000Z" });
 });

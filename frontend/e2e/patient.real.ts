@@ -58,7 +58,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(page.getByText("当前卡片：演示卡片 B · 后续查看")).toBeVisible();
     await expect(page.getByText("视频待添加")).toBeVisible();
     await expect(page.getByText("尚未填写训练或不适记录；训练与不适状态均未知。")).toBeVisible();
-    await page.getByLabel("发生时间").fill("2026-11-05T10:00");
+    await page.getByLabel("发生时间（北京时间）").fill("2026-11-05T10:00");
     await page.getByLabel("实际训练情况").selectOption("performed");
     await page.getByLabel("实际时长（分钟，可留空表示未知）").fill("12");
     await page.getByLabel("不适情况").selectOption("reported");
@@ -68,6 +68,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await staffPage.reload();
     await expect(staffPage.getByText(/合成演示不适描述/)).toBeVisible();
     await page.getByRole("button", { name: "更正" }).click();
+    await expect(page.getByLabel("发生时间（北京时间）")).toHaveValue("2026-11-05T10:00");
     await page.getByLabel("不适情况").selectOption("none");
     await page.getByLabel("更正原因（以 SYN- 开头）").fill("SYN-SELF-CORRECTION");
     await page.getByRole("button", { name: "保存更正" }).click();

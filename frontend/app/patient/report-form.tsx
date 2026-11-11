@@ -4,11 +4,20 @@ import { useRef, useState } from "react";
 import { postIntake } from "../workspace/intake";
 import { activityText, discomfortText, type PatientReport } from "../workspace/patient-reports";
 
+function beijingFormTime(value: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const part = (type: string) => parts.find((item) => item.type === type)!.value;
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+}
+
 function ReportFacts({ row }: { row: PatientReport }) {
   return <>
-    发生时间：{new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""}
+    发生时间（北京时间）：{new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""}
     {row.change_reason ? ` · 更正原因：${row.change_reason}` : ""}
-    <br /><small>保存时间：{new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</small>
+    <br /><small>保存时间（北京时间）：{new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</small>
   </>;
 }
 
@@ -28,8 +37,7 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
 
   function edit(row: PatientReport) {
     setEditing(row);
-    const date = new Date(row.observed_at);
-    setObservedAt(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`);
+    setObservedAt(beijingFormTime(row.observed_at));
     setActivity(row.activity_state);
     setMinutes(row.actual_minutes?.toString() ?? "");
     setDiscomfort(row.discomfort_state);
@@ -52,7 +60,9 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
       editing ? `/patient/reports/${editing.report_id}` : "/patient/reports",
       {
         expected_revision: editing?.revision_no ?? 0,
-        observed_at: new Date(observedAt).toISOString(),
+        observed_at: editing && observedAt === beijingFormTime(editing.observed_at)
+          ? editing.observed_at
+          : new Date(`${observedAt}:00+08:00`).toISOString(),
         activity_state: activity,
         actual_minutes: activity === "performed" && minutes !== "" ? Number(minutes) : null,
         discomfort_state: discomfort,
@@ -85,7 +95,7 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
     {reports === null ? <p>记录暂不可用。</p> : <>
       <form onSubmit={submit} onChange={() => { key.current = ""; }}>
         <h3>{editing ? `更正记录 · 版本 ${editing.revision_no}` : "新增本人记录"}</h3>
-        <label>发生时间<input type="datetime-local" required value={observedAt} onChange={(event) => setObservedAt(event.target.value)} /></label>
+        <label>发生时间（北京时间）<input type="datetime-local" required value={observedAt} onChange={(event) => setObservedAt(event.target.value)} /></label>
         <label>实际训练情况<select value={activity} onChange={(event) => setActivity(event.target.value as PatientReport["activity_state"])}>
           <option value="unknown">不清楚／未说明</option><option value="performed">做了训练</option><option value="not_performed">没有训练</option>
         </select></label>
