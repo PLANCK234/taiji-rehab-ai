@@ -13,7 +13,8 @@ import { getSafetyEvents, getTrainingSessions, getTrainingTimeline } from "../..
 import { getDemoPlan } from "../../workspace/demo";
 import { getPublicationHistory, getPublicationReadiness, getSyntheticCardOptions } from "../../workspace/patient-publication";
 import PublicationControls from "./publication-controls";
-import { activityText, discomfortText, getPatientReports } from "../../workspace/patient-reports";
+import { getPatientReports } from "../../workspace/patient-reports";
+import StaffPatientReports from "./staff-patient-reports";
 import { getCycles } from "../../workspace/cycles";
 import CycleForms from "./cycle-forms";
 import ProfileSection from "./profile-section";
@@ -65,13 +66,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <ManualObservations participantId={id} canWrite={canWrite && consents?.state === "granted"} />
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
       <PublicationControls participantId={id} initialHistory={publicationHistory} cardOptions={cardOptions} readiness={publicationReadiness} canPublish={user.role === "clinician"} />
-      <section aria-labelledby="patient-reports-heading"><h2 id="patient-reports-heading">患者自报训练与不适</h2>
-        <p className="note">仅显示合成患者本人填写的事实与修订历史；未提交不代表完成或无不适，系统不自动判定风险。</p>
-        {patientReports === null ? <p>患者自报记录暂不可用。</p> : patientReports.length ? <ul>{patientReports.map((row) => <li key={row.id}>
-          发生时间（北京时间）：<time dateTime={row.observed_at}>{new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</time> · 版本 {row.revision_no} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""}{row.change_reason ? ` · 更正原因：${row.change_reason}` : ""}
-          <br /><small>保存时间（北京时间）：<time dateTime={row.recorded_at}>{new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</time></small>
-        </li>)}</ul> : <p>暂无患者自报；训练与不适状态未知。</p>}
-      </section>
+      <StaffPatientReports reports={patientReports} />
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">模拟同意记录</h2>
         {consents ? <>
