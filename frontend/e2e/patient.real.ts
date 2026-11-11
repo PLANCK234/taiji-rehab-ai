@@ -96,6 +96,20 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(staffCurrent.first().locator("details li")).toHaveCount(1);
     await expect(staffCurrent.first().locator("details li")).toContainText("旧版本 1");
     await expect(staffCurrent.first().locator("details li")).toContainText("合成演示不适描述");
+    await page.getByLabel("发生时间（北京时间）").fill("2026-11-04T09:00");
+    await page.getByLabel("实际训练情况").selectOption("not_performed");
+    await page.getByLabel("不适情况").selectOption("none");
+    await page.getByRole("button", { name: "保存记录" }).click();
+    const patientCurrent = page.locator('section[aria-labelledby="patient-report-heading"] > ul > li');
+    await expect(patientCurrent).toHaveCount(2);
+    await expect(patientCurrent.first()).toContainText("自报未训练");
+    await expect(patientCurrent.nth(1)).toContainText("当前版本 2");
+    await page.reload();
+    await expect(patientCurrent.first()).toContainText("自报未训练");
+    await expect(patientCurrent.nth(1)).toContainText("当前版本 2");
+    await staffPage.reload();
+    await expect(staffCurrent).toHaveCount(2);
+    await expect(staffCurrent.first()).toContainText("自报未训练");
     const [download] = await Promise.all([
       staffPage.waitForEvent("download"),
       staffPage.getByRole("link", { name: "下载编号化 CSV" }).click(),

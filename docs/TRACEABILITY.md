@@ -37,6 +37,8 @@ ENG-04H 为 CI 工程验收，不新增临床需求：`scripts/test_run_eng04b_b
 
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
+DEMO-V2-22 对 AT-PAT-03 合成本人多记录展示子集：`frontend/app/patient/report-form.tsx` 将各报告当前修订按保存时间倒序稳定排列；`frontend/app/patient/report-form.test.tsx` 核对乱序多报告、提交更正及重新读取后的顺序和旧版归属；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中创建发生更早但保存更晚的第二报告，核对患者保存/刷新和工作人员端排序。隔离前端 lint/typecheck/build/33 tests、真实 Chromium 10 passed 且临时资源清理成功。无 API/数据库/临床或真实患者验收变化。
+
 DEMO-V2-21 对 AT-PAT-03 合成工作人员追溯子集：`frontend/app/participants/[id]/staff-patient-reports.tsx` 以报告 ID 分组、最高修订为当前版并保留倒序旧版；`staff-patient-reports.test.tsx` 验证乱序多组、未知/零、不适与空/不可用，`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中更正后刷新、展开医护端旧版。前端 lint/typecheck/build/32 tests、真实 Chromium 10 passed 且临时资源清理成功。无 API/数据库/临床或真实患者验收变化。
 
 DEMO-V2-20 对 AT-PAT-03 合成工作人员查看子集：`frontend/app/participants/[id]/page.tsx` 对授权 API 返回的每条自报修订分别展示北京时间发生时间和保存时间；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中验证患者写入、更正和医护端两条修订的标签与时间。隔离前端 lint/typecheck/build/30 tests、真实 Chromium 10 passed，本次临时资源清理成功。权限/API/数据库与真实患者验收未变。

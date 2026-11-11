@@ -33,7 +33,8 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const key = useRef("");
-  const latest = reports?.filter((row) => !reports.some((other) => other.report_id === row.report_id && other.revision_no > row.revision_no)) ?? [];
+  const latest = reports?.filter((row) => !reports.some((other) => other.report_id === row.report_id && other.revision_no > row.revision_no))
+    .sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at) || a.report_id.localeCompare(b.report_id)) ?? [];
 
   function edit(row: PatientReport) {
     setEditing(row);
