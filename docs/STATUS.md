@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-11 DEMO-V2-23 合成双端演示操作说明
+
+核对 `frontend/app/participants/[id]/publication-controls.tsx`、患者页面/表单、`frontend/e2e/patient.real.ts` 及现有 PRD/验收后，新增[双端演示操作说明](product/PATIENT_DEMO_WALKTHROUGH.md)：本机准备、医护选择与发布测试卡片、患者查看/自报/更正、医护查阅/撤回，写明页面应出现的结果和按钮灰色时的检查点。文档明确合成卡片不是训练方案、视频仍待添加、自报不触发处置；没有改页面、API、临床规则或数据库。该任务只补操作说明，不将 AT-PAT-02/03 完整标准标为通过。`scripts/check_handoff.py` 通过（77 Task ID、本地链接完整），`git diff --check` 通过；代码测试未重跑，沿用 ENG-04K 的远端合成基线。
+
 ## 2026-11-11 ENG-04K Node.js 24 失败附件复验
 
 从干净 `4039eeb` 的 `codex/demo-patient-report-order` 继续；本地清理契约 5 tests、交接检查通过。在 `b392c21` 临时加入仅写两行合成诊断文字并退出 1 的探针。[红色运行 43029229695](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029229695) 的探针按预期失败、`upload-artifact@v6` 上传成功，其余四作业通过。下载附件 ID `13860666093` 后断言 ZIP 只有 `eng04b-eng04k-probe/failure.txt`，内容为 `stage: controlled upload probe` 和 `error_type: SyntheticProbe`；SHA-256 `a067f637ba29c765b5532b5f705a77ade2f47a91f83c64ae16fca842fcc3dc08` 与 GitHub 一致。合成证据保留在忽略目录 `exports/eng04k-probe.zip`。

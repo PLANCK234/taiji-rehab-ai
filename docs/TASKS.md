@@ -24,6 +24,7 @@
 | DEMO-V2-20 | 医护端自报发生/保存时间区分 | DEMO-V2-13/19；不依赖视频或临床判断 | DONE | 授权工作人员对象页为每条患者自报修订分别标明北京时间的发生与保存时间；前端 lint/typecheck/build/30 tests、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-03 合成查看子集 |
 | DEMO-V2-21 | 医护端患者自报修订分组 | DEMO-V2-13/20；不依赖视频或临床判断 | DONE | 按报告分组，最高修订当前版、旧版折叠倒序，各组按当前版保存时间排序；乱序与多组、未知与零、空/失败状态组件测试，前端 lint/typecheck/build/32 tests、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-03 合成追溯子集 |
 | DEMO-V2-22 | 患者端多条自报排序一致性 | DEMO-V2-18/21；不依赖视频或临床判断 | DONE | 本人当前记录按当前版保存时间倒序、同时间以报告 ID 稳定排序；乱序 API、保存/更正/重新读取保持一致。前端 lint/typecheck/build/33 tests、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-03 合成展示子集 |
+| DEMO-V2-23 | 合成医护与患者双端操作说明 | DEMO-V2-15/17/22；既有浏览器流程 | DONE | 按实际页面与 `patient.real.ts` 写医护选择/发布、患者查看/自报/更正、医护查阅/撤回的录屏步骤；链接、交接检查通过；AT-PAT-02/03 合成流程说明，不代表完整验收 |
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 

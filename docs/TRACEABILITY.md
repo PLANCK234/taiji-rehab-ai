@@ -103,3 +103,5 @@ ENG-04G（工程失败诊断）：[隔离浏览器脚本](../scripts/run_eng04b_
 DEMO-V2-15（AT-PAT-02 合成选择子集）：[ADR-0022](decisions/0022-selectable-synthetic-patient-cards.md)、[API](api/API_CONTRACT.md)、[数据模型](data/DATA_MODEL.md)、`backend/app/patient_api.py` 与 `0015` 增量迁移；`backend/tests/test_auth_scope.py::test_synthetic_publication_version_withdrawal_and_consent` 验证选项范围、无确认/未知代码/额外视频字段拒绝、追加快照、本人投影和撤回；`frontend/app/participants/[id]/publication-controls.test.tsx` 与 `frontend/e2e/patient.real.ts` 验证选择、显式演示确认、患者标题及撤回。2026-11-10 后端 53 passed/4 skipped、临时 PostgreSQL 5 passed、前端 Docker build/lint/typecheck/25 tests、隔离 Chromium 10 passed 且清理成功。视频审核、真实计划及正式 AT-PAT-02 仍未通过。
 
 ENG-04K（合成失败附件工程验收）：[红色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029229695) 对 `b392c21` 执行 `upload-artifact@v6` 成功，附件 13860666093 下载后仅含两行合成摘要，哈希一致；`713ef45` 移除探针后[正常运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029483196) 五作业通过，浏览器 10/清理契约 5、临时资源消失且附件为空。最终工作流无净变更，不扩展临床验收。
+
+DEMO-V2-23：[双端演示操作说明](product/PATIENT_DEMO_WALKTHROUGH.md) 对照 `frontend/e2e/patient.real.ts` 及实际医护/患者页面，记录 AT-PAT-02/03 已实现的合成发布、查看、自报、更正与撤回步骤。仅文档走查，不新增完整临床或真实患者验收。
