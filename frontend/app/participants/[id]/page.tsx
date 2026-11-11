@@ -68,7 +68,8 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <section aria-labelledby="patient-reports-heading"><h2 id="patient-reports-heading">患者自报训练与不适</h2>
         <p className="note">仅显示合成患者本人填写的事实与修订历史；未提交不代表完成或无不适，系统不自动判定风险。</p>
         {patientReports === null ? <p>患者自报记录暂不可用。</p> : patientReports.length ? <ul>{patientReports.map((row) => <li key={row.id}>
-          {new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · 版本 {row.revision_no} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""}{row.change_reason ? ` · 更正原因：${row.change_reason}` : ""}
+          发生时间（北京时间）：<time dateTime={row.observed_at}>{new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</time> · 版本 {row.revision_no} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""}{row.change_reason ? ` · 更正原因：${row.change_reason}` : ""}
+          <br /><small>保存时间（北京时间）：<time dateTime={row.recorded_at}>{new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</time></small>
         </li>)}</ul> : <p>暂无患者自报；训练与不适状态未知。</p>}
       </section>
       <section aria-labelledby="consent-heading">

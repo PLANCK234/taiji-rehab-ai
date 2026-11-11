@@ -67,6 +67,11 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(page.getByText(/合成记录已保存/)).toBeVisible();
     await staffPage.reload();
     await expect(staffPage.getByText(/合成演示不适描述/)).toBeVisible();
+    const staffReports = staffPage.locator('section[aria-labelledby="patient-reports-heading"]');
+    await expect(staffReports.locator("li")).toHaveCount(1);
+    await expect(staffReports.locator("li").first()).toContainText("发生时间（北京时间）");
+    await expect(staffReports.locator("li").first().locator("time").first()).toContainText("10:00");
+    await expect(staffReports.locator("li").first()).toContainText("保存时间（北京时间）");
     await page.getByRole("button", { name: "更正" }).click();
     await expect(page.getByLabel("发生时间（北京时间）")).toHaveValue("2026-11-05T10:00");
     await page.getByLabel("不适情况").selectOption("none");
@@ -83,6 +88,8 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(previousReport).toContainText("合成演示不适描述");
     await staffPage.reload();
     await expect(staffPage.getByText(/更正原因：SYN-SELF-CORRECTION/)).toBeVisible();
+    await expect(staffReports.locator("li")).toHaveCount(2);
+    await expect(staffReports.locator("li").first()).toContainText("保存时间（北京时间）");
     const [download] = await Promise.all([
       staffPage.waitForEvent("download"),
       staffPage.getByRole("link", { name: "下载编号化 CSV" }).click(),

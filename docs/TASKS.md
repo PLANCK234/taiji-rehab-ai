@@ -21,6 +21,7 @@
 | DEMO-V2-17 | 合成卡片发布条件可见与重新检查 | DEMO-V2-15；不依赖视频 | DONE | 医护对象页从受保护 API 区分当前模拟同意、活跃患者绑定及读取失败；缺条件禁用新发布并给出重新检查入口，撤回不受影响。后端 54 passed/4 skipped、前端 27 tests/lint/typecheck/build、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-02 合成易用性子集 |
 | DEMO-V2-18 | 患者自报完整更正历史 | DEMO-V2-13；不依赖视频或临床判断 | DONE | 患者本人当前和旧版本均显示各自的发生时间、训练情况、实际时长或未知、不适及描述、保存时间和更正原因；旧版按修订号排序。前端 lint/typecheck/build/28 tests、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-03 合成可追溯子集 |
 | DEMO-V2-19 | 患者自报北京时间一致性 | DEMO-V2-13/18；不依赖视频或临床判断 | DONE | 患者时间输入、历史展示、更正预填统一为北京时间；未改时间的更正保留原始秒数。前端 lint/typecheck/build/30 tests、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-03 合成时间子集 |
+| DEMO-V2-20 | 医护端自报发生/保存时间区分 | DEMO-V2-13/19；不依赖视频或临床判断 | DONE | 授权工作人员对象页为每条患者自报修订分别标明北京时间的发生与保存时间；前端 lint/typecheck/build/30 tests、隔离 PostgreSQL→Chromium 10 passed 且资源清理成功；AT-PAT-03 合成查看子集 |
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 

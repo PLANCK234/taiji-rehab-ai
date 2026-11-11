@@ -37,6 +37,8 @@ ENG-04H 为 CI 工程验收，不新增临床需求：`scripts/test_run_eng04b_b
 
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
 
+DEMO-V2-20 对 AT-PAT-03 合成工作人员查看子集：`frontend/app/participants/[id]/page.tsx` 对授权 API 返回的每条自报修订分别展示北京时间发生时间和保存时间；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中验证患者写入、更正和医护端两条修订的标签与时间。隔离前端 lint/typecheck/build/30 tests、真实 Chromium 10 passed，本次临时资源清理成功。权限/API/数据库与真实患者验收未变。
+
 DEMO-V2-19 对 AT-PAT-03 合成时间子集：`frontend/app/patient/report-form.tsx` 将北京时间明确用于输入、更正预填和历史展示，未改时间的更正保留原瞬时值；`frontend/app/patient/report-form.test.tsx` 核对预填、原始秒数与新记录 UTC 转换，`frontend/e2e/patient.real.ts` 核对实际浏览器更正预填。隔离前端 lint/typecheck/build/30 tests、一次性 PostgreSQL→Chromium 10 passed 且临时资源清理成功。无数据库/API/临床或真实患者验收变化。
 
 DEMO-V2-18 对 AT-PAT-03 的合成可追溯子集：`frontend/app/patient/report-form.tsx` 复用 API 中每条自报修订的完整事实；`frontend/app/patient/report-form.test.tsx` 核对乱序版本、零与未知、发生/保存时间及原因；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中更正、刷新并展开旧版本。隔离前端 lint/typecheck/build/28 tests、真实 Chromium 10 passed，本次临时资源清理成功。无新后端写入契约、临床判断或真实患者验收。
