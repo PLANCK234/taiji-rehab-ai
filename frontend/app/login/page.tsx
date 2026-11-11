@@ -1,12 +1,21 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const emailInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+
+  function selectDemoAccount(email: string) {
+    if (emailInput.current) emailInput.current.value = email;
+    if (passwordInput.current) passwordInput.current.value = "";
+    setError("");
+    passwordInput.current?.focus();
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,11 +47,19 @@ export default function LoginPage() {
       <div className="eyebrow">TAIJI · RESEARCH DEMO</div>
       <h1>太极康复研究平台</h1>
       <p>工作人员与患者登录 · 仅限合成数据演示</p>
+      <section aria-labelledby="demo-account-heading">
+        <h2 id="demo-account-heading">选择演示账号</h2>
+        <p className="note">选择后只会填入邮箱。密码是本机项目配置中的演示密码，不是电脑开机密码。</p>
+        <div className="button-row">
+          <button type="button" onClick={() => selectDemoAccount("demo-clinician-a@example.org")}>工作人员演示账号</button>
+          <button type="button" onClick={() => selectDemoAccount("demo-patient@example.org")}>患者演示账号</button>
+        </div>
+      </section>
       <form onSubmit={submit}>
         <label htmlFor="email">邮箱</label>
-        <input id="email" name="email" type="email" autoComplete="username" required />
+        <input ref={emailInput} id="email" name="email" type="email" autoComplete="username" required />
         <label htmlFor="password">密码</label>
-        <input id="password" name="password" type="password" autoComplete="current-password" required />
+        <input ref={passwordInput} id="password" name="password" type="password" autoComplete="current-password" required />
         <button type="submit" disabled={pending}>{pending ? "登录中…" : "登录"}</button>
         {error ? <p role="alert">{error}</p> : null}
       </form>

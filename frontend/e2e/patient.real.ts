@@ -6,7 +6,10 @@ if (!password) throw new Error("patient browser test requires synthetic E2E_PASS
 
 async function login(page: Page, email: string) {
   await page.goto("/login");
-  await page.getByLabel("邮箱").fill(email);
+  await page.getByRole("button", {
+    name: email === "demo-patient@example.org" ? "患者演示账号" : "工作人员演示账号",
+  }).click();
+  await expect(page.getByLabel("邮箱")).toHaveValue(email);
   await page.getByLabel("密码").fill(password!);
   await page.getByRole("button", { name: "登录", exact: true }).click();
 }
