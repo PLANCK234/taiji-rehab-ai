@@ -1,5 +1,11 @@
 # 实施状态
 
+## 2026-11-11 ENG-04K Node.js 24 失败附件复验
+
+从干净 `4039eeb` 的 `codex/demo-patient-report-order` 继续；本地清理契约 5 tests、交接检查通过。在 `b392c21` 临时加入仅写两行合成诊断文字并退出 1 的探针。[红色运行 43029229695](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029229695) 的探针按预期失败、`upload-artifact@v6` 上传成功，其余四作业通过。下载附件 ID `13860666093` 后断言 ZIP 只有 `eng04b-eng04k-probe/failure.txt`，内容为 `stage: controlled upload probe` 和 `error_type: SyntheticProbe`；SHA-256 `a067f637ba29c765b5532b5f705a77ade2f47a91f83c64ae16fca842fcc3dc08` 与 GitHub 一致。合成证据保留在忽略目录 `exports/eng04k-probe.zip`。
+
+`713ef45` 移除探针并推送，最终工作流与任务前完全相同。[恢复运行 43029483196](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029483196) 五作业全部成功；浏览器 10 passed、清理契约 5 tests，日志确认本次临时容器/网络/镜像消失，失败附件列表为空。该验收只证明受控合成失败下的上传，不证明真实数据附件安全。应用代码、本机站点和临床规则未修改，未合并 main；验收文档检查点保留本地，最终状态以 Git 为准。
+
 ## 2026-11-11 ENG-04J GitHub Actions Node.js 24 运行时
 
 核对上次远端 CI 的 Node.js 20 Action 弃用提示与各 Action 官方 `action.yml` 后，只将 `.github/workflows/ci.yaml` 的 `checkout` v4→v5、`setup-node` v4→v5、`setup-python` v5→v6、`setup-uv` v6→v7、失败附件 `upload-artifact` v4→v6。`setup-node` 显式设置 `package-manager-cache: false`，维持原来未开启的自动缓存；应用代码、临床规则、数据库及本机站点未改。工作流提交 `2ba611b04d5a2077091669a66ff2543c552b2c9d` 已推送至 `codex/demo-patient-report-order`，未合并 main。
