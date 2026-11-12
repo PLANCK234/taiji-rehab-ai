@@ -105,3 +105,5 @@ DEMO-V2-15（AT-PAT-02 合成选择子集）：[ADR-0022](decisions/0022-selecta
 ENG-04K（合成失败附件工程验收）：[红色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029229695) 对 `b392c21` 执行 `upload-artifact@v6` 成功，附件 13860666093 下载后仅含两行合成摘要，哈希一致；`713ef45` 移除探针后[正常运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029483196) 五作业通过，浏览器 10/清理契约 5、临时资源消失且附件为空。最终工作流无净变更，不扩展临床验收。
 
 DEMO-V2-23：[双端演示操作说明](product/PATIENT_DEMO_WALKTHROUGH.md) 对照 `frontend/e2e/patient.real.ts` 及实际医护/患者页面，记录 AT-PAT-02/03 已实现的合成发布、查看、自报、更正与撤回步骤。仅文档走查，不新增完整临床或真实患者验收。
+
+DEMO-V2-24（AT-PAT-01 合成易用性子集）：`frontend/app/login/page.tsx` 提供工作人员/患者演示账号选择，只预填固定邮箱并清除旧密码；`page.test.tsx` 验证切换与密码焦点，`frontend/e2e/patient.real.ts` 实际点击两种按钮。[远端 Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 五作业成功，前端 34 tests、隔离浏览器 10 passed 且资源清理；不改变认证或真实患者范围。

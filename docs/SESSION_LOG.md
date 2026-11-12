@@ -348,3 +348,7 @@ Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离�
 ## 2026-11-11 DEMO-V2-23 合成双端演示操作说明
 
 核对 `frontend/app/participants/[id]/publication-controls.tsx`、患者页面/表单、`frontend/e2e/patient.real.ts` 及现有 PRD/验收后，新增[双端演示操作说明](product/PATIENT_DEMO_WALKTHROUGH.md)：本机准备、医护选择与发布测试卡片、患者查看/自报/更正、医护查阅/撤回，写明页面应出现的结果和按钮灰色时的检查点。文档明确合成卡片不是训练方案、视频仍待添加、自报不触发处置；没有改页面、API、临床规则或数据库。该任务只补操作说明，不将 AT-PAT-02/03 完整标准标为通过。`scripts/check_handoff.py` 通过（77 Task ID、本地链接完整），`git diff --check` 通过；代码测试未重跑。
+
+## 2026-11-12 DEMO-V2-24 登录页合成账号快捷选择
+
+从 `376fc9c` 的干净功能分支继续。登录页新增工作人员/患者演示账号按钮，只预填固定合成邮箱；切换时清除密码、聚焦密码框并说明密码来自本机 `DEMO_PASSWORD`。新增组件测试；`patient.real.ts` 改为实际点击两个按钮再完成原双端流程。宿主机依赖不完整，Vitest/typecheck 未运行成功；针对性 ESLint、差异及交接检查通过。提交 `a59bd25` 已推送至 `codex/demo-patient-report-order`。[Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 五作业成功：前端 34、后端 58、ML 4、Chromium 10、清理契约 5，临时资源消失且无失败附件。未合并 main；无临床规则、数据库或真实患者范围变化。

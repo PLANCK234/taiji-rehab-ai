@@ -6,6 +6,8 @@
 
 > **双端产品方向（2026-11-05）**：已有合成患者账号、本人编号隔离和独立 `/patient` 入口、医护发布/撤回固定流程测试卡片，以及患者本人训练与不适事实记录、修订和授权工作人员只读查看。卡片没有可执行训练内容，视频仍待审核素材；自报记录不触发自动风险判断或处置。第一版目标仍是查看医护确认的本人计划和审核视频，并记录训练与不适；不自行填写评估量表或直接接收自动建议。真实患者使用仍待审批。见 [PRD](docs/product/PRD.md)、[ADR-0015](docs/decisions/0015-separate-patient-portal.md)、[ADR-0017](docs/decisions/0017-synthetic-patient-self-report.md)。
 
+> **登录演示（2026-11-12）**：登录页可选择工作人员或患者演示账号并自动填入对应邮箱；演示密码仍取本机 `.env` 的 `DEMO_PASSWORD`，不会自动填充，也不是电脑开机密码。
+
 > **DEMO-V2-15（2026-11-10）**：医护可从两张固定的无训练内容测试卡片中选择、确认演示用途后发布；合成患者只看到本人当前已发布的卡片标题。此确认不是临床审核，视频仍待审核且不可播放。本机共享合成演示站点已在备份后迁移到 `0015` 并部署此分支；临时外网网址未部署。
 
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
