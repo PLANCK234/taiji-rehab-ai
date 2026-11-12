@@ -352,3 +352,9 @@ Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离�
 ## 2026-11-12 DEMO-V2-24 登录页合成账号快捷选择
 
 从 `376fc9c` 的干净功能分支继续。登录页新增工作人员/患者演示账号按钮，只预填固定合成邮箱；切换时清除密码、聚焦密码框并说明密码来自本机 `DEMO_PASSWORD`。新增组件测试；`patient.real.ts` 改为实际点击两个按钮再完成原双端流程。宿主机依赖不完整，Vitest/typecheck 未运行成功；针对性 ESLint、差异及交接检查通过。提交 `a59bd25` 已推送至 `codex/demo-patient-report-order`。[Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 五作业成功：前端 34、后端 58、ML 4、Chromium 10、清理契约 5，临时资源消失且无失败附件。本机仅重建前端，保留后端/数据库，`/login`、`/ready` 均为 200 且 HTML 含新按钮和提示。未合并 main；无临床规则、数据库或真实患者范围变化。
+
+## 2026-11-13 DEMO-V2-25 登录密码显示与隐藏
+
+在登录页加入可访问的显示/隐藏密码按钮；切换演示账号会清空旧密码并恢复隐藏。扩展组件测试，认证与权限不变。针对性 ESLint、差异与交接检查通过；隔离 Docker 前端 lint/typecheck/34 tests/build、一次性 PostgreSQL→Chromium 10 passed，临时资源清理。本机前端已重建，`/login` 与 `/ready` 为 200。任务临时测试镜像已删除。
+
+`f54354f` 已推送；[Actions 43251807605](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43251807605) 五作业零步骤失败。连接器重跑返回 403 后，以空提交 `892137a` 重新触发；[43254096767](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43254096767) 同样零步骤失败且无日志。记录为外部 CI 阻断，没有反复重试或将其记作代码失败。未合并 main。
