@@ -351,4 +351,4 @@ Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离�
 
 ## 2026-11-12 DEMO-V2-24 登录页合成账号快捷选择
 
-从 `376fc9c` 的干净功能分支继续。登录页新增工作人员/患者演示账号按钮，只预填固定合成邮箱；切换时清除密码、聚焦密码框并说明密码来自本机 `DEMO_PASSWORD`。新增组件测试；`patient.real.ts` 改为实际点击两个按钮再完成原双端流程。宿主机依赖不完整，Vitest/typecheck 未运行成功；针对性 ESLint、差异及交接检查通过。提交 `a59bd25` 已推送至 `codex/demo-patient-report-order`。[Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 五作业成功：前端 34、后端 58、ML 4、Chromium 10、清理契约 5，临时资源消失且无失败附件。未合并 main；无临床规则、数据库或真实患者范围变化。
+从 `376fc9c` 的干净功能分支继续。登录页新增工作人员/患者演示账号按钮，只预填固定合成邮箱；切换时清除密码、聚焦密码框并说明密码来自本机 `DEMO_PASSWORD`。新增组件测试；`patient.real.ts` 改为实际点击两个按钮再完成原双端流程。宿主机依赖不完整，Vitest/typecheck 未运行成功；针对性 ESLint、差异及交接检查通过。提交 `a59bd25` 已推送至 `codex/demo-patient-report-order`。[Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 五作业成功：前端 34、后端 58、ML 4、Chromium 10、清理契约 5，临时资源消失且无失败附件。本机仅重建前端，保留后端/数据库，`/login`、`/ready` 均为 200 且 HTML 含新按钮和提示。未合并 main；无临床规则、数据库或真实患者范围变化。

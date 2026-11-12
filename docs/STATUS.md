@@ -4,7 +4,7 @@
 
 登录页新增“工作人员演示账号”和“患者演示账号”按钮，只把固定合成邮箱填入原邮箱框；选择或切换账号时清空旧密码并聚焦密码输入。页面明确密码来自本机项目配置，不是电脑开机密码。认证请求、角色跳转、服务端权限和种子密码均未改变。新增组件测试，并让现有患者真实浏览器用例实际点击两个按钮后继续发布、自报、更正、医护查看及撤回流程。
 
-宿主机 pnpm 因现有依赖目录与工具链不一致，在非交互环境拒绝重装；直接运行 Vitest/typecheck 又确认本机缺 `jsdom`、Testing Library 和 Playwright，未记作通过。针对性 ESLint、`git diff --check` 和交接检查通过。[远端 Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 对 `a59bd25` 五作业成功：前端 34 tests、后端 58 passed、ML 4 passed、隔离 Chromium 10 passed、清理契约 5 tests；日志确认临时容器/网络/镜像消失，失败附件为空。仅合成登录易用性子集，不扩展真实患者准入。
+宿主机 pnpm 因现有依赖目录与工具链不一致，在非交互环境拒绝重装；直接运行 Vitest/typecheck 又确认本机缺 `jsdom`、Testing Library 和 Playwright，未记作通过。针对性 ESLint、`git diff --check` 和交接检查通过。[远端 Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 对 `a59bd25` 五作业成功：前端 34 tests、后端 58 passed、ML 4 passed、隔离 Chromium 10 passed、清理契约 5 tests；日志确认临时容器/网络/镜像消失，失败附件为空。本机只重建前端容器，保留后端和数据库；`/login` 与 `/ready` 返回 200，登录页实际 HTML 包含两个账号按钮和密码提示。仅合成登录易用性子集，不扩展真实患者准入。
 
 ## 2026-11-11 DEMO-V2-23 合成双端演示操作说明
 
