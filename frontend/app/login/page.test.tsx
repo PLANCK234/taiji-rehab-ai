@@ -21,9 +21,15 @@ describe("demo login account selection", () => {
     expect(document.activeElement).toBe(password);
 
     fireEvent.change(password, { target: { value: "local-demo-secret" } });
+    fireEvent.click(screen.getByRole("button", { name: "显示密码" }));
+    expect(password.type).toBe("text");
+    expect(screen.getByRole("button", { name: "隐藏密码" }).getAttribute("aria-pressed")).toBe("true");
+
     fireEvent.click(screen.getByRole("button", { name: "患者演示账号" }));
     expect(email.value).toBe("demo-patient@example.org");
     expect(password.value).toBe("");
+    expect(password.type).toBe("password");
+    expect(screen.getByRole("button", { name: "显示密码" }).getAttribute("aria-pressed")).toBe("false");
     expect(screen.getByText(/不是电脑开机密码/)).toBeTruthy();
   });
 });

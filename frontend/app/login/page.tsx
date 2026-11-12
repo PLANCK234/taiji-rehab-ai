@@ -9,10 +9,12 @@ export default function LoginPage() {
   const passwordInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   function selectDemoAccount(email: string) {
     if (emailInput.current) emailInput.current.value = email;
     if (passwordInput.current) passwordInput.current.value = "";
+    setShowPassword(false);
     setError("");
     passwordInput.current?.focus();
   }
@@ -59,7 +61,14 @@ export default function LoginPage() {
         <label htmlFor="email">邮箱</label>
         <input ref={emailInput} id="email" name="email" type="email" autoComplete="username" required />
         <label htmlFor="password">密码</label>
-        <input ref={passwordInput} id="password" name="password" type="password" autoComplete="current-password" required />
+        <input ref={passwordInput} id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" required />
+        <button
+          type="button"
+          className="text-button"
+          aria-controls="password"
+          aria-pressed={showPassword}
+          onClick={() => setShowPassword((current) => !current)}
+        >{showPassword ? "隐藏密码" : "显示密码"}</button>
         <button type="submit" disabled={pending}>{pending ? "登录中…" : "登录"}</button>
         {error ? <p role="alert">{error}</p> : null}
       </form>
