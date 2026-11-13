@@ -6,7 +6,7 @@
 
 针对性 ESLint、`git diff --check`、交接检查通过。隔离 Docker 前端 lint/typecheck/**34 tests**/build 全部通过；一次性 PostgreSQL→FastAPI→Next→Chromium **10 passed**，含患者与工作人员账号选择后的完整双端流程，脚本确认临时容器/网络/镜像消失。任务创建的 `taiji-login-test:demov225` 镜像已精确核对并删除。本机只重建前端，保留后端和数据库；`/login`、`/ready` 均为 200，HTML 可见新控件。
 
-功能提交 `f54354f` 与无文件改动的 CI 重试提交 `892137a` 已推送至当前功能分支。远端运行 [43251807605](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43251807605) 和重试 [43254096767](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43254096767) 都在五作业任何步骤启动前同时失败，步骤为空且无日志；连接器重跑接口另返回 403。故本任务以完整本机隔离证据验收，远端 CI 保持外部阻断，不声明远端通过。
+功能提交 `f54354f` 与无文件改动的 CI 重试提交 `892137a` 已推送至当前功能分支。远端运行 [43251807605](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43251807605) 和重试 [43254096767](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43254096767) 都在五作业任何步骤启动前同时失败，步骤为空且无日志；连接器重跑接口另返回 403。2026-11-13 读取 `backend` check-run annotations 后确认 GitHub 原文为 `The job was not started because your account is locked due to a billing issue.`；Ubuntu 26 迁移仅为 notice。故本任务以完整本机隔离证据验收，远端 CI 属账户账单锁定造成的外部阻断，不声明远端通过，也不再以空提交重试。
 
 ## 2026-11-12 DEMO-V2-24 登录页合成账号快捷选择
 
