@@ -14,6 +14,8 @@ DEMO-V2-27 已把患者入口的无有效绑定、会话失效和服务故障分
 
 DEMO-V2-28 已为无有效绑定和服务故障状态补充只读重新检查操作；它只重新执行服务端页面读取，不写入或恢复任何绑定，也不改变授权边界。
 
+DEMO-V2-29 已为患者自报读取故障补充同样的只读重新检查操作；失败时不把不可用误作空记录，也不展示可写表单，正常空记录继续保持“未知”语义。
+
 REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01F0` adds single-object live Demo export; `REAL-01E0` adds manual synthetic cycle/visit grouping of existing observations. Approved visit scheduling, frozen datasets and Research activation remain separate. See [TASKS](TASKS.md), [ADR-0012](decisions/0012-training-observation-before-cycle.md) and [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md).
 
 | Stage | Deliverable | Prerequisite | Exit gate |

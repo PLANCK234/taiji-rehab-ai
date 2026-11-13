@@ -30,6 +30,7 @@
 | DEMO-V2-26 | 中文角色与当前账号提示 | DEMO-V2-11/24；不依赖视频、临床规则或远端 CI | DONE | 工作台、患者入口与管理员页显示服务端邮箱和中文角色；授权下拉标签中文化但值不变，未知角色原样显示。隔离前端 lint/typecheck/36 tests/build；首轮浏览器 9 passed/1 测试选择器失败，修正后 10 passed 且临时资源清理；远端 CI 仍受账户账单锁定阻断 |
 | DEMO-V2-27 | 患者入口无法访问原因区分 | DEMO-V2-11/26；既有 `/patient/me` 状态契约 | DONE | 403 显示无有效本人绑定，401 返回登录，5xx/其他/网络异常显示服务暂不可用；正常患者空间不变。隔离前端 lint/typecheck/40 tests/build、PostgreSQL→Chromium 10 passed 且临时资源清理；无权限或临床规则变更 |
 | DEMO-V2-28 | 患者入口状态重新检查 | DEMO-V2-27；不依赖视频、临床规则或远端 CI | DONE | 无有效绑定与服务不可用状态分别提供重新检查按钮，仅触发服务端页面刷新；正常状态不显示，按钮不恢复绑定或修改授权。隔离前端 lint/typecheck/41 tests/build、PostgreSQL→Chromium 10 passed 且临时资源清理 |
+| DEMO-V2-29 | 患者自报读取失败重新检查 | DEMO-V2-13/28；不依赖视频、临床规则或远端 CI | DONE | 自报读取失败时不显示表单/历史并提供重新检查记录，正常空记录不显示重试；只刷新服务端页面，不写事实或改变权限。隔离前端 lint/typecheck/42 tests/build、PostgreSQL→Chromium 10 passed 且临时资源清理 |
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { postIntake } from "../workspace/intake";
 import { activityText, discomfortText, type PatientReport } from "../workspace/patient-reports";
+import RetryPatientHomeButton from "./retry-button";
 
 function beijingFormTime(value: string) {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -93,7 +94,10 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
   return <section aria-labelledby="patient-report-heading">
     <h2 id="patient-report-heading">训练与不适记录</h2>
     <p className="note">仅供合成数据流程试用。请记录已经发生的事实；没有记录时状态未知。此页面不提供紧急响应或临床判断。</p>
-    {reports === null ? <p>记录暂不可用。</p> : <>
+    {reports === null ? <div>
+      <p>训练与不适记录暂时无法读取。</p>
+      <RetryPatientHomeButton label="重新检查记录" />
+    </div> : <>
       <form onSubmit={submit} onChange={() => { key.current = ""; }}>
         <h3>{editing ? `更正记录 · 版本 ${editing.revision_no}` : "新增本人记录"}</h3>
         <label>发生时间（北京时间）<input type="datetime-local" required value={observedAt} onChange={(event) => setObservedAt(event.target.value)} /></label>

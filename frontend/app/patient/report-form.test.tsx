@@ -7,7 +7,15 @@ import type { PatientReport } from "../workspace/patient-reports";
 import { postIntake } from "../workspace/intake";
 
 vi.mock("../workspace/intake", () => ({ postIntake: vi.fn() }));
-afterEach(() => { cleanup(); vi.mocked(postIntake).mockReset(); });
+const navigation = vi.hoisted(() => ({ refresh: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: navigation.refresh }),
+}));
+afterEach(() => {
+  cleanup();
+  vi.mocked(postIntake).mockReset();
+  navigation.refresh.mockClear();
+});
 
 const first: PatientReport = {
   id: "revision-1", report_id: "report-1", participant_id: "synthetic-participant",
@@ -17,6 +25,14 @@ const first: PatientReport = {
   change_reason: null, recorded_by: "synthetic-patient",
   recorded_at: "2026-11-05T02:05:00Z",
 };
+
+it("offers a read-only recheck when reports are unavailable", () => {
+  render(<PatientReportForm initialReports={null} />);
+  expect(screen.getByText("训练与不适记录暂时无法读取。")).toBeTruthy();
+  expect(screen.queryByRole("heading", { name: "新增本人记录" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "重新检查记录" }));
+  expect(navigation.refresh).toHaveBeenCalledOnce();
+});
 
 it("shows full current and previous synthetic facts in revision order", () => {
   const second: PatientReport = {

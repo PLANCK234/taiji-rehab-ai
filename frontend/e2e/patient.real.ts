@@ -20,6 +20,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
   await expect(page.getByText("当前账号：demo-patient@example.org（患者）")).toBeVisible();
   await expect(page.getByText("我的演示编号：SYN-001")).toBeVisible();
   await expect(page.getByText("目前没有经医护确认并发布给此账号的计划或视频。")).toBeVisible();
+  await expect(page.getByRole("button", { name: "重新检查记录" })).toHaveCount(0);
   await page.goto("/workspace");
   await expect(page).toHaveURL(/\/patient$/);
   const forbidden = await page.evaluate(async () => (await fetch("/api/v1/participants")).status);

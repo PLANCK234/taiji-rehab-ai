@@ -4,6 +4,8 @@
 
 DEMO-V2-28 对 AT-PAT-01 合成恢复操作子集：`frontend/app/patient/retry-button.tsx` 只调用 `router.refresh()`，`retry-button.test.tsx` 验证点击刷新，`frontend/app/patient/page.tsx` 仅在绑定不可用或服务不可用状态显示相应按钮，`frontend/e2e/patient.real.ts` 在绑定撤销后点击并核对拒绝状态保持。隔离前端 lint/typecheck/build/41 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、绑定、权限或真实患者验收变化。
 
+DEMO-V2-29 对 AT-PAT-03 合成读取故障子集：`frontend/app/patient/report-form.tsx` 在自报读取失败时隐藏表单/历史并复用只读重新检查组件；`report-form.test.tsx` 验证提示、隐藏表单和刷新，`frontend/e2e/patient.real.ts` 验证正常患者流程不出现失败按钮。隔离前端 lint/typecheck/build/42 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、自报写入、权限、临床判断或异常处置变化。
+
 | Requirement | Design | Tests | Sprint | State |
 |---|---|---|---|---|
 | Sprint 0 bootstrap | `frontend/`, `backend/`, `infra/compose.yaml`, README | frontend lint/typecheck/test/build; backend Ruff/pytest; migration up/down; HTTP smoke | 0 | local verified 2026-10-30; remote CI pending |
