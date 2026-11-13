@@ -6,6 +6,7 @@ import { getPatientReports } from "../workspace/patient-reports";
 import PatientReportForm from "./report-form";
 import { roleLabel } from "../workspace/role-label";
 import { readPatientHome } from "./home";
+import RetryPatientHomeButton from "./retry-button";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +41,17 @@ export default async function PatientPage() {
       </section>
       <PatientReportForm initialReports={reports} />
     </> : homeResult.kind === "binding_unavailable" ? (
-      <section><h2>演示编号不可用</h2><p>此患者账号当前没有有效的演示编号绑定，可能尚未绑定或绑定已撤销。</p></section>
+      <section>
+        <h2>演示编号不可用</h2>
+        <p>此患者账号当前没有有效的演示编号绑定，可能尚未绑定或绑定已撤销。</p>
+        <RetryPatientHomeButton label="重新检查绑定" />
+      </section>
     ) : (
-      <section><h2>服务暂不可用</h2><p>患者空间暂时无法连接服务，请稍后刷新重试。</p></section>
+      <section>
+        <h2>服务暂不可用</h2>
+        <p>患者空间暂时无法连接服务，请稍后刷新重试。</p>
+        <RetryPatientHomeButton label="重新检查服务" />
+      </section>
     )}
     <LogoutButton />
   </main>;

@@ -144,4 +144,6 @@ test("synthetic patient sees only own portal and loses access after binding revo
   await login(page, "demo-patient@example.org");
   await expect(page.getByRole("heading", { name: "演示编号不可用" })).toBeVisible();
   await expect(page.getByText("此患者账号当前没有有效的演示编号绑定，可能尚未绑定或绑定已撤销。")).toBeVisible();
+  await page.getByRole("button", { name: "重新检查绑定" }).click();
+  await expect(page.getByRole("heading", { name: "演示编号不可用" })).toBeVisible();
 });
