@@ -1,15 +1,15 @@
 # 当前交接检查点
 
-更新时间：2026-11-13 北京时间（DEMO-V2-26 检查点）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
+更新时间：2026-11-13 北京时间（DEMO-V2-27 检查点）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
 
 | 项目 | 当前状态 |
 |---|---|
-| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；DEMO-V2-26 代码与文档检查点保留本地，实际 HEAD/差异以 Git 为准。此前至 `ee2bc7c` 已推送，未合并 main。 |
-| 最近独立任务 | `DEMO-V2-26`：三类入口显示服务端当前邮箱与中文角色，管理员角色标签中文化但权限值不变。 |
-| 验证 | 隔离前端 lint/typecheck/36 tests/build 通过；首轮 Chromium 9 passed/1 测试选择器失败，修正后 PostgreSQL→FastAPI→Next→Chromium 10 passed 且一次性资源清理。远端 [43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 仍零步骤失败，annotation 为仓库所有者账户账单锁定，故未声明远端通过。 |
+| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；DEMO-V2-27 代码与文档检查点保留本地，实际 HEAD/差异以 Git 为准。此前至 `ee2bc7c` 已推送，未合并 main。 |
+| 最近独立任务 | `DEMO-V2-27`：患者入口区分无有效绑定、会话失效和服务不可用。 |
+| 验证 | 隔离前端 lint/typecheck/40 tests/build、PostgreSQL→FastAPI→Next→Chromium 10 passed，一次性资源清理；撤销绑定后新提示实际通过。远端 [43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 仍零步骤失败，annotation 为仓库所有者账户账单锁定，故未声明远端通过。 |
 | 当前缺口 | 真实身份映射、正式同意签署、完整业务档案字段与机构账号治理仍待批准/实现；REAL-01A/B 父任务 IN_PROGRESS。真实医护确认计划、审核视频、患者异常处置未完成。本机共享演示站点已部署本分支，临时外网网址未部署/验收。REAL-01C 仍只有合成子集；正式周期日程/冻结快照与完整研究级导出未完成。 |
 | 临床与数据阻断 | S3-01 继续 BLOCKED：Q-03 训练适配模板/禁忌/剂量和 Q-09 发布责任权限缺签核。Q-01/07/08/10 等真实数据/影像/保留/部署条件也未批准。仅用合成数据；Research 默认拒绝。 |
-| 下一 Task ID | `DEMO-V2-26` 已完成。下一工程任务需继续从无临床依赖的中文演示易用性缺口中选择；先不要为验证反复推送，等待 GitHub 账单锁定实际解除。视频 `DEMO-V2-16` 仍待可核验授权的素材，真实患者与临床功能受原审批阻断。 |
+| 下一 Task ID | `DEMO-V2-27` 已完成。下一工程任务继续从无临床依赖的中文演示易用性缺口中选择；先不要为验证反复推送，等待 GitHub 账单锁定实际解除。视频 `DEMO-V2-16` 仍待可核验授权的素材，真实患者与临床功能受原审批阻断。 |
 | 下一步文件 | [PRD](product/PRD.md)、[Demo 流程](product/DEMO_USER_FLOW.md)、[验收](product/ACCEPTANCE.md)、[数据模型](data/DATA_MODEL.md)、[API](api/API_CONTRACT.md)、[安全](security/SECURITY.md)、[测试策略](testing/TEST_STRATEGY.md)；先检查嵌套 AGENTS 和实际 Git 状态。 |
 | 未提交/推送 | 以实际 `git status` 为准；不操作其他开发者修改、不推送/合并 main、不删除原有卷。 |
 

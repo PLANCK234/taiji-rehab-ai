@@ -111,3 +111,5 @@ DEMO-V2-24（AT-PAT-01 合成易用性子集）：`frontend/app/login/page.tsx` 
 DEMO-V2-25（AT-PAT-01 合成易用性子集）：登录页密码可显示/隐藏，切换账号清空并恢复隐藏；组件测试验证状态和输入。2026-11-13 隔离 Docker 前端 lint/typecheck/34 tests/build、真实 Chromium 10 passed，临时资源清理。本机已部署；远端三次均在零步骤失败，所有者报告处理后的 [43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 仍由 check-run annotation 确认为 GitHub 账户账单锁定，未作为代码失败或通过证据。
 
 DEMO-V2-26（AT-PAT-01 合成身份可见性子集）：`frontend/app/workspace/role-label.ts` 集中映射六种演示角色，工作台、患者入口和管理员页面显示当前邮箱及中文角色；`staff-console.tsx` 仅替换 option 文本，原角色 value/API 载荷不变。映射单测覆盖六角色与未知回退；隔离前端 lint/typecheck/36 tests/build 通过。首轮 Chromium 9 passed/1 测试选择器失败，精确标签修正后 10 passed，资源清理成功；不改变认证、权限或真实患者范围。
+
+DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/home.ts` 将 `/patient/me` 映射为正常、绑定不可用、会话失效和服务不可用四类；`home.test.ts` 覆盖 200/403/401/503/网络异常，患者真实浏览器流程核对撤销后新提示。2026-11-13 隔离前端 lint/typecheck/40 tests/build、PostgreSQL→Chromium 10 passed，临时资源清理；API 权限和本人隔离未改变。
