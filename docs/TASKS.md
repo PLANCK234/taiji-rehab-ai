@@ -27,6 +27,7 @@
 | DEMO-V2-23 | 合成医护与患者双端操作说明 | DEMO-V2-15/17/22；既有浏览器流程 | DONE | 按实际页面与 `patient.real.ts` 写医护选择/发布、患者查看/自报/更正、医护查阅/撤回的录屏步骤；链接、交接检查通过；AT-PAT-02/03 合成流程说明，不代表完整验收 |
 | DEMO-V2-24 | 登录页合成账号快捷选择 | DEMO-V2-11/23；不依赖视频或临床规则 | DONE | 工作人员/患者按钮只预填固定邮箱，切换时清空旧密码并明确密码来源；组件测试和真实患者浏览器流程；AT-PAT-01 合成易用性子集 | 2026-11-12：[Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 五作业通过，前端 34、后端 58、ML 4、浏览器 10、清理契约 5；临时资源消失，无失败附件 |
 | DEMO-V2-25 | 登录密码显示与隐藏 | DEMO-V2-24；不依赖视频或临床规则 | DONE | 登录页可显示/隐藏密码；切换账号清空并恢复隐藏；组件测试、前端门禁及真实浏览器回归 | 2026-11-13：隔离 Docker lint/typecheck/34 tests/build、Chromium 10 passed 且临时资源清理；本机部署可见。远端 [43251807605](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43251807605)、[43254096767](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43254096767) 及所有者报告处理后的 [43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 均零步骤失败；check-run annotation 仍为 GitHub 账户账单锁定，属外部 CI 阻断 |
+| DEMO-V2-26 | 中文角色与当前账号提示 | DEMO-V2-11/24；不依赖视频、临床规则或远端 CI | DONE | 工作台、患者入口与管理员页显示服务端邮箱和中文角色；授权下拉标签中文化但值不变，未知角色原样显示。隔离前端 lint/typecheck/36 tests/build；首轮浏览器 9 passed/1 测试选择器失败，修正后 10 passed 且临时资源清理；远端 CI 仍受账户账单锁定阻断 |
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 

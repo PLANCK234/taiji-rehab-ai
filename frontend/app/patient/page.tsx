@@ -5,6 +5,7 @@ import LogoutButton from "../workspace/logout-button";
 import type { PatientHome } from "../workspace/patient-publication";
 import { getPatientReports } from "../workspace/patient-reports";
 import PatientReportForm from "./report-form";
+import { roleLabel } from "../workspace/role-label";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function PatientPage() {
   return <main className="form-page">
     <div className="eyebrow">合成数据演示 · 患者入口</div>
     <h1>我的康复空间</h1>
+    <p>当前账号：{user.email}（{roleLabel(user.role)}）</p>
     {home ? <>
       <p>我的演示编号：{home.study_code}</p>
       <section>

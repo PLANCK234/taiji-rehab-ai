@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { postIntake } from "../workspace/intake";
+import { roleLabel } from "../workspace/role-label";
 
 type ScopeItem = { id: string; code: string; study_id?: string };
 type Staff = { id: string; email: string; role: string; is_active: boolean; study_ids: string[]; participant_ids: string[] };
@@ -70,7 +71,7 @@ export default function StaffConsole({ initialStaff, scope }: {
         <label htmlFor="staff-email">演示邮箱（demo-…@example.org）</label>
         <input id="staff-email" name="email" type="email" pattern="demo-[a-z0-9._+\-]+@example\.org" required />
         <label htmlFor="staff-role">角色</label>
-        <select id="staff-role" name="role">{roles.map((role) => <option key={role} value={role}>{role}</option>)}</select>
+        <select id="staff-role" name="role">{roles.map((role) => <option key={role} value={role}>{roleLabel(role)}</option>)}</select>
         <label htmlFor="staff-password">初始密码（至少 12 位）</label>
         <input id="staff-password" name="password" type="password" minLength={12} autoComplete="new-password" required />
         <button type="submit" disabled={busy}>建立账号</button>
@@ -83,10 +84,10 @@ export default function StaffConsole({ initialStaff, scope }: {
         {staff.map((row) => <option key={row.id} value={row.id}>{row.email}</option>)}
       </select>
       {current ? <>
-        <p>状态：{current.is_active ? "启用" : "停用"}；角色：{current.role}</p>
+        <p>状态：{current.is_active ? "启用" : "停用"}；角色：{roleLabel(current.role)}</p>
         <label htmlFor="role-select">变更角色</label>
         <select id="role-select" value={current.role} disabled={busy} onChange={(event) => void changeStaff("role", event.target.value)}>
-          {roles.map((role) => <option key={role} value={role}>{role}</option>)}
+          {roles.map((role) => <option key={role} value={role}>{roleLabel(role)}</option>)}
         </select>
         <button type="button" disabled={busy} onClick={() => void changeStaff(current.is_active ? "deactivate" : "activate")}>
           {current.is_active ? "停用账号" : "启用账号"}

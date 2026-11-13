@@ -6,6 +6,7 @@ import CreateParticipantForm from "./create-participant-form";
 import LogoutButton from "./logout-button";
 import ParticipantList from "./participant-list";
 import { getDemoPlan } from "./demo";
+import { roleLabel } from "./role-label";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function WorkspacePage() {
     <main>
       <div className="eyebrow">合成数据工作台</div>
       <h1>研究工作台</h1>
-      <p>当前账号：{user.email}（{user.role}）</p>
+      <p>当前账号：{user.email}（{roleLabel(user.role)}）</p>
       <section aria-labelledby="studies-heading">
         <h2 id="studies-heading">已分配研究</h2>
         {studies === null ? <p>研究分配暂不可用。</p> : studies.length ? (

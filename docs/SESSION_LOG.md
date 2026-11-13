@@ -362,3 +362,7 @@ Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离�
 后续读取 `backend` check-run annotations，确认失败原文为 `The job was not started because your account is locked due to a billing issue.`；另一条 Ubuntu 26 迁移 annotation 只是 notice。故阻断定位为 GitHub 账户账单锁定，而非应用、测试命令或工作流步骤失败；待账户所有者处理后再运行远端 CI。
 
 仓库所有者报告处理完成后，将本地文档提交 `67c6481`、`ee2bc7c` 推送至同一功能分支以复验，未改或合并 `main`。[Actions 43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 仍在约 3 秒内五作业零步骤失败；`backend` check-run annotation 原文仍为相同账户账单锁定。未再重复触发，等待所有者或 GitHub Support 确认锁定实际解除。
+
+## 2026-11-13 DEMO-V2-26 中文角色与当前账号提示
+
+从 `da9abd5` 的功能分支继续，选择不依赖视频、临床审批或远端 CI 的中文演示易用性任务。新增集中角色标签映射，工作台、患者入口与管理员页显示服务端当前邮箱和中文角色；管理员角色选项只改标签，提交值保持原英文代码，未知代码原样回退。新增 2 项映射单测，并在工作人员、患者、管理员真实浏览器流程核对身份显示。宿主机 pnpm 因既有依赖目录不兼容未运行成功；已有测试镜像的一次性容器 lint/typecheck/36 tests/build 通过。首轮浏览器 9 passed/1 failed，原因是测试选择器同时匹配两个带“角色”的下拉框；限定 exact 后复跑 10 passed，临时容器/网络/镜像清理成功。无后端、数据库、临床规则或真实患者范围变化；远端 CI 账单锁定未解除，未触发推送。

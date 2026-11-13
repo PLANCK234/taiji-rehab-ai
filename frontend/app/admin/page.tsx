@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "../workspace/auth";
 import LogoutButton from "../workspace/logout-button";
 import StaffConsole from "./staff-console";
+import { roleLabel } from "../workspace/role-label";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function AdminPage() {
   return <main>
     <div className="eyebrow">合成数据管理</div>
     <h1>人员与授权</h1>
-    <p>当前账号：{user.email}（管理员）</p>
+    <p>当前账号：{user.email}（{roleLabel(user.role)}）</p>
     <p className="note">仅管理合成演示工作人员与 SYN 编号记录。真实人员、患者与 Research 数据入口未开放。</p>
     {scope && staff ? <StaffConsole initialStaff={staff} scope={scope} /> : <p role="alert">授权数据暂不可用，请稍后刷新。</p>}
     <LogoutButton />

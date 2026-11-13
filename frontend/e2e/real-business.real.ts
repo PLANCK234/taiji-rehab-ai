@@ -10,6 +10,7 @@ async function login(page: Page, email: string) {
   await page.getByLabel("密码").fill(password!);
   await page.getByRole("button", { name: "登录", exact: true }).click();
   await expect(page.getByRole("heading", { name: "研究工作台" })).toBeVisible();
+  await expect(page.getByText(`当前账号：${email}（医护人员）`)).toBeVisible();
 }
 
 test("unauthenticated synthetic workspace redirects to login", async ({ page }) => {

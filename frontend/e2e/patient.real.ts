@@ -17,6 +17,7 @@ async function login(page: Page, email: string) {
 test("synthetic patient sees only own portal and loses access after binding revocation", async ({ page, browser }) => {
   await login(page, "demo-patient@example.org");
   await expect(page.getByRole("heading", { name: "我的康复空间" })).toBeVisible();
+  await expect(page.getByText("当前账号：demo-patient@example.org（患者）")).toBeVisible();
   await expect(page.getByText("我的演示编号：SYN-001")).toBeVisible();
   await expect(page.getByText("目前没有经医护确认并发布给此账号的计划或视频。")).toBeVisible();
   await page.goto("/workspace");

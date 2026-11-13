@@ -13,6 +13,8 @@ async function login(page: Page, email: string, secret = password!) {
 test("synthetic admin creates staff and changes scoped access", async ({ page, browser }) => {
   await login(page, "demo-admin@example.org");
   await expect(page.getByRole("heading", { name: "人员与授权" })).toBeVisible();
+  await expect(page.getByText("当前账号：demo-admin@example.org（授权管理员）")).toBeVisible();
+  await expect(page.getByLabel("角色", { exact: true }).locator("option:checked")).toHaveText("医护人员");
   await page.getByLabel("演示邮箱（demo-…@example.org）").fill("demo-browser-staff@example.org");
   await page.getByLabel("初始密码（至少 12 位）").fill("synthetic-browser-secret-123");
   await page.getByRole("button", { name: "建立账号" }).click();
