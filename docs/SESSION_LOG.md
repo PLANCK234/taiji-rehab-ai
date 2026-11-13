@@ -360,3 +360,5 @@ Docker Desktop 起初未运行，启动已安装程序后以完整依赖隔离�
 `f54354f` 已推送；[Actions 43251807605](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43251807605) 五作业零步骤失败。连接器重跑返回 403 后，以空提交 `892137a` 重新触发；[43254096767](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43254096767) 同样零步骤失败且无日志。记录为外部 CI 阻断，没有反复重试或将其记作代码失败。未合并 main。
 
 后续读取 `backend` check-run annotations，确认失败原文为 `The job was not started because your account is locked due to a billing issue.`；另一条 Ubuntu 26 迁移 annotation 只是 notice。故阻断定位为 GitHub 账户账单锁定，而非应用、测试命令或工作流步骤失败；待账户所有者处理后再运行远端 CI。
+
+仓库所有者报告处理完成后，将本地文档提交 `67c6481`、`ee2bc7c` 推送至同一功能分支以复验，未改或合并 `main`。[Actions 43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 仍在约 3 秒内五作业零步骤失败；`backend` check-run annotation 原文仍为相同账户账单锁定。未再重复触发，等待所有者或 GitHub Support 确认锁定实际解除。
