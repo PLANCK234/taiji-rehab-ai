@@ -50,6 +50,14 @@
 - Its client component creates only an inline synthetic SVG held in React state. It contains no camera permission request, file input, upload request, local storage or image persistence. Simulated consent `photo_scope=true` changes only the explanatory text and does not enable image collection.
 - The backend publishes no `/images` or `/uploads` route. Real photos, video, pose estimates, object storage and retention remain blocked by Q-01/Q-10 and the deployment gate.
 
+## S6-03 browser-local pose prototype boundary
+
+- `/participants/{id}/pose-lab` is hidden unless `POSE_PROTOTYPE_ENABLED=true`, then reuses the existing authenticated staff and coded-object server scope. It is not exposed in the patient portal or Research profile.
+- The file input stays disabled until the operator confirms the video is synthetic, public test material or explicitly authorized for local validation. This confirmation is an engineering friction, not institutional consent evidence.
+- Video is referenced through an in-memory Blob URL. The page has no upload call, persistence API, database write, camera request or browser storage. CSP limits model/runtime connections to the same origin; model and WASM assets are pinned and served locally.
+- Explicit JSON/CSV download can create sensitive derived data on the operator device. Operators must protect or remove such files under an approved procedure; the current Demo cannot enforce endpoint retention.
+- Local processing does not close Q-01/Q-10. Real capture, storage, repeatable research records, patient access and clinical scoring require separate approval and threat-model review.
+
 ## ENG-02A synthetic trend read boundary
 
 - The read-only assessment trend route reuses server-side role, study assignment and explicit participant assignment checks. Analyst/admin roles cannot directly read a coded participant trend; denied reads are audited through the participant guard, and allowed reads add an `assessment_trend` audit event.

@@ -55,6 +55,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
   const canExport = canWrite || user.role === "clinical_approver";
+  const posePrototypeEnabled = process.env.POSE_PROTOTYPE_ENABLED === "true";
 
   return (
     <main>
@@ -141,8 +142,11 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       </section>
       <section aria-labelledby="pose-demo-heading">
         <h2 id="pose-demo-heading">姿态演示</h2>
-        <p className="note">仅生成合成线条人物预览；摄像头、照片文件、上传和识别均未启用。</p>
-        <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
+        <p className="note">合成线条人物预览始终可用。{posePrototypeEnabled ? "本地视频技术原型已启用；视频不上传、不保存，不产生临床评分。" : "视频识别技术原型当前未启用。"}</p>
+        <div className="button-row">
+          <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
+          {posePrototypeEnabled ? <Link href={`/participants/${participant.id}/pose-lab`}>打开本地视频姿态实验室</Link> : null}
+        </div>
       </section>
       {canWrite && consents && screenings ? <IntakeForms
         participantId={participant.id}

@@ -63,6 +63,8 @@
 | S5-01 | 5 | 周期复评、冻结与去标识导出 | P0 | Sprint 4；Q-05/06/07 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migration | FR-008/009/011, AT-01/05 导出部分/09 | — |
 | S6-01 | 6 | 可选拍照演示壳 | P1 | Q-01/10 或纯合成演示 | `feat/s6-01-synthetic-pose-demo` | DONE | `frontend/`, `backend/` | AT-12 合成部分；明确未接入识别；仅本地预览，不持久上传 | 2026-10-31 检查点：后端 Ruff/pytest 23（无图片 API）；前端 lint/typecheck/test 12/build、DOM 生成/清除；临时 PostgreSQL + Next HTTP 授权/未授权/跨研究及模拟照片范围烟测；浏览器手工 E2E 未运行，详见 STATUS |
 | S6-02 | 6 | 合成姿态页浏览器验收 | P1 | S6-01；仅合成 API 夹具 | `feat/s6-02-synthetic-browser-e2e` | DONE | `frontend/e2e/`, 测试依赖/配置、文档 | AT-12 合成浏览器部分：未登录重定向、对象范围拒绝、明示未接入识别、生成/切换/清除，交互不采集或上传 | 2026-10-31：Playwright/Chromium 3 passed（本地合成 API 夹具）；前端 lint/typecheck/test 12/build、后端 Ruff/pytest 23；首轮选择器失败已修复，见 STATUS |
+| S6-03 | 6 | 本地视频姿态与基础运动学技术原型 | P1 | S6-01/02；仅合成、公开测试或明确授权素材；不依赖临床评分 | `codex/demo-patient-report-order` | DONE | `frontend/app/participants/[id]/pose-lab/`、本地固定模型/WASM、E2E、文档 | AT-POSE-01：功能默认关闭；本地视频→33 点/骨架→关节角度范围、二维轨迹、时间→JSON/CSV；无上传/持久化/临床评分 | 2026-11-14：前端 lint/typecheck/build/47 tests；隔离 PostgreSQL→FastAPI→Next→Chromium 11 passed，生成合成 WebM 实际返回 33 点并导出，分析无非 GET 请求；临时容器/网络/镜像清理成功 |
+| S6-04 | 6 | 获授权样本的姿态误差与失败模式验证 | P1 | S6-03；可核验授权的五次坐站/太极样本；人工标注方案 | 未分配 | NOT_STARTED | `frontend/` 或 `ml/`、测试夹具、验证报告 | 分开验证五次坐站时序/次数与太极关键动作；报告角度/时间误差、缺失率和失败案例，不预设临床合格线或康复分级 | 等待样本来源/同意、拍摄约定和人工对照标注方案；Q-01/Q-10 未关闭时不得持久化真实影像 |
 | S7-01 | 7 | 冻结数据离线评估与发布门禁 | P1 | Sprint 5；Q-06/09 | 未分配 | NOT_STARTED | `ml/`, `backend/` | AT-10/11；审批与泄漏测试 | — |
 | S8-01 | 8 | 试点加固与部署演练 | P1 | 审批与前序阶段 | 未分配 | NOT_STARTED | `infra/`, `docs/` | AT-13/14；恢复与临床 UAT | — |
 

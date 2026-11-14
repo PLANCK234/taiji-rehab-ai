@@ -136,6 +136,7 @@ def main() -> None:
             "run", "--rm", "-d", "--name", frontend, "--network", network,
             "--network-alias", "frontend", "-p", f"127.0.0.1:{frontend_port}:3000",
             "-e", "API_INTERNAL_URL=http://backend:8000", "-e", "HOSTNAME=0.0.0.0",
+            "-e", "POSE_PROTOTYPE_ENABLED=true",
             frontend_image, capture=True,
         )
         names.append(frontend)

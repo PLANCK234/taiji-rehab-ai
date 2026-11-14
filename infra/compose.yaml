@@ -42,6 +42,7 @@ services:
     build: ../frontend
     environment:
       API_INTERNAL_URL: http://backend:8000
+      POSE_PROTOTYPE_ENABLED: ${POSE_PROTOTYPE_ENABLED:-false}
     depends_on:
       backend:
         condition: service_healthy

@@ -1,16 +1,16 @@
 # 当前交接检查点
 
-更新时间：2026-11-13 北京时间（DEMO-V2-29 检查点）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
+更新时间：2026-11-14 北京时间（S6-03 检查点）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
 
 | 项目 | 当前状态 |
 |---|---|
-| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；DEMO-V2-29 代码与文档检查点保留本地，实际 HEAD/差异以 Git 为准。此前至 `ee2bc7c` 已推送，未合并 main。 |
-| 最近独立任务 | `DEMO-V2-29`：患者自报读取失败时增加只读重新检查操作。 |
-| 验证 | 隔离前端 lint/typecheck/42 tests/build、PostgreSQL→FastAPI→Next→Chromium 10 passed，一次性资源清理；失败状态组件测试与正常患者浏览器流程均通过。远端 [43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 仍零步骤失败，annotation 为仓库所有者账户账单锁定，故未声明远端通过。 |
-| 当前缺口 | 真实身份映射、正式同意签署、完整业务档案字段与机构账号治理仍待批准/实现；REAL-01A/B 父任务 IN_PROGRESS。真实医护确认计划、审核视频、患者异常处置未完成。本机共享演示站点已部署本分支，临时外网网址未部署/验收。REAL-01C 仍只有合成子集；正式周期日程/冻结快照与完整研究级导出未完成。 |
-| 临床与数据阻断 | S3-01 继续 BLOCKED：Q-03 训练适配模板/禁忌/剂量和 Q-09 发布责任权限缺签核。Q-01/07/08/10 等真实数据/影像/保留/部署条件也未批准。仅用合成数据；Research 默认拒绝。 |
-| 下一 Task ID | `DEMO-V2-29` 已完成。下一工程任务继续从无临床依赖的中文演示易用性缺口中选择；先不要为验证反复推送，等待 GitHub 账单锁定实际解除。视频 `DEMO-V2-16` 仍待可核验授权的素材，真实患者与临床功能受原审批阻断。 |
-| 下一步文件 | [PRD](product/PRD.md)、[Demo 流程](product/DEMO_USER_FLOW.md)、[验收](product/ACCEPTANCE.md)、[数据模型](data/DATA_MODEL.md)、[API](api/API_CONTRACT.md)、[安全](security/SECURITY.md)、[测试策略](testing/TEST_STRATEGY.md)；先检查嵌套 AGENTS 和实际 Git 状态。 |
+| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；S6-03 修改尚待本次检查点提交，实际 HEAD/差异以 Git 为准。此前功能分支本地提交保留，未合并 main。 |
+| 最近独立任务 | `S6-03`：功能开关控制、浏览器本地运行的视频姿态与基础运动学技术原型。 |
+| 验证 | Node 26.13.0/pnpm 10.34.9 前端 lint/typecheck/build/47 tests；隔离 PostgreSQL→FastAPI→Next→Chromium 11 passed，合成 WebM 实际返回 33 点、导出 JSON、无上传写请求；临时容器/网络/镜像清理成功。远端 CI 未触发，既有账单锁定仍未声明解除。 |
+| 当前缺口 | S6-03 仅本地瞬时技术测量：没有实际五次坐站/太极样本对照、阶段/次数识别、质量门禁、相机标定、结果持久化或临床评分。真实医护确认计划、审核视频、患者异常处置及其他 REAL 父任务缺口不变。共享本机前端当前已用进程环境启用，`.env` 未写入开关，重建后默认关闭。 |
+| 临床与数据阻断 | S3-01 继续 BLOCKED。Q-01/Q-10 的真实影像目的、同意、留存和权限未批准；S6-03 不解除它们。Q-03/Q-09 等临床规则/发布责任同样未签核；Research 默认拒绝。 |
+| 下一 Task ID | 建议新增 `S6-04`：在取得可核验授权样本和人工标注方案后，分别验证五次坐站时序/次数与太极关键动作测量误差、缺失率和失败案例；不先定义临床阈值。若样本未就绪，继续独立非临床工程任务。 |
+| 下一步文件 | [姿态原型](product/POSE_PROTOTYPE.md)、[PRD](product/PRD.md)、[验收](product/ACCEPTANCE.md)、[安全](security/SECURITY.md)、[测试策略](testing/TEST_STRATEGY.md)；先检查嵌套 AGENTS 和实际 Git 状态。 |
 | 未提交/推送 | 以实际 `git status` 为准；不操作其他开发者修改、不推送/合并 main、不删除原有卷。 |
 
 交接恢复：本文件是最新检查点，历史记录见 [SESSION_LOG](SESSION_LOG.md)。新任务完成后更新本表、[STATUS](STATUS.md)、[TASKS](TASKS.md)、[TRACEABILITY](TRACEABILITY.md)，运行实测门禁并保留可恢复 Git 检查点。

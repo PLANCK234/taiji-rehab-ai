@@ -10,6 +10,8 @@
 
 > **DEMO-V2-15（2026-11-10）**：医护可从两张固定的无训练内容测试卡片中选择、确认演示用途后发布；合成患者只看到本人当前已发布的卡片标题。此确认不是临床审核，视频仍待审核且不可播放。本机共享合成演示站点已在备份后迁移到 `0015` 并部署此分支；临时外网网址未部署。
 
+> **S6-03 姿态技术原型（2026-11-14）**：可选开启工作人员端浏览器本地视频分析，输出 33 点骨架、描述性关节角度范围、二维轨迹和时间，并下载 JSON/CSV。视频不上传、不持久化；不生成五次坐站/SPPB 或太极评分、临床等级和处方。见 [技术原型说明](docs/product/POSE_PROTOTYPE.md)。
+
 Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
 
 **已可操作的合成纵向子流程**：工作人员登录→编码建档→演示资料追加更正与模拟同意→人工 SPPB 总分及复评→四种人工原始观察→对象页评估与训练观察序列→记录已发生训练观察→单独记录事件→录入/更正反馈→手工命名周期/访视、关联已有记录并查看关联训练详情→单对象编号化 CSV 下载。页面刷新后从 PostgreSQL 读取记录；入口在对象详情。训练观察序列显示当前完成状态、实际分钟及最新反馈 RPE，不计算没有计划分母的完成率。导出含模拟同意/筛查历史、原始观察、手工周期/访视、合成患者自报状态等结构化数据与修订历史，不含身份或自由文本，并附行数与哈希；它是实时 Demo 下载，**不是周期冻结快照**。周期归组不自动安排日程或改变训练观察；正式量表、真实人员身份管理、研究级冻结导出与真实数据准入仍未完成。合成工作人员管理见 `/admin`，默认不创建管理员。见 [ADR-0012](docs/decisions/0012-training-observation-before-cycle.md)、[ADR-0013](docs/decisions/0013-live-coded-demo-export.md)、[ADR-0021](docs/decisions/0021-observed-training-timeline-no-rate.md)。
@@ -24,7 +26,7 @@ Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷
 医疗人员对研究对象建档、安全筛查、录入 SPPB 等客观评估，获取可解释的功能分级候选及太极训练适配建议并人工复核；每次训练后收集结构化反馈；周期末冻结数据并对照 V0 规则离线优化，审批通过的新版本才可发布。
 
 ## 不做什么
-当前版本仅提供合成患者入口；患者端第一版不包括患者自行填写量表或自动获得训练建议。实时动作纠错、自动诊断、自动调整临床处方及在线自学习仍不在范围内；姿态照片模块当前仅为明确标注“识别算法未接入”的演示能力。
+当前版本仅提供合成患者入口；患者端第一版不包括患者自行填写量表或自动获得训练建议。实时动作纠错、自动诊断、自动调整临床处方及在线自学习仍不在范围内；本地姿态原型只验证关键点和基础运动学，不是临床动作评分。
 
 ## 技术方案
 | 层 | 选型 |
@@ -41,6 +43,7 @@ Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷
 
 ```powershell
 Copy-Item .env.example .env
+# 如需启用仅供工作人员使用的本地姿态技术原型，在 .env 将 POSE_PROTOTYPE_ENABLED 改为 true
 docker compose --env-file .env -f infra/compose.yaml config --quiet
 docker compose --env-file .env -f infra/compose.yaml up --build -d
 docker compose --env-file .env -f infra/compose.yaml run --rm backend uv run --no-dev alembic upgrade head
@@ -61,7 +64,7 @@ Start-Process http://localhost:3000/login
 
 独立离线合成数据演示（不读取业务数据库）：在 `ml/` 运行 `uv sync --frozen`、`uv run ruff check .`、`uv run pytest`；从仓库根目录运行 `uv run --project ml python -m ml.offline_dataset --output exports/eng03a-demo`。输出含 JSONL 记录、质量报告、对象级划分和带 SHA-256 的清单；相同种子重复运行只核对相同内容，内容变化时拒绝覆盖。`exports/` 被 Git 忽略。所有数值均为明确标记的合成演示数据，不是疗效标签、获批准研究快照或临床模型输入。
 
-登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；可走快速 Demo 表单明确记录模拟同意与人工 SPPB，或进入对象页逐项录入。无当前模拟同意时评估及训练写入关闭；筛查结果始终“待复核”，绝不表示安全或入组资格。人工总分保留草稿、确认和追加更正；零分与缺失分离。确认后另存 `demo-rule-v1` 展示等级，不能当临床等级或训练建议。对象页的姿态演示仍只有合成线条图；真实照片与身份映射关闭。单对象编号化实时 CSV 仅限合成 Demo，不是冻结研究导出。
+登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；可走快速 Demo 表单明确记录模拟同意与人工 SPPB，或进入对象页逐项录入。无当前模拟同意时评估及训练写入关闭；筛查结果始终“待复核”，绝不表示安全或入组资格。人工总分保留草稿、确认和追加更正；零分与缺失分离。确认后另存 `demo-rule-v1` 展示等级，不能当临床等级或训练建议。对象页保留原合成线条姿态演示；开启 `POSE_PROTOTYPE_ENABLED` 后另有本地视频姿态实验室，选择文件前需确认素材范围，视频只在浏览器内处理。真实影像采集、身份映射与研究持久化仍关闭。单对象编号化实时 CSV 仅限合成 Demo，不是冻结研究导出。
 
 迁移回退只在**空的临时合成测试数据库**操作；已创建记录后不要直接执行，需先有获批准的备份及回退计划。停止服务用 `docker compose --env-file .env -f infra/compose.yaml down`，保留数据库卷；不要删除卷。数据库只在 Compose 私网，宿主机不公开 5432。
 
