@@ -12,7 +12,9 @@
 - 使用固定版本 `@mediapipe/tasks-vision@1.2.3` 与本地固定哈希的 MediaPipe Pose Landmarker Full float16 模型。WASM 与模型由本站提供，CSP 将网络连接限制为同源。
 - 以 10 Hz 顺序采样，输出 33 个二维归一化关键点和模型世界坐标；识别失败帧保持未知。
 - 计算左右肩、肘、髋、膝、踝三点夹角及视频内最小/最大/活动范围；展示骨盆、双腕、双踝二维图像轨迹、视频时长和可识别观察时段。
+- 以全部采样时刻为分母展示关键测量点覆盖率、关节角可用率和最长连续漏检采样数；只呈现事实，不设置技术或临床合格线。
 - 在视频上叠加骨架；导出包含时间戳、关键点、关节角和轨迹的 JSON，或只含派生角度/轨迹的 CSV。原视频和文件名均不进入导出。
+- 可导出按采样时间对齐的空白人工标注模板，供未来填写事件、重复序号、阶段、参考关节角和备注；模板不预设动作阶段或评分。
 - 不上传视频、不请求摄像头、不写数据库、不使用 `localStorage`；关闭或刷新标签页后原视频与分析状态消失。
 
 ## 已知限制
@@ -34,4 +36,5 @@
 
 - 纯函数与组件：`pose-analysis.test.ts`、`pose-video-lab.test.tsx`。
 - 真实浏览器：`pose-lab.real.ts` 用明确生成的合成全身图在 Chromium 内录制短 WebM，确认本地模型至少一帧返回 33 个关键点、页面生成运动学结果、JSON 可下载且分析期间无非 GET 请求。
-- 2026-11-14：前端 lint、typecheck、生产 build、47 tests；隔离 PostgreSQL → FastAPI → Next → Chromium 11 tests，且临时容器、网络和镜像清理成功。
+- 2026-11-14 S6-03：前端 lint、typecheck、生产 build、47 tests；隔离 PostgreSQL → FastAPI → Next → Chromium 11 tests，且临时容器、网络和镜像清理成功。
+- 2026-11-14 S6-05：前端 lint、typecheck、49 tests；隔离生产 build/Chromium 11 tests，覆盖率和人工标注模板下载通过，临时资源清理成功。

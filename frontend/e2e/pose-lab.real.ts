@@ -71,4 +71,12 @@ test("local synthetic video produces landmarks, kinematics and export without up
   };
   expect(exported.schema_version).toBe("pose-prototype-v1");
   expect(exported.frames.some((frame) => frame.detected && frame.landmarks.length === 33)).toBe(true);
+
+  const [annotationDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "导出人工标注模板" }).click(),
+  ]);
+  const annotationCsv = await readFile((await annotationDownload.path())!, "utf8");
+  expect(annotationCsv).toContain("manual_event_label,manual_repeat_index,manual_phase_label");
+  expect(annotationCsv).not.toContain("synthetic-pose.webm");
 });

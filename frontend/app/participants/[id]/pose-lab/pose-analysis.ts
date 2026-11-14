@@ -15,6 +15,8 @@ export const LANDMARK_NAMES = [
   "left_knee", "right_knee", "left_ankle", "right_ankle", "left_heel",
   "right_heel", "left_foot_index", "right_foot_index",
 ] as const;
+export type LandmarkName = typeof LANDMARK_NAMES[number];
+export const MIN_POINT_CONFIDENCE = 0.5;
 
 export const POSE_CONNECTIONS: ReadonlyArray<readonly [number, number]> = [
   [11, 12], [11, 13], [13, 15], [15, 17], [15, 19], [15, 21],
@@ -52,6 +54,9 @@ export type PoseSummary = {
   observedStartMs: number | null;
   observedEndMs: number | null;
   observedDurationMs: number | null;
+  longestConsecutiveMissedSamples: number;
+  landmarkCoverage: Record<LandmarkName, number>;
+  jointAngleCoverage: Record<JointName, number>;
   jointRanges: Partial<Record<JointName, JointRange>>;
 };
 
@@ -60,7 +65,9 @@ const blankAngles = (): JointAngles => Object.fromEntries(
 ) as JointAngles;
 
 function usable(point: PosePoint | undefined) {
-  return point !== undefined && (point.visibility ?? 1) >= 0.5 && (point.presence ?? 1) >= 0.5;
+  return point !== undefined
+    && (point.visibility ?? 1) >= MIN_POINT_CONFIDENCE
+    && (point.presence ?? 1) >= MIN_POINT_CONFIDENCE;
 }
 
 export function angleDegrees(a: PosePoint, b: PosePoint, c: PosePoint): number | null {
@@ -94,8 +101,10 @@ export function createPoseFrame(
 export function summarizePose(frames: PoseFrame[], videoDurationMs: number, sampleHz: number): PoseSummary {
   const detected = frames.filter((frame) => frame.detected);
   const jointRanges: PoseSummary["jointRanges"] = {};
+  const jointAngleCoverage = {} as PoseSummary["jointAngleCoverage"];
   for (const name of Object.keys(JOINT_DEFINITIONS) as JointName[]) {
     const values = detected.map((frame) => frame.angles[name]).filter((value): value is number => value !== null);
+    jointAngleCoverage[name] = frames.length ? values.length / frames.length : 0;
     if (values.length) {
       const minimum = Math.min(...values);
       const maximum = Math.max(...values);
@@ -104,12 +113,21 @@ export function summarizePose(frames: PoseFrame[], videoDurationMs: number, samp
   }
   const first = detected.at(0)?.timestampMs ?? null;
   const last = detected.at(-1)?.timestampMs ?? null;
+  const landmarkCoverage = Object.fromEntries(LANDMARK_NAMES.map((name, index) => [name,
+    frames.length ? frames.filter((frame) => frame.detected && usable(frame.landmarks[index])).length / frames.length : 0,
+  ])) as PoseSummary["landmarkCoverage"];
+  let currentMissedSamples = 0;
+  let longestConsecutiveMissedSamples = 0;
+  for (const frame of frames) {
+    currentMissedSamples = frame.detected ? 0 : currentMissedSamples + 1;
+    longestConsecutiveMissedSamples = Math.max(longestConsecutiveMissedSamples, currentMissedSamples);
+  }
   return {
     videoDurationMs, sampleHz, sampledFrames: frames.length, detectedFrames: detected.length,
     detectionRate: frames.length ? detected.length / frames.length : 0,
     observedStartMs: first, observedEndMs: last,
     observedDurationMs: first === null || last === null ? null : Math.max(0, last - first),
-    jointRanges,
+    longestConsecutiveMissedSamples, landmarkCoverage, jointAngleCoverage, jointRanges,
   };
 }
 
@@ -148,5 +166,14 @@ export function poseAnalysisCsv(frames: PoseFrame[]) {
     return [frame.timestampMs.toFixed(1), frame.detected ? "1" : "0",
       ...joints.map((name) => frame.angles[name]?.toFixed(1) ?? ""), ...trajectories].join(",");
   });
+  return [header.join(","), ...rows].join("\n");
+}
+
+export function poseAnnotationTemplateCsv(frames: PoseFrame[]) {
+  const header = [
+    "timestamp_ms", "model_detected", "manual_event_label", "manual_repeat_index",
+    "manual_phase_label", "manual_reference_joint", "manual_reference_angle_deg", "reviewer_note",
+  ];
+  const rows = frames.map((frame) => [frame.timestampMs.toFixed(1), frame.detected ? "1" : "0", "", "", "", "", "", ""].join(","));
   return [header.join(","), ...rows].join("\n");
 }

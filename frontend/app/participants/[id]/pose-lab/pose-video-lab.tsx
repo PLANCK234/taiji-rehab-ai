@@ -7,6 +7,7 @@ import {
   createPoseFrame,
   poseAnalysisCsv,
   poseAnalysisJson,
+  poseAnnotationTemplateCsv,
   summarizePose,
   trajectoryPoint,
   type JointName,
@@ -27,6 +28,11 @@ const TRAJECTORIES = [
   ["pelvis", "骨盆中心", "#e66b4c"], ["left_wrist", "左腕", "#2771b2"],
   ["right_wrist", "右腕", "#6e4fb3"], ["left_ankle", "左踝", "#2b8a66"],
   ["right_ankle", "右踝", "#c58a20"],
+] as const;
+const LANDMARK_QUALITY_LABELS = [
+  ["left_shoulder", "左肩"], ["right_shoulder", "右肩"], ["left_wrist", "左腕"], ["right_wrist", "右腕"],
+  ["left_hip", "左髋"], ["right_hip", "右髋"], ["left_knee", "左膝"], ["right_knee", "右膝"],
+  ["left_ankle", "左踝"], ["right_ankle", "右踝"],
 ] as const;
 
 type PoseLandmarkerLike = {
@@ -252,6 +258,7 @@ export default function PoseVideoLab() {
         <div><dt>采样频率</dt><dd>{summary.sampleHz} Hz</dd></div>
         <div><dt>识别覆盖</dt><dd>{summary.detectedFrames} / {summary.sampledFrames}（{(summary.detectionRate * 100).toFixed(1)}%）</dd></div>
         <div><dt>识别观察时段</dt><dd>{summary.observedDurationMs === null ? "未知" : `${(summary.observedDurationMs / 1000).toFixed(1)} 秒`}</dd></div>
+        <div><dt>最长连续漏检</dt><dd>{summary.longestConsecutiveMissedSamples} 个采样时刻</dd></div>
       </dl>
       <div className="trend-table-wrap"><table className="trend-table">
         <caption>关节角度范围（度）</caption>
@@ -262,12 +269,25 @@ export default function PoseVideoLab() {
             <td>{range?.maximum.toFixed(1) ?? "未知"}</td><td>{range?.range.toFixed(1) ?? "未知"}</td></tr>;
         })}</tbody>
       </table></div>
+      <h3>测量可用性（全部采样时刻为分母）</h3>
+      <p className="note">以下只报告模型关键点和派生角度的可用比例，不表示视频合格、动作正确或临床可用。</p>
+      <div className="trend-table-wrap"><table className="trend-table">
+        <caption>关键测量点与关节角覆盖率</caption>
+        <thead><tr><th>部位</th><th>关键点可用</th><th>关节角可用</th></tr></thead>
+        <tbody>{LANDMARK_QUALITY_LABELS.map(([name, label]) => {
+          const jointCoverage = name in JOINT_DEFINITIONS ? summary.jointAngleCoverage[name as JointName] : null;
+          return <tr key={name}><th scope="row">{label}</th>
+            <td>{(summary.landmarkCoverage[name] * 100).toFixed(1)}%</td>
+            <td>{jointCoverage === null ? "—" : `${(jointCoverage * 100).toFixed(1)}%`}</td></tr>;
+        })}</tbody>
+      </table></div>
       <h3>归一化二维轨迹</h3>
       <TrajectoryChart frames={frames} />
       <p className="note">画面左上角为 (0,0)，右下角为 (1,1)。这是图像坐标轨迹，不代表真实空间距离。</p>
       <div className="button-row">
         <button type="button" onClick={() => downloadText("pose-analysis.json", poseAnalysisJson(frames, summary), "application/json")}>导出 JSON</button>
         <button type="button" onClick={() => downloadText("pose-analysis.csv", poseAnalysisCsv(frames), "text/csv;charset=utf-8")}>导出 CSV</button>
+        <button type="button" onClick={() => downloadText("pose-annotation-template.csv", poseAnnotationTemplateCsv(frames), "text/csv;charset=utf-8")}>导出人工标注模板</button>
       </div>
     </section> : null}
   </>;

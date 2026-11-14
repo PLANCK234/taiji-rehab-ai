@@ -4,6 +4,8 @@
 
 S6-03 对 AT-POSE-01：设计见 [姿态原型](product/POSE_PROTOTYPE.md) 和 [ADR-0023](decisions/0023-browser-local-pose-prototype.md)；实现为 `frontend/app/participants/[id]/pose-lab/`、固定模型/复制脚本、CSP 与功能开关。`pose-analysis.test.ts`、`pose-video-lab.test.tsx` 验证角度/未知/导出与文件门禁；`frontend/e2e/pose-lab.real.ts` 在隔离 PostgreSQL→FastAPI→Next→Chromium 用生成的合成素材录制短 WebM，至少一帧实际返回 33 点、技术结果/JSON 可用且分析无非 GET 请求。前端 lint/typecheck/build/47 tests，完整浏览器 11 passed，资源清理成功。仅工程可行性，不覆盖真实影像授权、持久化、五次坐站/SPPB/太极评分或临床验证。
 
+S6-05 扩展 AT-POSE-01 的验证准备子集：`summarizePose` 以全部采样帧计算 33 点覆盖率、十关节角可用率和连续漏检；结果页只显示比例/计数，不输出 pass/fail。`poseAnnotationTemplateCsv` 生成时间对齐的空白人工事件/重复/阶段/参考角度列，E2E 实际下载并确认不含文件名。前端 49 tests，隔离生产 build/Chromium 11 passed 且清理成功。S6-04 的真实误差与失败模式报告仍未完成。
+
 DEMO-V2-28 对 AT-PAT-01 合成恢复操作子集：`frontend/app/patient/retry-button.tsx` 只调用 `router.refresh()`，`retry-button.test.tsx` 验证点击刷新，`frontend/app/patient/page.tsx` 仅在绑定不可用或服务不可用状态显示相应按钮，`frontend/e2e/patient.real.ts` 在绑定撤销后点击并核对拒绝状态保持。隔离前端 lint/typecheck/build/41 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、绑定、权限或真实患者验收变化。
 
 DEMO-V2-29 对 AT-PAT-03 合成读取故障子集：`frontend/app/patient/report-form.tsx` 在自报读取失败时隐藏表单/历史并复用只读重新检查组件；`report-form.test.tsx` 验证提示、隐藏表单和刷新，`frontend/e2e/patient.real.ts` 验证正常患者流程不出现失败按钮。隔离前端 lint/typecheck/build/42 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、自报写入、权限、临床判断或异常处置变化。
