@@ -20,6 +20,8 @@ S6-03 已在阶段 6 原合成壳之外增加默认关闭的浏览器本地姿�
 
 S6-05 已先补齐样本验证基础设施：逐关键点/关节角覆盖率、连续漏检采样数和按采样时间对齐的空白人工标注模板。它没有替代 S6-04 的真实对照，也没有设置“可用”阈值。
 
+S6-06 将空白模板变为浏览器本地可操作的时间点标注助手：可自定义事件、重复、阶段和参考关节，下载已填写 CSV；不预置动作定义或自动计次。它降低未来 S6-04 人工对照录入成本，但人工标注方案仍需由研究团队确定。
+
 REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01F0` adds single-object live Demo export; `REAL-01E0` adds manual synthetic cycle/visit grouping of existing observations. Approved visit scheduling, frozen datasets and Research activation remain separate. See [TASKS](TASKS.md), [ADR-0012](decisions/0012-training-observation-before-cycle.md) and [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md).
 
 | Stage | Deliverable | Prerequisite | Exit gate |

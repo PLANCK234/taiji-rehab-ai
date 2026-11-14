@@ -44,6 +44,17 @@ export type PoseFrame = {
   angles: JointAngles;
 };
 
+export type ManualPoseAnnotation = {
+  id: string;
+  timestampMs: number;
+  eventLabel: string;
+  repeatIndex: number | null;
+  phaseLabel: string;
+  referenceJoint: JointName | null;
+  referenceAngleDeg: number | null;
+  note: string;
+};
+
 export type JointRange = { minimum: number; maximum: number; range: number };
 export type PoseSummary = {
   videoDurationMs: number;
@@ -143,6 +154,13 @@ export function trajectoryPoint(frame: PoseFrame, target: "pelvis" | "left_wrist
   return usable(point) ? { x: point.x, y: point.y } : null;
 }
 
+export function nearestPoseFrame(frames: PoseFrame[], timestampMs: number) {
+  return frames.reduce<PoseFrame | undefined>((nearest, frame) => (
+    nearest === undefined || Math.abs(frame.timestampMs - timestampMs) < Math.abs(nearest.timestampMs - timestampMs)
+      ? frame : nearest
+  ), undefined);
+}
+
 export function poseAnalysisJson(frames: PoseFrame[], summary: PoseSummary) {
   return JSON.stringify({
     schema_version: "pose-prototype-v1",
@@ -175,5 +193,24 @@ export function poseAnnotationTemplateCsv(frames: PoseFrame[]) {
     "manual_phase_label", "manual_reference_joint", "manual_reference_angle_deg", "reviewer_note",
   ];
   const rows = frames.map((frame) => [frame.timestampMs.toFixed(1), frame.detected ? "1" : "0", "", "", "", "", "", ""].join(","));
+  return [header.join(","), ...rows].join("\n");
+}
+
+function safeCsvCell(value: string | number | null) {
+  if (value === null) return "";
+  let text = String(value).replace(/\r\n?/g, "\n");
+  if (/^[=+\-@]/.test(text)) text = `'${text}`;
+  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+export function poseManualAnnotationsCsv(annotations: ManualPoseAnnotation[]) {
+  const header = [
+    "timestamp_ms", "manual_event_label", "manual_repeat_index", "manual_phase_label",
+    "manual_reference_joint", "manual_reference_angle_deg", "reviewer_note",
+  ];
+  const rows = [...annotations].sort((left, right) => left.timestampMs - right.timestampMs).map((annotation) => [
+    annotation.timestampMs.toFixed(1), annotation.eventLabel, annotation.repeatIndex,
+    annotation.phaseLabel, annotation.referenceJoint, annotation.referenceAngleDeg?.toFixed(1) ?? null, annotation.note,
+  ].map(safeCsvCell).join(","));
   return [header.join(","), ...rows].join("\n");
 }

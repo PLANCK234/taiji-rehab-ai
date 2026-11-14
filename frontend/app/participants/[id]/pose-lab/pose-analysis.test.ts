@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  angleDegrees, createPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv, summarizePose, type PosePoint,
+  angleDegrees, createPoseFrame, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
+  poseManualAnnotationsCsv, summarizePose, type PosePoint,
 } from "./pose-analysis";
 
 const visible = (x: number, y: number, z = 0): PosePoint => ({ x, y, z, visibility: 1, presence: 1 });
@@ -59,5 +60,26 @@ describe("pose prototype kinematics", () => {
       expect.stringContaining("reviewer_note"), "0.0,0,,,,,,", "100.0,0,,,,,,",
     ]);
     expect(template).not.toContain("filename");
+  });
+
+  it("finds the closest model frame for a manual timestamp", () => {
+    const frames = [createPoseFrame(0), createPoseFrame(100), createPoseFrame(200)];
+    expect(nearestPoseFrame(frames, 149)?.timestampMs).toBe(100);
+    expect(nearestPoseFrame(frames, 151)?.timestampMs).toBe(200);
+    expect(nearestPoseFrame([], 100)).toBeUndefined();
+  });
+
+  it("exports sorted manual annotations and protects spreadsheet cells", () => {
+    const csv = poseManualAnnotationsCsv([{
+      id: "later", timestampMs: 900, eventLabel: "=unsafe", repeatIndex: 2, phaseLabel: "自定义,阶段",
+      referenceJoint: "left_knee", referenceAngleDeg: 91.24, note: "第一行\n第二行",
+    }, {
+      id: "earlier", timestampMs: 100, eventLabel: "人工事件", repeatIndex: null, phaseLabel: "",
+      referenceJoint: null, referenceAngleDeg: null, note: "",
+    }]);
+    const rows = csv.split("\n");
+    expect(rows[1]).toBe("100.0,人工事件,,,,,");
+    expect(rows[2]).toContain("900.0,'=unsafe,2,\"自定义,阶段\",left_knee,91.2");
+    expect(csv).toContain("\"第一行\n第二行\"");
   });
 });

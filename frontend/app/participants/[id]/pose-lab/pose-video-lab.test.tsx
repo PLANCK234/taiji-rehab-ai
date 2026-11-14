@@ -1,10 +1,14 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import PoseVideoLab from "./pose-video-lab";
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("PoseVideoLab", () => {
   it("keeps file access gated by explicit local-use confirmation", () => {
@@ -22,6 +26,37 @@ describe("PoseVideoLab", () => {
     render(<PoseVideoLab />);
     fireEvent.click(screen.getByRole("checkbox", { name: /我确认这是合成视频/ }));
     expect(fetchSpy).not.toHaveBeenCalled();
-    fetchSpy.mockRestore();
+  });
+
+  it("adds and removes a browser-memory manual timestamp annotation", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL: vi.fn(() => "blob:pose-test"),
+      revokeObjectURL: vi.fn(),
+    });
+    const { container } = render(<PoseVideoLab />);
+    fireEvent.click(screen.getByRole("checkbox", { name: /我确认这是合成视频/ }));
+    const video = container.querySelector("video");
+    expect(video).not.toBeNull();
+    Object.defineProperties(video!, {
+      readyState: { configurable: true, value: 1 },
+      duration: { configurable: true, value: 2 },
+      currentTime: { configurable: true, writable: true, value: 0.6 },
+    });
+    const file = new File(["test"], "synthetic.webm", { type: "video/webm" });
+    fireEvent.change(screen.getByLabelText(/视频文件/), { target: { files: [file] } });
+    await waitFor(() => expect(screen.getByRole("heading", { name: "2. 本地人工时间点标注" })).toBeTruthy());
+
+    fireEvent.change(screen.getByLabelText("事件标签（必填）"), { target: { value: "人工事件 A" } });
+    fireEvent.change(screen.getByLabelText("重复序号（可选）"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("阶段标签（可选）"), { target: { value: "自定义阶段" } });
+    fireEvent.click(screen.getByRole("button", { name: "标记当前时刻" }));
+
+    expect(screen.getByRole("cell", { name: "人工事件 A" })).toBeTruthy();
+    expect(screen.getByRole("cell", { name: "0.6 秒" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "删除" }));
+    expect(screen.getByText("尚未添加人工标注。")).toBeTruthy();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

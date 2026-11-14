@@ -5,12 +5,15 @@ import {
   JOINT_DEFINITIONS,
   POSE_CONNECTIONS,
   createPoseFrame,
+  nearestPoseFrame,
   poseAnalysisCsv,
   poseAnalysisJson,
   poseAnnotationTemplateCsv,
+  poseManualAnnotationsCsv,
   summarizePose,
   trajectoryPoint,
   type JointName,
+  type ManualPoseAnnotation,
   type PoseFrame,
   type PosePoint,
   type PoseSummary,
@@ -95,12 +98,6 @@ function drawSkeleton(canvas: HTMLCanvasElement, video: HTMLVideoElement, frame:
   }
 }
 
-function nearestFrame(frames: PoseFrame[], timestampMs: number) {
-  if (!frames.length) return undefined;
-  const index = Math.min(frames.length - 1, Math.max(0, Math.round(timestampMs / (1000 / SAMPLE_HZ))));
-  return frames[index];
-}
-
 function TrajectoryChart({ frames }: { frames: PoseFrame[] }) {
   return <div className="trajectory-chart" aria-label="归一化二维运动轨迹">
     <svg viewBox="0 0 600 360" role="img" aria-label="骨盆、手腕和脚踝的二维运动轨迹">
@@ -124,6 +121,7 @@ export default function PoseVideoLab() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const objectUrlRef = useRef<string | null>(null);
   const landmarkerRef = useRef<PoseLandmarkerLike | null>(null);
+  const annotationSequenceRef = useRef(1);
   const [authorized, setAuthorized] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [durationSeconds, setDurationSeconds] = useState(0);
@@ -133,6 +131,13 @@ export default function PoseVideoLab() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("请选择一段单人、全身尽量可见的视频。");
   const [error, setError] = useState("");
+  const [annotations, setAnnotations] = useState<ManualPoseAnnotation[]>([]);
+  const [eventLabel, setEventLabel] = useState("");
+  const [repeatIndex, setRepeatIndex] = useState("");
+  const [phaseLabel, setPhaseLabel] = useState("");
+  const [referenceJoint, setReferenceJoint] = useState<JointName | "">("");
+  const [annotationNote, setAnnotationNote] = useState("");
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const clearResult = useCallback(() => {
     setFrames([]); setSummary(null); setProgress(0);
     if (canvasRef.current) canvasRef.current.getContext("2d")?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -144,7 +149,7 @@ export default function PoseVideoLab() {
   }, []);
 
   const selectVideo = async (file: File | undefined) => {
-    setError(""); clearResult(); setVideoReady(false);
+    setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setCurrentVideoTime(0);
     if (!file) return;
     if (!authorized) { setError("请先确认视频使用范围。未读取该文件。"); return; }
     if (file.size > MAX_VIDEO_BYTES) { setError("视频超过 250 MB，本原型未读取该文件。"); return; }
@@ -214,7 +219,7 @@ export default function PoseVideoLab() {
       }
       const nextSummary = summarizePose(nextFrames, durationSeconds * 1000, SAMPLE_HZ);
       setFrames(nextFrames); setSummary(nextSummary);
-      video.currentTime = 0;
+      video.currentTime = 0; setCurrentVideoTime(0);
       drawSkeleton(canvasRef.current!, video, nextFrames[0]);
       setMessage(`分析完成：${nextSummary.detectedFrames} / ${nextSummary.sampledFrames} 个采样时刻识别到人体。`);
     } catch (caught) {
@@ -226,7 +231,28 @@ export default function PoseVideoLab() {
   const syncOverlay = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (video && canvas) drawSkeleton(canvas, video, nearestFrame(frames, video.currentTime * 1000));
+    if (video) setCurrentVideoTime(video.currentTime);
+    if (video && canvas) drawSkeleton(canvas, video, nearestPoseFrame(frames, video.currentTime * 1000));
+  };
+
+  const addAnnotation = () => {
+    const video = videoRef.current;
+    const label = eventLabel.trim();
+    if (!video || !videoReady || !label) return;
+    const timestampMs = video.currentTime * 1000;
+    const frame = nearestPoseFrame(frames, timestampMs);
+    const parsedRepeat = repeatIndex === "" ? null : Number(repeatIndex);
+    const annotation: ManualPoseAnnotation = {
+      id: `manual-${annotationSequenceRef.current++}`,
+      timestampMs,
+      eventLabel: label,
+      repeatIndex: parsedRepeat !== null && Number.isInteger(parsedRepeat) && parsedRepeat > 0 ? parsedRepeat : null,
+      phaseLabel: phaseLabel.trim(), referenceJoint: referenceJoint || null,
+      referenceAngleDeg: referenceJoint && frame ? frame.angles[referenceJoint] : null,
+      note: annotationNote.trim(),
+    };
+    setAnnotations((current) => [...current, annotation].sort((left, right) => left.timestampMs - right.timestampMs));
+    setEventLabel(""); setRepeatIndex(""); setPhaseLabel(""); setAnnotationNote("");
   };
 
   return <>
@@ -250,8 +276,35 @@ export default function PoseVideoLab() {
       {error ? <p role="alert">{error}</p> : null}
     </section>
 
+    {videoReady ? <section aria-labelledby="manual-annotation-heading">
+      <h2 id="manual-annotation-heading">2. 本地人工时间点标注</h2>
+      <p className="note">播放或拖动到目标时刻后添加标记。所有内容只在本标签页内存中；不要填写姓名、诊断或其他可识别信息。</p>
+      <div className="annotation-grid">
+        <label>事件标签（必填）<input value={eventLabel} onChange={(event) => setEventLabel(event.target.value)} placeholder="自定义，例如：人工标记 A" /></label>
+        <label>重复序号（可选）<input type="number" min="1" step="1" value={repeatIndex} onChange={(event) => setRepeatIndex(event.target.value)} /></label>
+        <label>阶段标签（可选）<input value={phaseLabel} onChange={(event) => setPhaseLabel(event.target.value)} placeholder="由标注方案自行定义" /></label>
+        <label>参考关节（可选）<select value={referenceJoint} onChange={(event) => setReferenceJoint(event.target.value as JointName | "")}>
+          <option value="">不关联模型角度</option>
+          {(Object.keys(JOINT_DEFINITIONS) as JointName[]).map((name) => <option key={name} value={name}>{JOINT_LABELS[name]}</option>)}
+        </select></label>
+        <label className="annotation-note">备注（可选，不填身份/临床信息）<textarea value={annotationNote} onChange={(event) => setAnnotationNote(event.target.value)} /></label>
+      </div>
+      <div className="button-row"><button type="button" disabled={!eventLabel.trim()} onClick={addAnnotation}>标记当前时刻</button>
+        <span>当前视频时刻：{currentVideoTime.toFixed(1)} 秒</span></div>
+      {annotations.length ? <div className="trend-table-wrap"><table className="trend-table">
+        <caption>本标签页人工标注</caption><thead><tr><th>时刻</th><th>事件</th><th>重复</th><th>阶段</th><th>参考角度</th><th>操作</th></tr></thead>
+        <tbody>{annotations.map((annotation) => <tr key={annotation.id}><td>{(annotation.timestampMs / 1000).toFixed(1)} 秒</td>
+          <td>{annotation.eventLabel}</td><td>{annotation.repeatIndex ?? "—"}</td><td>{annotation.phaseLabel || "—"}</td>
+          <td>{annotation.referenceJoint ? `${JOINT_LABELS[annotation.referenceJoint]} ${annotation.referenceAngleDeg?.toFixed(1) ?? "未知"}°` : "—"}</td>
+          <td><button type="button" className="text-button" onClick={() => setAnnotations((current) => current.filter((item) => item.id !== annotation.id))}>删除</button></td>
+        </tr>)}</tbody>
+      </table></div> : <p>尚未添加人工标注。</p>}
+      <button type="button" disabled={!annotations.length}
+        onClick={() => downloadText("pose-manual-annotations.csv", poseManualAnnotationsCsv(annotations), "text/csv;charset=utf-8")}>导出已标注 CSV</button>
+    </section> : null}
+
     {summary ? <section aria-labelledby="pose-results-heading">
-      <h2 id="pose-results-heading">2. 技术测量结果</h2>
+      <h2 id="pose-results-heading">3. 技术测量结果</h2>
       <p className="note">角度和轨迹是单摄像头模型估计值，受机位、遮挡、衣着和画面质量影响；不能替代人工计时、量表评估或临床判断。</p>
       <dl className="pose-summary-grid">
         <div><dt>视频时长</dt><dd>{(summary.videoDurationMs / 1000).toFixed(1)} 秒</dd></div>

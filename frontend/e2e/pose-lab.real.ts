@@ -57,7 +57,7 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.getByText(/已在浏览器本地载入/)).toBeVisible();
   await page.getByRole("button", { name: "开始本地分析" }).click();
   await expect(page.getByText(/分析完成：/)).toBeVisible({ timeout: 60_000 });
-  await expect(page.getByRole("heading", { name: "2. 技术测量结果" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "3. 技术测量结果" })).toBeVisible();
   await expect(page.getByText(/识别覆盖/)).toBeVisible();
   await expect(page.locator("canvas[aria-label='识别到的人体骨架叠加层']")).toBeVisible();
   expect(writes).toEqual([]);
@@ -79,4 +79,17 @@ test("local synthetic video produces landmarks, kinematics and export without up
   const annotationCsv = await readFile((await annotationDownload.path())!, "utf8");
   expect(annotationCsv).toContain("manual_event_label,manual_repeat_index,manual_phase_label");
   expect(annotationCsv).not.toContain("synthetic-pose.webm");
+
+  await page.getByLabel("事件标签（必填）").fill("人工事件 A");
+  await page.getByLabel("重复序号（可选）").fill("1");
+  await page.getByLabel("阶段标签（可选）").fill("自定义阶段");
+  await page.getByLabel("参考关节（可选）").selectOption("left_knee");
+  await page.getByRole("button", { name: "标记当前时刻" }).click();
+  await expect(page.getByRole("cell", { name: "人工事件 A" })).toBeVisible();
+  const [filledDownload] = await Promise.all([
+    page.waitForEvent("download"), page.getByRole("button", { name: "导出已标注 CSV" }).click(),
+  ]);
+  const filledCsv = await readFile((await filledDownload.path())!, "utf8");
+  expect(filledCsv).toContain("人工事件 A,1,自定义阶段,left_knee");
+  expect(filledCsv).not.toContain("synthetic-pose.webm");
 });
