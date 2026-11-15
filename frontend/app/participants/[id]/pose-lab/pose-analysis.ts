@@ -51,7 +51,8 @@ export type ManualPoseAnnotation = {
   repeatIndex: number | null;
   phaseLabel: string;
   referenceJoint: JointName | null;
-  referenceAngleDeg: number | null;
+  manualReferenceAngleDeg: number | null;
+  modelReferenceAngleDeg: number | null;
   note: string;
 };
 
@@ -161,6 +162,12 @@ export function nearestPoseFrame(frames: PoseFrame[], timestampMs: number) {
   ), undefined);
 }
 
+export function absoluteAngleDifference(manualAngleDeg: number | null, modelAngleDeg: number | null) {
+  return manualAngleDeg === null || modelAngleDeg === null
+    ? null
+    : Math.abs(manualAngleDeg - modelAngleDeg);
+}
+
 export function poseAnalysisJson(frames: PoseFrame[], summary: PoseSummary) {
   return JSON.stringify({
     schema_version: "pose-prototype-v1",
@@ -190,9 +197,12 @@ export function poseAnalysisCsv(frames: PoseFrame[]) {
 export function poseAnnotationTemplateCsv(frames: PoseFrame[]) {
   const header = [
     "timestamp_ms", "model_detected", "manual_event_label", "manual_repeat_index",
-    "manual_phase_label", "manual_reference_joint", "manual_reference_angle_deg", "reviewer_note",
+    "manual_phase_label", "manual_reference_joint", "manual_reference_angle_deg",
+    "model_reference_angle_deg", "absolute_angle_difference_deg", "reviewer_note",
   ];
-  const rows = frames.map((frame) => [frame.timestampMs.toFixed(1), frame.detected ? "1" : "0", "", "", "", "", "", ""].join(","));
+  const rows = frames.map((frame) => [
+    frame.timestampMs.toFixed(1), frame.detected ? "1" : "0", "", "", "", "", "", "", "", "",
+  ].join(","));
   return [header.join(","), ...rows].join("\n");
 }
 
@@ -206,11 +216,15 @@ function safeCsvCell(value: string | number | null) {
 export function poseManualAnnotationsCsv(annotations: ManualPoseAnnotation[]) {
   const header = [
     "timestamp_ms", "manual_event_label", "manual_repeat_index", "manual_phase_label",
-    "manual_reference_joint", "manual_reference_angle_deg", "reviewer_note",
+    "manual_reference_joint", "manual_reference_angle_deg", "model_reference_angle_deg",
+    "absolute_angle_difference_deg", "reviewer_note",
   ];
   const rows = [...annotations].sort((left, right) => left.timestampMs - right.timestampMs).map((annotation) => [
     annotation.timestampMs.toFixed(1), annotation.eventLabel, annotation.repeatIndex,
-    annotation.phaseLabel, annotation.referenceJoint, annotation.referenceAngleDeg?.toFixed(1) ?? null, annotation.note,
+    annotation.phaseLabel, annotation.referenceJoint, annotation.manualReferenceAngleDeg?.toFixed(1) ?? null,
+    annotation.modelReferenceAngleDeg?.toFixed(1) ?? null,
+    absoluteAngleDifference(annotation.manualReferenceAngleDeg, annotation.modelReferenceAngleDeg)?.toFixed(1) ?? null,
+    annotation.note,
   ].map(safeCsvCell).join(","));
   return [header.join(","), ...rows].join("\n");
 }

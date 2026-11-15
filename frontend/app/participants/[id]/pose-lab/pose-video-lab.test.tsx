@@ -51,10 +51,18 @@ describe("PoseVideoLab", () => {
     fireEvent.change(screen.getByLabelText("事件标签（必填）"), { target: { value: "人工事件 A" } });
     fireEvent.change(screen.getByLabelText("重复序号（可选）"), { target: { value: "1" } });
     fireEvent.change(screen.getByLabelText("阶段标签（可选）"), { target: { value: "自定义阶段" } });
+    fireEvent.change(screen.getByLabelText("人工参考角度（可选，度）"), { target: { value: "90" } });
+    fireEvent.click(screen.getByRole("button", { name: "标记当前时刻" }));
+    expect(screen.getByRole("alert").textContent).toContain("请先选择对应关节");
+    expect(screen.queryByRole("cell", { name: "人工事件 A" })).toBeNull();
+
+    fireEvent.change(screen.getByLabelText("参考关节（可选）"), { target: { value: "left_knee" } });
     fireEvent.click(screen.getByRole("button", { name: "标记当前时刻" }));
 
     expect(screen.getByRole("cell", { name: "人工事件 A" })).toBeTruthy();
     expect(screen.getByRole("cell", { name: "0.6 秒" })).toBeTruthy();
+    expect(screen.getByRole("cell", { name: "90.0°" })).toBeTruthy();
+    expect(screen.getAllByRole("cell", { name: "未知" })).toHaveLength(2);
     fireEvent.click(screen.getByRole("button", { name: "删除" }));
     expect(screen.getByText("尚未添加人工标注。")).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();

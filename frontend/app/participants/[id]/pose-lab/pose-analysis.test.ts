@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  angleDegrees, createPoseFrame, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
+  absoluteAngleDifference, angleDegrees, createPoseFrame, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
   poseManualAnnotationsCsv, summarizePose, type PosePoint,
 } from "./pose-analysis";
 
@@ -56,9 +56,9 @@ describe("pose prototype kinematics", () => {
   it("creates a blank human-annotation template aligned to sample timestamps", () => {
     const template = poseAnnotationTemplateCsv([createPoseFrame(0), createPoseFrame(100)]);
     expect(template).toContain("manual_event_label,manual_repeat_index,manual_phase_label");
-    expect(template.split("\n")).toEqual([
-      expect.stringContaining("reviewer_note"), "0.0,0,,,,,,", "100.0,0,,,,,,",
-    ]);
+    const rows = template.split("\n");
+    expect(rows[0]).toContain("manual_reference_angle_deg,model_reference_angle_deg,absolute_angle_difference_deg");
+    expect(rows.slice(1).map((row) => row.split(",").length)).toEqual([10, 10]);
     expect(template).not.toContain("filename");
   });
 
@@ -69,17 +69,24 @@ describe("pose prototype kinematics", () => {
     expect(nearestPoseFrame([], 100)).toBeUndefined();
   });
 
+  it("keeps manual and model angles separate and only compares two known values", () => {
+    expect(absoluteAngleDifference(95, 91.25)).toBe(3.75);
+    expect(absoluteAngleDifference(null, 91.25)).toBeNull();
+    expect(absoluteAngleDifference(95, null)).toBeNull();
+  });
+
   it("exports sorted manual annotations and protects spreadsheet cells", () => {
     const csv = poseManualAnnotationsCsv([{
       id: "later", timestampMs: 900, eventLabel: "=unsafe", repeatIndex: 2, phaseLabel: "自定义,阶段",
-      referenceJoint: "left_knee", referenceAngleDeg: 91.24, note: "第一行\n第二行",
+      referenceJoint: "left_knee", manualReferenceAngleDeg: 93.5, modelReferenceAngleDeg: 91.24,
+      note: "第一行\n第二行",
     }, {
       id: "earlier", timestampMs: 100, eventLabel: "人工事件", repeatIndex: null, phaseLabel: "",
-      referenceJoint: null, referenceAngleDeg: null, note: "",
+      referenceJoint: null, manualReferenceAngleDeg: null, modelReferenceAngleDeg: null, note: "",
     }]);
     const rows = csv.split("\n");
-    expect(rows[1]).toBe("100.0,人工事件,,,,,");
-    expect(rows[2]).toContain("900.0,'=unsafe,2,\"自定义,阶段\",left_knee,91.2");
+    expect(rows[1]).toBe("100.0,人工事件,,,,,,,");
+    expect(rows[2]).toContain("900.0,'=unsafe,2,\"自定义,阶段\",left_knee,93.5,91.2,2.3");
     expect(csv).toContain("\"第一行\n第二行\"");
   });
 });

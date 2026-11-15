@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   JOINT_DEFINITIONS,
   POSE_CONNECTIONS,
+  absoluteAngleDifference,
   createPoseFrame,
   nearestPoseFrame,
   poseAnalysisCsv,
@@ -66,6 +67,10 @@ function downloadText(filename: string, content: string, type: string) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function formatAngle(value: number | null) {
+  return value === null ? "未知" : `${value.toFixed(1)}°`;
 }
 
 function drawSkeleton(canvas: HTMLCanvasElement, video: HTMLVideoElement, frame: PoseFrame | undefined) {
@@ -136,7 +141,9 @@ export default function PoseVideoLab() {
   const [repeatIndex, setRepeatIndex] = useState("");
   const [phaseLabel, setPhaseLabel] = useState("");
   const [referenceJoint, setReferenceJoint] = useState<JointName | "">("");
+  const [manualReferenceAngle, setManualReferenceAngle] = useState("");
   const [annotationNote, setAnnotationNote] = useState("");
+  const [annotationError, setAnnotationError] = useState("");
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const clearResult = useCallback(() => {
     setFrames([]); setSummary(null); setProgress(0);
@@ -149,7 +156,7 @@ export default function PoseVideoLab() {
   }, []);
 
   const selectVideo = async (file: File | undefined) => {
-    setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setCurrentVideoTime(0);
+    setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setCurrentVideoTime(0); setAnnotationError("");
     if (!file) return;
     if (!authorized) { setError("请先确认视频使用范围。未读取该文件。"); return; }
     if (file.size > MAX_VIDEO_BYTES) { setError("视频超过 250 MB，本原型未读取该文件。"); return; }
@@ -242,17 +249,27 @@ export default function PoseVideoLab() {
     const timestampMs = video.currentTime * 1000;
     const frame = nearestPoseFrame(frames, timestampMs);
     const parsedRepeat = repeatIndex === "" ? null : Number(repeatIndex);
+    const parsedManualAngle = manualReferenceAngle === "" ? null : Number(manualReferenceAngle);
+    if (parsedManualAngle !== null && (!Number.isFinite(parsedManualAngle) || parsedManualAngle < 0 || parsedManualAngle > 180)) {
+      setAnnotationError("人工参考角度必须是 0–180 度之间的数值。"); return;
+    }
+    if (parsedManualAngle !== null && !referenceJoint) {
+      setAnnotationError("填写人工参考角度前，请先选择对应关节。"); return;
+    }
+    const modelReferenceAngle = referenceJoint && frame ? frame.angles[referenceJoint] : null;
     const annotation: ManualPoseAnnotation = {
       id: `manual-${annotationSequenceRef.current++}`,
       timestampMs,
       eventLabel: label,
       repeatIndex: parsedRepeat !== null && Number.isInteger(parsedRepeat) && parsedRepeat > 0 ? parsedRepeat : null,
       phaseLabel: phaseLabel.trim(), referenceJoint: referenceJoint || null,
-      referenceAngleDeg: referenceJoint && frame ? frame.angles[referenceJoint] : null,
+      manualReferenceAngleDeg: parsedManualAngle,
+      modelReferenceAngleDeg: modelReferenceAngle,
       note: annotationNote.trim(),
     };
     setAnnotations((current) => [...current, annotation].sort((left, right) => left.timestampMs - right.timestampMs));
-    setEventLabel(""); setRepeatIndex(""); setPhaseLabel(""); setAnnotationNote("");
+    setEventLabel(""); setRepeatIndex(""); setPhaseLabel(""); setManualReferenceAngle(""); setAnnotationNote("");
+    setAnnotationError("");
   };
 
   return <>
@@ -284,18 +301,24 @@ export default function PoseVideoLab() {
         <label>重复序号（可选）<input type="number" min="1" step="1" value={repeatIndex} onChange={(event) => setRepeatIndex(event.target.value)} /></label>
         <label>阶段标签（可选）<input value={phaseLabel} onChange={(event) => setPhaseLabel(event.target.value)} placeholder="由标注方案自行定义" /></label>
         <label>参考关节（可选）<select value={referenceJoint} onChange={(event) => setReferenceJoint(event.target.value as JointName | "")}>
-          <option value="">不关联模型角度</option>
+          <option value="">不选择参考关节</option>
           {(Object.keys(JOINT_DEFINITIONS) as JointName[]).map((name) => <option key={name} value={name}>{JOINT_LABELS[name]}</option>)}
         </select></label>
+        <label>人工参考角度（可选，度）<input type="number" min="0" max="180" step="0.1" value={manualReferenceAngle}
+          onChange={(event) => setManualReferenceAngle(event.target.value)} placeholder="由人工测量或标注方案提供" /></label>
         <label className="annotation-note">备注（可选，不填身份/临床信息）<textarea value={annotationNote} onChange={(event) => setAnnotationNote(event.target.value)} /></label>
       </div>
       <div className="button-row"><button type="button" disabled={!eventLabel.trim()} onClick={addAnnotation}>标记当前时刻</button>
         <span>当前视频时刻：{currentVideoTime.toFixed(1)} 秒</span></div>
+      {annotationError ? <p role="alert">{annotationError}</p> : null}
       {annotations.length ? <div className="trend-table-wrap"><table className="trend-table">
-        <caption>本标签页人工标注</caption><thead><tr><th>时刻</th><th>事件</th><th>重复</th><th>阶段</th><th>参考角度</th><th>操作</th></tr></thead>
+        <caption>本标签页人工标注</caption><thead><tr><th>时刻</th><th>事件</th><th>重复</th><th>阶段</th><th>关节</th><th>人工角度</th><th>模型角度</th><th>绝对差值</th><th>操作</th></tr></thead>
         <tbody>{annotations.map((annotation) => <tr key={annotation.id}><td>{(annotation.timestampMs / 1000).toFixed(1)} 秒</td>
           <td>{annotation.eventLabel}</td><td>{annotation.repeatIndex ?? "—"}</td><td>{annotation.phaseLabel || "—"}</td>
-          <td>{annotation.referenceJoint ? `${JOINT_LABELS[annotation.referenceJoint]} ${annotation.referenceAngleDeg?.toFixed(1) ?? "未知"}°` : "—"}</td>
+          <td>{annotation.referenceJoint ? JOINT_LABELS[annotation.referenceJoint] : "—"}</td>
+          <td>{formatAngle(annotation.manualReferenceAngleDeg)}</td>
+          <td>{formatAngle(annotation.modelReferenceAngleDeg)}</td>
+          <td>{formatAngle(absoluteAngleDifference(annotation.manualReferenceAngleDeg, annotation.modelReferenceAngleDeg))}</td>
           <td><button type="button" className="text-button" onClick={() => setAnnotations((current) => current.filter((item) => item.id !== annotation.id))}>删除</button></td>
         </tr>)}</tbody>
       </table></div> : <p>尚未添加人工标注。</p>}

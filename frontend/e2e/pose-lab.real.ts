@@ -84,6 +84,7 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await page.getByLabel("重复序号（可选）").fill("1");
   await page.getByLabel("阶段标签（可选）").fill("自定义阶段");
   await page.getByLabel("参考关节（可选）").selectOption("left_knee");
+  await page.getByLabel("人工参考角度（可选，度）").fill("90");
   await page.getByRole("button", { name: "标记当前时刻" }).click();
   await expect(page.getByRole("cell", { name: "人工事件 A" })).toBeVisible();
   const [filledDownload] = await Promise.all([
@@ -91,5 +92,12 @@ test("local synthetic video produces landmarks, kinematics and export without up
   ]);
   const filledCsv = await readFile((await filledDownload.path())!, "utf8");
   expect(filledCsv).toContain("人工事件 A,1,自定义阶段,left_knee");
+  expect(filledCsv).toContain("manual_reference_angle_deg,model_reference_angle_deg,absolute_angle_difference_deg");
+  const filledRow = filledCsv.split("\n").find((row) => row.includes("人工事件 A"));
+  expect(filledRow).toBeDefined();
+  const filledCells = filledRow!.split(",");
+  expect(filledCells[5]).toBe("90.0");
+  expect(Number.isFinite(Number(filledCells[6]))).toBe(true);
+  expect(Number.isFinite(Number(filledCells[7]))).toBe(true);
   expect(filledCsv).not.toContain("synthetic-pose.webm");
 });
