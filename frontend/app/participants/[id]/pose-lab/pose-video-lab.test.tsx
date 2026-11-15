@@ -63,6 +63,8 @@ describe("PoseVideoLab", () => {
     expect(screen.getByRole("cell", { name: "0.6 秒" })).toBeTruthy();
     expect(screen.getByRole("cell", { name: "90.0°" })).toBeTruthy();
     expect(screen.getAllByRole("cell", { name: "未知" })).toHaveLength(2);
+    expect(screen.getByText("0 / 1")).toBeTruthy();
+    expect(screen.getByText("角度对照摘要（描述性）")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "删除" }));
     expect(screen.getByText("尚未添加人工标注。")).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();

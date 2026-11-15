@@ -24,6 +24,8 @@ S6-06 将空白模板变为浏览器本地可操作的时间点标注助手：�
 
 S6-07 修正人工对照字段语义：人工参考角、同一时刻模型角及绝对差值独立保留，未知不补零，也不设置误差合格线。这使未来 S6-04 可以据获批人工方案做描述性误差报告，但没有替代样本、标注一致性或临床审批。
 
+S6-08 在浏览器内对当前标注做总体/分关节描述性汇总，并导出不含自由文本和视频信息的聚合 JSON。统计只使用人工/模型角同时存在的行，不产生 pass/fail；真实误差结论仍属于有样本和协议后的 S6-04。
+
 REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01F0` adds single-object live Demo export; `REAL-01E0` adds manual synthetic cycle/visit grouping of existing observations. Approved visit scheduling, frozen datasets and Research activation remain separate. See [TASKS](TASKS.md), [ADR-0012](decisions/0012-training-observation-before-cycle.md) and [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md).
 
 | Stage | Deliverable | Prerequisite | Exit gate |

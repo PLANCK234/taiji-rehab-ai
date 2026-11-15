@@ -100,4 +100,19 @@ test("local synthetic video produces landmarks, kinematics and export without up
   expect(Number.isFinite(Number(filledCells[6]))).toBe(true);
   expect(Number.isFinite(Number(filledCells[7]))).toBe(true);
   expect(filledCsv).not.toContain("synthetic-pose.webm");
+
+  await expect(page.getByText("1 / 1", { exact: true })).toBeVisible();
+  const [summaryDownload] = await Promise.all([
+    page.waitForEvent("download"), page.getByRole("button", { name: "导出角度对照摘要 JSON" }).click(),
+  ]);
+  const comparison = JSON.parse(await readFile((await summaryDownload.path())!, "utf8")) as {
+    schema_version: string;
+    summary: { overall: { count: number; meanAbsoluteDifferenceDeg: number | null } };
+  };
+  expect(comparison.schema_version).toBe("pose-comparison-summary-v1");
+  expect(comparison.summary.overall.count).toBe(1);
+  expect(typeof comparison.summary.overall.meanAbsoluteDifferenceDeg).toBe("number");
+  const comparisonText = JSON.stringify(comparison);
+  expect(comparisonText).not.toContain("人工事件 A");
+  expect(comparisonText).not.toContain("synthetic-pose.webm");
 });

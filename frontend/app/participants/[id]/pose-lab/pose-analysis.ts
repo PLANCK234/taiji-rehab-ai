@@ -56,6 +56,21 @@ export type ManualPoseAnnotation = {
   note: string;
 };
 
+export type AngleDifferenceStats = {
+  count: number;
+  meanAbsoluteDifferenceDeg: number | null;
+  medianAbsoluteDifferenceDeg: number | null;
+  maximumAbsoluteDifferenceDeg: number | null;
+};
+
+export type ManualAngleComparisonSummary = {
+  totalAnnotations: number;
+  missingManualAngleAnnotations: number;
+  missingModelAngleAnnotations: number;
+  overall: AngleDifferenceStats;
+  byJoint: Partial<Record<JointName, AngleDifferenceStats>>;
+};
+
 export type JointRange = { minimum: number; maximum: number; range: number };
 export type PoseSummary = {
   videoDurationMs: number;
@@ -166,6 +181,50 @@ export function absoluteAngleDifference(manualAngleDeg: number | null, modelAngl
   return manualAngleDeg === null || modelAngleDeg === null
     ? null
     : Math.abs(manualAngleDeg - modelAngleDeg);
+}
+
+function angleDifferenceStats(values: number[]): AngleDifferenceStats {
+  if (!values.length) return {
+    count: 0,
+    meanAbsoluteDifferenceDeg: null,
+    medianAbsoluteDifferenceDeg: null,
+    maximumAbsoluteDifferenceDeg: null,
+  };
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  return {
+    count: sorted.length,
+    meanAbsoluteDifferenceDeg: sorted.reduce((sum, value) => sum + value, 0) / sorted.length,
+    medianAbsoluteDifferenceDeg: median,
+    maximumAbsoluteDifferenceDeg: sorted.at(-1)!,
+  };
+}
+
+export function summarizeManualAngleComparisons(annotations: ManualPoseAnnotation[]): ManualAngleComparisonSummary {
+  const differences = annotations.map((annotation) => ({
+    joint: annotation.referenceJoint,
+    value: absoluteAngleDifference(annotation.manualReferenceAngleDeg, annotation.modelReferenceAngleDeg),
+  }));
+  const byJoint = Object.fromEntries((Object.keys(JOINT_DEFINITIONS) as JointName[]).flatMap((joint) => {
+    const values = differences.filter((item) => item.joint === joint && item.value !== null).map((item) => item.value!);
+    return values.length ? [[joint, angleDifferenceStats(values)]] : [];
+  })) as Partial<Record<JointName, AngleDifferenceStats>>;
+  return {
+    totalAnnotations: annotations.length,
+    missingManualAngleAnnotations: annotations.filter((annotation) => annotation.manualReferenceAngleDeg === null).length,
+    missingModelAngleAnnotations: annotations.filter((annotation) => annotation.modelReferenceAngleDeg === null).length,
+    overall: angleDifferenceStats(differences.flatMap((item) => item.value === null ? [] : [item.value])),
+    byJoint,
+  };
+}
+
+export function poseComparisonSummaryJson(annotations: ManualPoseAnnotation[]) {
+  return JSON.stringify({
+    schema_version: "pose-comparison-summary-v1",
+    interpretation_notice: "Descriptive technical differences only; no quality or clinical interpretation.",
+    summary: summarizeManualAngleComparisons(annotations),
+  }, null, 2);
 }
 
 export function poseAnalysisJson(frames: PoseFrame[], summary: PoseSummary) {

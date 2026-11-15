@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   absoluteAngleDifference, angleDegrees, createPoseFrame, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
-  poseManualAnnotationsCsv, summarizePose, type PosePoint,
+  poseComparisonSummaryJson, poseManualAnnotationsCsv, summarizeManualAngleComparisons, summarizePose,
+  type ManualPoseAnnotation, type PosePoint,
 } from "./pose-analysis";
 
 const visible = (x: number, y: number, z = 0): PosePoint => ({ x, y, z, visibility: 1, presence: 1 });
@@ -73,6 +74,32 @@ describe("pose prototype kinematics", () => {
     expect(absoluteAngleDifference(95, 91.25)).toBe(3.75);
     expect(absoluteAngleDifference(null, 91.25)).toBeNull();
     expect(absoluteAngleDifference(95, null)).toBeNull();
+  });
+
+  it("summarizes comparable angles without turning missing values into zero", () => {
+    const annotation = (id: string, joint: ManualPoseAnnotation["referenceJoint"], manual: number | null,
+      model: number | null): ManualPoseAnnotation => ({
+      id, timestampMs: Number(id) * 100, eventLabel: `event-${id}`, repeatIndex: null, phaseLabel: "",
+      referenceJoint: joint, manualReferenceAngleDeg: manual, modelReferenceAngleDeg: model, note: "private note",
+    });
+    const annotations = [
+      annotation("1", "left_knee", 90, 92), annotation("2", "left_knee", 100, 96),
+      annotation("3", "left_elbow", 80, null), annotation("4", "right_elbow", null, 70),
+    ];
+    const summary = summarizeManualAngleComparisons(annotations);
+    expect(summary.totalAnnotations).toBe(4);
+    expect(summary.missingManualAngleAnnotations).toBe(1);
+    expect(summary.missingModelAngleAnnotations).toBe(1);
+    expect(summary.overall).toEqual({
+      count: 2, meanAbsoluteDifferenceDeg: 3, medianAbsoluteDifferenceDeg: 3, maximumAbsoluteDifferenceDeg: 4,
+    });
+    expect(summary.byJoint.left_knee).toEqual(summary.overall);
+    expect(summary.byJoint.left_elbow).toBeUndefined();
+    const exported = poseComparisonSummaryJson(annotations);
+    expect(exported).toContain('"schema_version": "pose-comparison-summary-v1"');
+    expect(exported).not.toContain("private note");
+    expect(exported).not.toContain("event-1");
+    expect(exported).not.toMatch(/pass|fail|合格|不合格/i);
   });
 
   it("exports sorted manual annotations and protects spreadsheet cells", () => {

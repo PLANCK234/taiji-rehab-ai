@@ -10,7 +10,9 @@ import {
   poseAnalysisCsv,
   poseAnalysisJson,
   poseAnnotationTemplateCsv,
+  poseComparisonSummaryJson,
   poseManualAnnotationsCsv,
+  summarizeManualAngleComparisons,
   summarizePose,
   trajectoryPoint,
   type JointName,
@@ -272,6 +274,8 @@ export default function PoseVideoLab() {
     setAnnotationError("");
   };
 
+  const comparisonSummary = summarizeManualAngleComparisons(annotations);
+
   return <>
     <section aria-labelledby="pose-input-heading">
       <h2 id="pose-input-heading">1. 选择本地视频</h2>
@@ -322,8 +326,32 @@ export default function PoseVideoLab() {
           <td><button type="button" className="text-button" onClick={() => setAnnotations((current) => current.filter((item) => item.id !== annotation.id))}>删除</button></td>
         </tr>)}</tbody>
       </table></div> : <p>尚未添加人工标注。</p>}
-      <button type="button" disabled={!annotations.length}
-        onClick={() => downloadText("pose-manual-annotations.csv", poseManualAnnotationsCsv(annotations), "text/csv;charset=utf-8")}>导出已标注 CSV</button>
+      {annotations.length ? <>
+        <h3>角度对照摘要（描述性）</h3>
+        <p className="note">只汇总当前标签页中人工角与模型角同时存在的标注；缺失不补零，不表示动作质量或临床可用性。</p>
+        <dl className="pose-summary-grid">
+          <div><dt>标注总数</dt><dd>{comparisonSummary.totalAnnotations}</dd></div>
+          <div><dt>可比较角度</dt><dd>{comparisonSummary.overall.count} / {comparisonSummary.totalAnnotations}</dd></div>
+          <div><dt>人工角缺失</dt><dd>{comparisonSummary.missingManualAngleAnnotations}</dd></div>
+          <div><dt>模型角缺失</dt><dd>{comparisonSummary.missingModelAngleAnnotations}</dd></div>
+          <div><dt>平均绝对差值</dt><dd>{formatAngle(comparisonSummary.overall.meanAbsoluteDifferenceDeg)}</dd></div>
+          <div><dt>中位绝对差值</dt><dd>{formatAngle(comparisonSummary.overall.medianAbsoluteDifferenceDeg)}</dd></div>
+          <div><dt>最大绝对差值</dt><dd>{formatAngle(comparisonSummary.overall.maximumAbsoluteDifferenceDeg)}</dd></div>
+        </dl>
+        {Object.entries(comparisonSummary.byJoint).length ? <div className="trend-table-wrap"><table className="trend-table">
+          <caption>按关节汇总的可比较角度</caption><thead><tr><th>关节</th><th>数量</th><th>平均绝对差值</th><th>中位绝对差值</th><th>最大绝对差值</th></tr></thead>
+          <tbody>{Object.entries(comparisonSummary.byJoint).map(([joint, stats]) => <tr key={joint}>
+            <th scope="row">{JOINT_LABELS[joint as JointName]}</th><td>{stats.count}</td>
+            <td>{formatAngle(stats.meanAbsoluteDifferenceDeg)}</td><td>{formatAngle(stats.medianAbsoluteDifferenceDeg)}</td>
+            <td>{formatAngle(stats.maximumAbsoluteDifferenceDeg)}</td></tr>)}</tbody>
+        </table></div> : null}
+      </> : null}
+      <div className="button-row">
+        <button type="button" disabled={!annotations.length}
+          onClick={() => downloadText("pose-manual-annotations.csv", poseManualAnnotationsCsv(annotations), "text/csv;charset=utf-8")}>导出已标注 CSV</button>
+        <button type="button" disabled={!annotations.length}
+          onClick={() => downloadText("pose-angle-comparison-summary.json", poseComparisonSummaryJson(annotations), "application/json")}>导出角度对照摘要 JSON</button>
+      </div>
     </section> : null}
 
     {summary ? <section aria-labelledby="pose-results-heading">
