@@ -12,6 +12,8 @@ S6-07 修正 AT-POSE-01 对照字段契约：人工输入 `manualReferenceAngleD
 
 S6-08 扩展 AT-POSE-01 的描述性验证准备：`summarizeManualAngleComparisons` 计算总体/分关节的可比较数量、平均/中位/最大绝对差值，并单列人工/模型缺失；`poseComparisonSummaryJson` 仅导出聚合统计。单元测试覆盖偶数中位数、未知和不含自由文本，组件显示无可比较值的未知；真实 Chromium 下载一条可比较记录的摘要且拒绝非 GET 请求。前端 54 tests；首轮 E2E 选择器歧义 10/11，精确匹配后隔离 11/11 且清理成功。没有真实样本准确率、阈值或临床解释。
 
+S6-04 首个样本检查点继续对应 AT-POSE-01 的实际视频可行性/失败模式子集：用户声明获授权的侧面 `SYN-5STS-001` 在共享本机 PostgreSQL→FastAPI→Next→Edge 中以 10 Hz 分析，166 帧中 165 帧检出人体，分析期无非 GET 请求；左侧远侧肢体角度全缺失，右髋/膝/踝角可用率为 99.4%/95.8%/80.7%。证据见 [本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)；原视频不入仓库/数据库，派生结果只在 Git 忽略目录。该检查点不覆盖人工真值、时间/角度误差、自动计次、太极或临床验证。
+
 DEMO-V2-28 对 AT-PAT-01 合成恢复操作子集：`frontend/app/patient/retry-button.tsx` 只调用 `router.refresh()`，`retry-button.test.tsx` 验证点击刷新，`frontend/app/patient/page.tsx` 仅在绑定不可用或服务不可用状态显示相应按钮，`frontend/e2e/patient.real.ts` 在绑定撤销后点击并核对拒绝状态保持。隔离前端 lint/typecheck/build/41 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、绑定、权限或真实患者验收变化。
 
 DEMO-V2-29 对 AT-PAT-03 合成读取故障子集：`frontend/app/patient/report-form.tsx` 在自报读取失败时隐藏表单/历史并复用只读重新检查组件；`report-form.test.tsx` 验证提示、隐藏表单和刷新，`frontend/e2e/patient.real.ts` 验证正常患者流程不出现失败按钮。隔离前端 lint/typecheck/build/42 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、自报写入、权限、临床判断或异常处置变化。
