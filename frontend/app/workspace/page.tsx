@@ -36,7 +36,7 @@ export default async function WorkspacePage() {
       <section aria-labelledby="participants-heading">
         <h2 id="participants-heading">已分配编号对象</h2>
         {participants === null ? <p>对象列表暂不可用或当前角色无权查看。</p> : participants.length ? (
-          <ParticipantList participants={participants} plans={plans} />
+          <ParticipantList key={user.id} accountId={user.id} participants={participants} plans={plans} studies={studies ?? []} />
         ) : <p>暂无已分配对象。</p>}
         <p className="note">仅限合成数据；Demo 分级不代表临床批准。真实照片与 Research 数据准入仍关闭。</p>
       </section>

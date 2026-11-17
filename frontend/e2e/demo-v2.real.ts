@@ -216,6 +216,40 @@ test("DEMO-V2: score 8, action library, run feedback and refresh persistence", a
   await expect(page.getByText("RPE 12", { exact: false })).toBeVisible();
 });
 
+test("DEMO-V2: workspace can hide and restore a record without changing the record", async ({ page }) => {
+  await login(page);
+  const assigned = page.getByRole("region", { name: "已分配编号对象" });
+  const record = assigned.getByRole("link", { name: "SYN-001", exact: true });
+  const row = assigned.getByRole("listitem").filter({
+    has: page.getByRole("link", { name: "SYN-001", exact: true }),
+  });
+  const href = (await record.getAttribute("href"))!;
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() !== "GET") writes.push(new URL(request.url()).pathname);
+  });
+  await expect(row.getByText("SYN-STUDY-A", { exact: true })).toBeVisible();
+  await row.getByRole("button", { name: "隐藏", exact: true }).click();
+  await expect(record).toHaveCount(0);
+  await page.reload();
+  const hidden = assigned.getByRole("button", { name: "查看已隐藏（1）" });
+  await expect(hidden).toBeVisible();
+  await expect(record).toHaveCount(0);
+
+  await page.goto(href);
+  await expect(page.getByRole("heading", { name: "SYN-001", exact: true })).toBeVisible();
+  await page.goto("/workspace");
+  await hidden.click();
+  await expect(record).toHaveAttribute("href", href);
+  await row.getByRole("button", { name: "恢复显示", exact: true }).click();
+  await expect(record).toHaveCount(0);
+  await assigned.getByRole("button", { name: "返回显示中的档案" }).click();
+  await expect(record).toBeVisible();
+  await page.reload();
+  await expect(record).toBeVisible();
+  expect(writes).toEqual([]);
+});
+
 test("DEMO-V2: score 5 gives III; current database plan survives reopening", async ({ page }) => {
   await createDemo(page, "SYN-DEMO-V2-005", 5);
   await expect(page.getByText("功能等级：III", { exact: false })).toBeVisible();
