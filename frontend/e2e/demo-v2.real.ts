@@ -11,16 +11,64 @@ async function login(page: Page) {
   await expect(page.getByRole("heading", { name: "研究工作台" })).toBeVisible();
 }
 
-async function createDemo(page: Page, code: string, score: number) {
-  await login(page);
+async function fillDemo(page: Page, code: string, score: number) {
   await page.getByLabel("合成编号").fill(code);
   await page.getByLabel("创建后直接完成 Demo 基础评估").check();
   await page.getByLabel("人工 SPPB 总分（0–12；留空为未评估）").fill(String(score));
   await page.getByLabel("测量日期").fill("2026-10-30");
   await page.getByLabel("明确记录模拟同意（仅合成数据）").check();
+}
+
+async function createDemo(page: Page, code: string, score: number) {
+  await login(page);
+  await fillDemo(page, code, score);
   await page.getByRole("button", { name: "创建编号对象" }).click();
   await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
 }
+
+test("DEMO-V2: interrupted enrollment resumes from the saved participant or assessment", async ({ page }) => {
+  await login(page);
+  const createRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && new URL(request.url()).pathname === "/api/v1/participants") {
+      createRequests.push((request.postDataJSON() as { study_code: string }).study_code);
+    }
+  });
+  const createButton = page.getByRole("button", { name: "创建编号对象" });
+  const profileFailure = "**/api/v1/participants/*/demo-profile";
+  await page.route(profileFailure, (route) => route.fulfill({ status: 503 }), { times: 1 });
+  await fillDemo(page, "SYN-DEMO-RECOVERY-PROFILE", 8);
+  await createButton.click();
+  await expect(page.getByRole("alert").filter({ hasText: "核对展示资料" })).toBeVisible();
+  const originalParticipant = page.getByRole("link", { name: "打开原档案继续" });
+  await expect(originalParticipant).toHaveAttribute("href", /^\/participants\/[^/]+$/);
+  const participantPath = (await originalParticipant.getAttribute("href"))!;
+  const participantResponse = await page.request.get(participantPath);
+  expect(participantResponse.ok()).toBe(true);
+  expect(await participantResponse.text()).toContain("SYN-DEMO-RECOVERY-PROFILE");
+  await expect(createButton).toBeDisabled();
+  await page.getByRole("button", { name: "开始录入另一对象" }).click();
+  await expect(page.getByLabel("合成编号")).toHaveValue("");
+  await expect(originalParticipant).toHaveCount(0);
+  await expect(createButton).toBeEnabled();
+
+  const confirmFailure = "**/api/v1/assessments/*/confirm";
+  await page.route(confirmFailure, (route) => route.fulfill({ status: 503 }), { times: 1 });
+  await fillDemo(page, "SYN-DEMO-RECOVERY-CONFIRM", 8);
+  await createButton.click();
+  await expect(page.getByRole("alert").filter({ hasText: "总分草稿已保存" })).toBeVisible();
+  await expect(createButton).toBeDisabled();
+  const originalAssessment = page.getByRole("link", { name: "打开原评估继续" });
+  await expect(originalAssessment).toHaveAttribute("href", /^\/assessments\/[^/]+$/);
+  await originalAssessment.click();
+  await expect(page.getByRole("heading", { name: "基线评估" })).toBeVisible();
+  await expect(page.getByText(/当前版本 2 · ?草稿/)).toBeVisible();
+  await expect(page.getByText("人工 SPPB 总分：8 分")).toBeVisible();
+  await page.getByRole("button", { name: "确认当前记录" }).click();
+  await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
+  await expect(page.getByText("功能等级：II", { exact: false })).toBeVisible();
+  expect(createRequests).toEqual(["SYN-DEMO-RECOVERY-PROFILE", "SYN-DEMO-RECOVERY-CONFIRM"]);
+});
 
 test("DEMO-V2: score 8, action library, run feedback and refresh persistence", async ({ page }) => {
   await createDemo(page, "SYN-DEMO-V2-008", 8);

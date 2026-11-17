@@ -1,5 +1,7 @@
 # Requirements traceability
 
+DEMO-V2-33 对应 AT-DEMO-01/06 的快速建档恢复子集。`create-participant-form.tsx` 根据已获响应的写入阶段显示原档案或原评估导航。`demo-v2.real.ts` 模拟资料写入和确认返回 503，核对已保存档案、可继续确认的 8 分草稿与建档请求次数。隔离 Chromium 12 项通过，临时资源已清理。
+
 DEMO-V2-32 对应 AT-DEMO-02 的对象查找子集。编号搜索见 `frontend/app/workspace/participant-list.tsx`，隔离 `demo-v2.real.ts` 覆盖复制格式、无匹配、清除输入和按片段重开已确认方案。
 
 S6-18 对应 AT-POSE-01 的先人工标注子集。姿态实验室开始分析前提供原视频模式，相关组件及 `pose-lab.real.ts` 验证原视频定位、人工 CSV 下载、退出模式后标记保留。

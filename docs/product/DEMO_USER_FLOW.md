@@ -12,6 +12,8 @@
 | 6 训练 | `/participants/{id}/demo/run/{runId}` | 开始、暂停/继续、切换动作、结束；当前动作显示视频区域，现无素材；刷新恢复状态 | 新增 `demo_runs`；结束后在原有 `training_sessions` 记实际观察 |
 | 7 反馈/完成 | 同训练页与原训练记录页 | 实际分钟、完成情况、RPE 6–20/观察；保存反馈后完成；可查看历史、再开始 | 原有 `training_feedback_revisions`；完成要求真实反馈版本，无默认 RPE |
 
+快速建档中途停止时，按页面提示打开原档案或原评估，核对已保存的内容再继续。确需建立另一个对象时，选择「开始录入另一对象」。
+
 ## 字段与规则
 
 - 编号对象：`study_id`、`study_code`；Demo 可选 `age`、`sex`、`needs_assistance`、`note`。这些是虚构展示元数据，不是身份映射。

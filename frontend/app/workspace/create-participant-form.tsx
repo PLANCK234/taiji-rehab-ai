@@ -7,15 +7,24 @@ import { CodedParticipant, intakeError, postIntake } from "./intake";
 import { writeAssessment, type AssessmentDetail, type AssessmentRevision } from "./assessments";
 import Link from "next/link";
 
+type Recovery = { href: string; kind: "participant" | "assessment" };
+
 export default function CreateParticipantForm({ studies, canConfirm = false }: { studies: AssignedStudy[]; canConfirm?: boolean }) {
   const router = useRouter();
   const key = useRef("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [partialId, setPartialId] = useState("");
+  const [recovery, setRecovery] = useState<Recovery | null>(null);
+
+  function recover(href: string, kind: Recovery["kind"], message: string) {
+    setRecovery({ href, kind });
+    setError(message);
+    setPending(false);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pending || recovery) return;
     setError("");
     setPending(true);
     const form = new FormData(event.currentTarget);
@@ -36,13 +45,13 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
     if (result.value) {
       key.current = "";
       const id = result.value.id;
+      const participantPath = `/participants/${id}`;
       if (!fullDemo) {
         setPending(false);
-        router.push(`/participants/${id}`);
+        router.push(participantPath);
         router.refresh();
         return;
       }
-      setPartialId(id);
       const profile = await postIntake(
         `/participants/${id}/demo-profile`,
         {
@@ -52,18 +61,28 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
           note: String(form.get("note") ?? "").trim() || null,
         }, crypto.randomUUID(), document.cookie,
       );
-      if (!profile.value) { setPending(false); setError(`档案已创建，展示资料未保存（${intakeError(profile.status)}）。`); return; }
+      if (!profile.value) {
+        recover(participantPath, "participant", "档案已创建。请打开原档案，核对展示资料后继续。");
+        return;
+      }
       const consent = await postIntake(
         `/participants/${id}/consents`,
         { document_version: "SYN-DEMO-V2", purpose_code: "SYN-DEMO-V2", decision: "granted", photo_scope: false },
         crypto.randomUUID(), document.cookie,
       );
-      if (!consent.value) { setPending(false); setError(`档案已创建，模拟同意未保存（${intakeError(consent.status)}）。`); return; }
+      if (!consent.value) {
+        recover(participantPath, "participant", "档案和展示资料已保存。请打开原档案，核对模拟同意后继续。");
+        return;
+      }
       const assessment = await writeAssessment<AssessmentDetail>(
         "/assessments", { participant_id: id, visit_kind: "baseline" },
         crypto.randomUUID(), document.cookie,
       );
-      if (!assessment.value) { setPending(false); setError("档案和模拟同意已保存，评估草稿创建失败；请从对象页继续。"); return; }
+      if (!assessment.value) {
+        recover(participantPath, "participant", "档案和模拟同意已保存。请打开原档案，核对是否已有评估草稿。");
+        return;
+      }
+      const assessmentPath = `/assessments/${assessment.value.id}`;
       const measured = await writeAssessment<AssessmentRevision>(
         `/assessments/${assessment.value.id}/measurements`,
         { expected_revision: 1, validity: "valid", raw_value: Number(scoreText),
@@ -72,14 +91,18 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
         crypto.randomUUID(), document.cookie, "PUT",
       );
       if (!measured.value) {
-        setPending(false); setError("档案与评估草稿已保存，总分写入失败；请从对象页继续。"); return;
+        recover(assessmentPath, "assessment", "评估草稿已创建。请打开原评估，核对总分是否已保存。");
+        return;
       }
-      if (!canConfirm) { setPending(false); router.push(`/assessments/${assessment.value.id}`); return; }
+      if (!canConfirm) { setPending(false); router.push(assessmentPath); return; }
       const confirmed = await writeAssessment<AssessmentRevision>(
         `/assessments/${assessment.value.id}/confirm`,
         { expected_revision: measured.value.revision_no }, crypto.randomUUID(), document.cookie,
       );
-      if (!confirmed.value) { setPending(false); setError("总分草稿已保存，确认失败；请在评估页继续。"); return; }
+      if (!confirmed.value) {
+        recover(assessmentPath, "assessment", "总分草稿已保存。请打开原评估，核对当前确认状态后继续。");
+        return;
+      }
       setPending(false);
       router.push(`/participants/${id}/demo`);
       router.refresh();
@@ -91,6 +114,7 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
 
   return (
     <form onSubmit={submit} onChange={() => { key.current = ""; }}>
+      <fieldset className="quick-intake-fields" disabled={pending || recovery !== null}>
       <label htmlFor="study_id">研究</label>
       <select id="study_id" name="study_id" required disabled={!studies.length}>
         {studies.map((study) => <option key={study.id} value={study.id}>{study.code}</option>)}
@@ -112,9 +136,18 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
       <input id="demo-note" name="note" maxLength={500} />
       <label><input type="checkbox" name="synthetic_consent" /> 明确记录模拟同意（仅合成数据）</label>
       <p className="note">仅填写合成编号，不录入姓名、电话或真实研究对象信息。</p>
-      <button type="submit" disabled={pending || !studies.length}>{pending ? "保存中…" : "创建编号对象"}</button>
+      <button type="submit" disabled={!studies.length}>{pending ? "保存中…" : "创建编号对象"}</button>
+      </fieldset>
       {error && <p role="alert">{error}</p>}
-      {partialId && error && <Link href={`/participants/${partialId}`}>打开已创建的编号对象继续</Link>}
+      {recovery ? <div className="button-row">
+        <Link href={recovery.href}>{recovery.kind === "assessment" ? "打开原评估继续" : "打开原档案继续"}</Link>
+        <button type="button" className="text-button" onClick={(event) => {
+          event.currentTarget.form?.reset();
+          setRecovery(null);
+          setError("");
+          key.current = "";
+        }}>开始录入另一对象</button>
+      </div> : null}
     </form>
   );
 }
