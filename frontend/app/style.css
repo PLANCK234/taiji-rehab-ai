@@ -31,7 +31,7 @@ button:hover, .button-link:hover { background: #1d563f; border-color: #1d563f; c
 button:disabled { opacity: .5; cursor: not-allowed; }
 .text-button { background: transparent; border: 0; color: #1f684e; padding: 4px; }
 .text-button:hover { background: transparent; color: #124d39; text-decoration: underline; }
-[role="alert"] { color: #a62f37; }
+[role="alert"], .field-error { color: #a62f37; }
 .demo-layout { display: grid; grid-template-columns: minmax(300px, .9fr) minmax(450px, 1.6fr); gap: 24px; align-items: start; }
 .demo-layout > section, .demo-layout > div > section { margin-top: 24px; }
 .action-list { list-style-position: inside; padding: 0; }

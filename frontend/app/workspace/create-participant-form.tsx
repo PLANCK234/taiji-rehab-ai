@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AssignedStudy } from "./auth";
 import { type CodedParticipant, findAssignedParticipant, intakeError, postIntake } from "./intake";
@@ -8,14 +8,37 @@ import { writeAssessment, type AssessmentDetail, type AssessmentRevision } from 
 import Link from "next/link";
 
 type Recovery = { href: string; kind: "participant" | "assessment" };
+type RequiredField = "sppb_total" | "measured_on" | "synthetic_consent";
+
+function missingAssessmentFields(form: FormData): RequiredField[] {
+  if (form.get("demo_flow") !== "on") return [];
+  const fields: RequiredField[] = [];
+  if (!String(form.get("sppb_total") ?? "").trim()) fields.push("sppb_total");
+  if (!form.get("measured_on")) fields.push("measured_on");
+  if (form.get("synthetic_consent") !== "on") fields.push("synthetic_consent");
+  return fields;
+}
 
 export default function CreateParticipantForm({ studies, canConfirm = false }: { studies: AssignedStudy[]; canConfirm?: boolean }) {
   const router = useRouter();
   const key = useRef("");
+  const formRef = useRef<HTMLFormElement>(null);
+  const focusMissingField = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [recovery, setRecovery] = useState<Recovery | null>(null);
   const [existingId, setExistingId] = useState<string>();
+  const [missing, setMissing] = useState<RequiredField[]>([]);
+  const missingScore = missing.includes("sppb_total");
+  const missingDate = missing.includes("measured_on");
+  const missingConsent = missing.includes("synthetic_consent");
+
+  useEffect(() => {
+    if (!focusMissingField.current) return;
+    focusMissingField.current = false;
+    const first = missing[0];
+    if (first) (formRef.current?.elements.namedItem(first) as HTMLInputElement | null)?.focus();
+  }, [missing]);
 
   function recover(href: string, kind: Recovery["kind"], message: string) {
     setRecovery({ href, kind });
@@ -28,17 +51,18 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
     if (pending || recovery) return;
     setError("");
     setExistingId(undefined);
-    setPending(true);
     const form = new FormData(event.currentTarget);
     const studyId = String(form.get("study_id") ?? "");
     const studyCode = String(form.get("study_code") ?? "");
     const scoreText = String(form.get("sppb_total") ?? "").trim();
     const fullDemo = form.get("demo_flow") === "on";
-    if (fullDemo && (form.get("synthetic_consent") !== "on" || scoreText === "" || !form.get("measured_on"))) {
-      setError("完整演示流程需要明确勾选模拟同意、填写 SPPB 总分和测量日期。");
-      setPending(false);
+    const missingFields = missingAssessmentFields(form);
+    if (missingFields.length) {
+      focusMissingField.current = true;
+      setMissing(missingFields);
       return;
     }
+    setPending(true);
     key.current ||= crypto.randomUUID();
     const result = await postIntake<CodedParticipant>(
       "/participants",
@@ -119,8 +143,9 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
   }
 
   return (
-    <form onSubmit={submit} onChange={() => {
+    <form ref={formRef} onSubmit={submit} onChange={(event) => {
       key.current = "";
+      if (missing.length) setMissing(missingAssessmentFields(new FormData(event.currentTarget)));
       if (existingId) {
         setExistingId(undefined);
         setError("");
@@ -139,14 +164,20 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
       <label htmlFor="demo-sex">演示性别（可选）</label>
       <select id="demo-sex" name="sex" defaultValue=""><option value="">未记录</option><option value="female">女</option><option value="male">男</option><option value="other">其他</option><option value="unknown">未知</option></select>
       <label htmlFor="demo-score">人工 SPPB 总分（0–12；留空为未评估）</label>
-      <input id="demo-score" name="sppb_total" type="number" min="0" max="12" step="1" />
+      <input id="demo-score" name="sppb_total" type="number" min="0" max="12" step="1"
+        aria-invalid={missingScore} aria-describedby={missingScore ? "demo-score-error" : undefined} />
+      {missingScore && <small className="field-error" id="demo-score-error">请填写人工 SPPB 总分。</small>}
       <label htmlFor="demo-date">测量日期</label>
-      <input id="demo-date" name="measured_on" type="date" />
+      <input id="demo-date" name="measured_on" type="date"
+        aria-invalid={missingDate} aria-describedby={missingDate ? "demo-date-error" : undefined} />
+      {missingDate && <small className="field-error" id="demo-date-error">请选择测量日期。</small>}
       <label htmlFor="demo-assistance">演示辅助信息</label>
       <select id="demo-assistance" name="needs_assistance" defaultValue="unknown"><option value="unknown">未知</option><option value="no">不需要</option><option value="yes">需要</option></select>
       <label htmlFor="demo-note">演示备注（可选）</label>
       <input id="demo-note" name="note" maxLength={500} />
-      <label><input type="checkbox" name="synthetic_consent" /> 明确记录模拟同意（仅合成数据）</label>
+      <label><input type="checkbox" name="synthetic_consent" aria-invalid={missingConsent}
+        aria-describedby={missingConsent ? "demo-consent-error" : undefined} /> 明确记录模拟同意（仅合成数据）</label>
+      {missingConsent && <small className="field-error" id="demo-consent-error">请勾选模拟同意。</small>}
       <p className="note">仅填写合成编号，不录入姓名、电话或真实研究对象信息。</p>
       <button type="submit" disabled={!studies.length}>{pending ? "保存中…" : "创建编号对象"}</button>
       </fieldset>

@@ -26,6 +26,48 @@ async function createDemo(page: Page, code: string, score: number) {
   await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
 }
 
+test("DEMO-V2: quick assessment locates missing fields and saves an explicit zero", async ({ page }) => {
+  await login(page);
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (["POST", "PUT"].includes(request.method())) writes.push(new URL(request.url()).pathname);
+  });
+  const create = page.getByRole("button", { name: "创建编号对象" });
+  const quick = page.getByLabel("创建后直接完成 Demo 基础评估");
+  const score = page.getByLabel("人工 SPPB 总分（0–12；留空为未评估）");
+  const date = page.getByLabel("测量日期");
+  const consent = page.getByLabel("明确记录模拟同意（仅合成数据）");
+  await page.getByLabel("合成编号").fill("SYN-DEMO-QUICK-ZERO");
+  await quick.check();
+  await create.click();
+  await expect(score).toBeFocused();
+  await expect(score).toHaveAccessibleDescription("请填写人工 SPPB 总分。");
+  await expect(date).toHaveAccessibleDescription("请选择测量日期。");
+  await expect(consent).toHaveAccessibleDescription("请勾选模拟同意。");
+  await quick.uncheck();
+  await expect(page.getByText("请填写人工 SPPB 总分。")).toHaveCount(0);
+  await quick.check();
+  await create.click();
+  await expect(score).toBeFocused();
+  await score.fill("0");
+  await expect(score).not.toHaveAttribute("aria-invalid", "true");
+  await create.click();
+  await expect(date).toBeFocused();
+  await date.fill("2026-10-30");
+  await create.click();
+  await expect(consent).toBeFocused();
+  expect(writes).toEqual([]);
+
+  await consent.check();
+  await create.click();
+  await expect(page.getByText("功能等级：IV", { exact: false })).toBeVisible();
+
+  await page.goto("/workspace");
+  await page.getByLabel("合成编号").fill("SYN-DEMO-PLAIN-INTAKE");
+  await create.click();
+  await expect(page.getByRole("heading", { name: "SYN-DEMO-PLAIN-INTAKE", exact: true })).toBeVisible();
+});
+
 test("DEMO-V2: interrupted enrollment resumes from the saved participant or assessment", async ({ page }) => {
   await login(page);
   const createRequests: string[] = [];

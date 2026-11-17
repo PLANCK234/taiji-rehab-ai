@@ -1,5 +1,7 @@
 # Requirements traceability
 
+DEMO-V2-35 对应 AT-DEMO-01/06 的快速评估缺项子集。`create-participant-form.tsx` 用表单字段校验生成各控件的提示；`demo-v2.real.ts` 验证提示关联、逐项聚焦、零写入保护、0 分流程及普通建档。隔离 Chromium 14 项通过。
+
 DEMO-V2-34 对应 AT-DEMO-01/06 的合成建档冲突子集。`create-participant-form.tsx` 在 409 后用 `intake.ts` 读取已有的授权列表。`demo-v2.real.ts` 验证真实重复冲突、未分配对象、跨研究与部分匹配拒绝、输入变化清除链接及无后续写入。隔离 Chromium 13 项通过。
 
 DEMO-V2-33 对应 AT-DEMO-01/06 的快速建档恢复子集。`create-participant-form.tsx` 根据已获响应的写入阶段显示原档案或原评估导航。`demo-v2.real.ts` 模拟资料写入和确认返回 503，核对已保存档案、可继续确认的 8 分草稿与建档请求次数。隔离 Chromium 12 项通过，临时资源已清理。
