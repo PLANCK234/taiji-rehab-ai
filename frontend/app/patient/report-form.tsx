@@ -32,7 +32,21 @@ function ReportFacts({ row }: { row: PatientReport }) {
 }
 
 export default function PatientReportForm({ initialReports }: { initialReports: PatientReport[] | null }) {
-  const [reports, setReports] = useState(initialReports);
+  return <section aria-labelledby="patient-report-heading">
+    <h2 id="patient-report-heading">训练与不适记录</h2>
+    <p className="note">仅供合成数据流程试用。请记录已经发生的事实；没有记录时状态未知。此页面不提供紧急响应或临床判断。</p>
+    {initialReports === null ? <div>
+      <p>训练与不适记录暂时无法读取。</p>
+      <RetryPatientHomeButton label="重新检查记录" />
+    </div> : <EditablePatientReports initialReports={initialReports} />}
+  </section>;
+}
+
+function EditablePatientReports({ initialReports }: { initialReports: PatientReport[] }) {
+  const [savedReports, setSavedReports] = useState<PatientReport[]>([]);
+  const reportsById = new Map(savedReports.map((row) => [row.id, row]));
+  for (const row of initialReports) reportsById.set(row.id, row);
+  const reports = [...reportsById.values()];
   const [editing, setEditing] = useState<PatientReport | null>(null);
   const [observedAt, setObservedAt] = useState("");
   const [activity, setActivity] = useState<PatientReport["activity_state"]>("unknown");
@@ -44,8 +58,8 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
   const [message, setMessage] = useState("");
   const key = useRef("");
   const newDraft = useRef<ReportDraft | null>(null);
-  const latest = reports?.filter((row) => !reports.some((other) => other.report_id === row.report_id && other.revision_no > row.revision_no))
-    .sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at) || a.report_id.localeCompare(b.report_id)) ?? [];
+  const latest = reports.filter((row) => !reports.some((other) => other.report_id === row.report_id && other.revision_no > row.revision_no))
+    .sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at) || a.report_id.localeCompare(b.report_id));
 
   function edit(row: PatientReport) {
     if (!editing) {
@@ -106,7 +120,7 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
     );
     setPending(false);
     if (result.value) {
-      setReports((previous) => [result.value!, ...(previous ?? [])]);
+      setSavedReports((previous) => [result.value!, ...previous]);
       returnToNewReport(editing ? newDraft.current : null);
       setMessage("合成记录已保存。此处没有自动风险判断或平台内处置服务。");
     } else {
@@ -114,13 +128,7 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
     }
   }
 
-  return <section aria-labelledby="patient-report-heading">
-    <h2 id="patient-report-heading">训练与不适记录</h2>
-    <p className="note">仅供合成数据流程试用。请记录已经发生的事实；没有记录时状态未知。此页面不提供紧急响应或临床判断。</p>
-    {reports === null ? <div>
-      <p>训练与不适记录暂时无法读取。</p>
-      <RetryPatientHomeButton label="重新检查记录" />
-    </div> : <>
+  return <>
       <form onSubmit={submit} onChange={() => { key.current = ""; }}>
         <h3>{editing ? `更正记录 · 版本 ${editing.revision_no}` : "新增本人记录"}</h3>
         <label>发生时间（北京时间）<input type="datetime-local" required value={observedAt} onChange={(event) => setObservedAt(event.target.value)} /></label>
@@ -143,6 +151,5 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
         <button type="button" disabled={pending} onClick={() => edit(row)}>更正</button>
         {row.revision_no > 1 ? <details><summary>查看旧版本</summary><ul>{reports.filter((old) => old.report_id === row.report_id && old.id !== row.id).sort((a, b) => b.revision_no - a.revision_no).map((old) => <li key={old.id}><strong>旧版本 {old.revision_no}</strong> · <ReportFacts row={old} /></li>)}</ul></details> : null}
       </li>)}</ul> : <p>尚未填写训练或不适记录；训练与不适状态均未知。</p>}
-    </>}
-  </section>;
+  </>;
 }

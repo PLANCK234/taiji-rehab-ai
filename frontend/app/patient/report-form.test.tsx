@@ -34,6 +34,40 @@ it("offers a read-only recheck when reports are unavailable", () => {
   expect(navigation.refresh).toHaveBeenCalledOnce();
 });
 
+it("uses the refreshed server result to recover from a report read failure", () => {
+  const view = render(<PatientReportForm initialReports={null} />);
+  fireEvent.click(screen.getByRole("button", { name: "重新检查记录" }));
+  view.rerender(<PatientReportForm initialReports={[]} />);
+  expect(screen.queryByRole("button", { name: "重新检查记录" })).toBeNull();
+  expect(screen.getByText(/尚未填写训练或不适记录/)).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "新增本人记录" })).toBeTruthy();
+  view.rerender(<PatientReportForm initialReports={null} />);
+  expect(screen.queryByRole("heading", { name: "新增本人记录" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "重新检查记录" }));
+  view.rerender(<PatientReportForm initialReports={[first]} />);
+  expect(screen.getByText("当前版本 1")).toBeTruthy();
+  expect(screen.queryByText(/暂时无法读取/)).toBeNull();
+  expect(postIntake).not.toHaveBeenCalled();
+});
+
+it("merges refreshed revisions with a save response while preserving the draft", async () => {
+  vi.mocked(postIntake).mockResolvedValue({ status: 201, value: first });
+  const view = render(<PatientReportForm initialReports={[]} />);
+  const field = screen.getByLabelText<HTMLInputElement>("发生时间（北京时间）");
+  fireEvent.change(field, { target: { value: "2026-11-05T10:00" } });
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await screen.findByText("当前版本 1");
+  fireEvent.change(field, { target: { value: "2026-11-05T11:00" } });
+  view.rerender(<PatientReportForm initialReports={[first]} />);
+  expect(screen.getAllByText("当前版本 1")).toHaveLength(1);
+  expect(field.value).toBe("2026-11-05T11:00");
+  const updated = { ...first, id: "revision-2", revision_no: 2 };
+  view.rerender(<PatientReportForm initialReports={[first, updated]} />);
+  expect(screen.getByText("当前版本 2")).toBeTruthy();
+  expect(screen.getAllByText("旧版本 1")).toHaveLength(1);
+  expect(field.value).toBe("2026-11-05T11:00");
+});
+
 it("shows full current and previous synthetic facts in revision order", () => {
   const second: PatientReport = {
     ...first, id: "revision-2", revision_no: 2,

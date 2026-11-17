@@ -39,7 +39,8 @@ export default async function PatientPage() {
         </> : <p>目前没有经医护确认并发布给此账号的计划或视频。</p>}
         <p className="note">研究工作台中的 DEMO_ONLY 内容不会自动成为患者训练指导。</p>
       </section>
-      <PatientReportForm initialReports={reports} />
+      <PatientReportForm key={JSON.stringify([user.id, homeResult.home.study_code])}
+        initialReports={reports} />
     </> : homeResult.kind === "binding_unavailable" ? (
       <section>
         <h2>演示编号不可用</h2>

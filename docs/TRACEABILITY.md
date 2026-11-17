@@ -1,5 +1,7 @@
 # Requirements traceability
 
+DEMO-V2-31 对应 AT-PAT-03 合成读取恢复子集。`frontend/app/patient/report-form.test.tsx` 用服务端属性变化检查失败后恢复空或非空记录、合并修订去重和成功刷新草稿保留。重试路径仍为页面刷新，组件测试验证没有自报写请求。
+
 DEMO-V2-30 对应 AT-PAT-03 合成表单交互子集。患者端更正保留新增草稿，取消更正只恢复内存表单。组件测试覆盖空白及已填写草稿，验证取消无 API 写入、后续正常新增使用原草稿。浏览器场景见 `frontend/e2e/patient.real.ts`。
 
 S6-04 髋膝模式自动选择共同可用帧数更多的一侧。合成回归验证仅左侧可用、平手优先右侧、缺失输出未知及单侧旧 CSV。两段本机样本分别选右与左，输出 5 与 3 个候选。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
