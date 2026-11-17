@@ -1,5 +1,7 @@
 # Requirements traceability
 
+S6-04 的离线工程切片见 `ml/sit_to_stand.py` 和 `ml/tests/test_sit_to_stand.py`。合成测试覆盖重复、起始直立、断档、瞬时尖峰与未知信号。本机获授权样本首跑检出 3 个候选，漏第 1、5 次。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
 S6-04 的 AT-POSE-01 单样本时间对照复用现有 10 Hz 导出。先以 0.1 秒间隔审看视频并记录直立过渡，再在目视划定的窗口抽取右髋和右膝角峰。五个区间、取峰规则及失败模式见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。独立计次和事件计时仍待验证。
 
 > 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](testing/S6-01-REMOTE-RECONCILIATION.md)。
