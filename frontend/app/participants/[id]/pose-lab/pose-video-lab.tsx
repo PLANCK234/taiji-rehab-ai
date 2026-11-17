@@ -6,6 +6,7 @@ import {
   POSE_CONNECTIONS,
   absoluteAngleDifference,
   createPoseFrame,
+  jointAngleSegments,
   nearestPoseFrame,
   poseAnalysisCsv,
   poseAnalysisJson,
@@ -123,6 +124,30 @@ function TrajectoryChart({ frames }: { frames: PoseFrame[] }) {
   </div>;
 }
 
+function AngleTimeChart({ frames, joint, durationMs }: { frames: PoseFrame[]; joint: JointName; durationMs: number }) {
+  const segments = jointAngleSegments(frames, joint);
+  const left = 52; const right = 580; const top = 20; const bottom = 240;
+  const x = (timestampMs: number) => left + Math.min(1, Math.max(0, timestampMs / Math.max(1, durationMs))) * (right - left);
+  const y = (angleDeg: number) => top + (180 - Math.min(180, Math.max(0, angleDeg))) / 180 * (bottom - top);
+  return <div className="trajectory-chart angle-time-chart">
+    <svg viewBox="0 0 600 280" role="img" aria-label={`${JOINT_LABELS[joint]}角度随时间变化；缺失处断开`}>
+      <rect width="600" height="280" fill="#f2f7f1" />
+      {[0, 90, 180].map((angle) => <g key={angle}>
+        <line x1={left} x2={right} y1={y(angle)} y2={y(angle)} stroke="#cbd9cd" strokeWidth="1" />
+        <text x="44" y={y(angle) + 5} textAnchor="end">{angle}°</text>
+      </g>)}
+      <line x1={left} x2={right} y1={bottom} y2={bottom} stroke="#6e8075" strokeWidth="1.5" />
+      <text x={left} y="268">0 秒</text>
+      <text x={right} y="268" textAnchor="end">{(durationMs / 1000).toFixed(1)} 秒</text>
+      {segments.map((segment, index) => segment.length === 1
+        ? <circle key={index} cx={x(segment[0].timestampMs)} cy={y(segment[0].angleDeg)} r="3" fill="#286c51" />
+        : <polyline key={index} points={segment.map((point) => `${x(point.timestampMs).toFixed(1)},${y(point.angleDeg).toFixed(1)}`).join(" ")}
+          fill="none" stroke="#286c51" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />)}
+    </svg>
+    {!segments.length ? <p>该关节在全部采样时刻均为未知。</p> : null}
+  </div>;
+}
+
 export default function PoseVideoLab() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -147,6 +172,7 @@ export default function PoseVideoLab() {
   const [annotationNote, setAnnotationNote] = useState("");
   const [annotationError, setAnnotationError] = useState("");
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
+  const [angleJoint, setAngleJoint] = useState<JointName>("right_knee");
   const clearResult = useCallback(() => {
     setFrames([]); setSummary(null); setProgress(0);
     if (canvasRef.current) canvasRef.current.getContext("2d")?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
@@ -227,6 +253,9 @@ export default function PoseVideoLab() {
         }
       }
       const nextSummary = summarizePose(nextFrames, durationSeconds * 1000, SAMPLE_HZ);
+      const mostAvailableJoint = (Object.keys(JOINT_DEFINITIONS) as JointName[])
+        .reduce((best, name) => nextSummary.jointAngleCoverage[name] > nextSummary.jointAngleCoverage[best] ? name : best);
+      setAngleJoint(mostAvailableJoint);
       setFrames(nextFrames); setSummary(nextSummary);
       video.currentTime = 0; setCurrentVideoTime(0);
       drawSkeleton(canvasRef.current!, video, nextFrames[0]);
@@ -373,6 +402,15 @@ export default function PoseVideoLab() {
             <td>{range?.maximum.toFixed(1) ?? "未知"}</td><td>{range?.range.toFixed(1) ?? "未知"}</td></tr>;
         })}</tbody>
       </table></div>
+      <h3>关节角度时间曲线</h3>
+      <p className="note">默认选择当前角度覆盖率最高的关节。曲线只连接连续已知采样，缺失区间保持断开；不据此自动计次或判断动作阶段。</p>
+      <label htmlFor="angle-time-joint">显示关节</label>
+      <select id="angle-time-joint" value={angleJoint} onChange={(event) => setAngleJoint(event.target.value as JointName)}>
+        {(Object.keys(JOINT_DEFINITIONS) as JointName[]).map((name) => <option key={name} value={name}>
+          {JOINT_LABELS[name]}（{(summary.jointAngleCoverage[name] * 100).toFixed(1)}%）
+        </option>)}
+      </select>
+      <AngleTimeChart frames={frames} joint={angleJoint} durationMs={summary.videoDurationMs} />
       <h3>测量可用性（全部采样时刻为分母）</h3>
       <p className="note">以下只报告模型关键点和派生角度的可用比例，不表示视频合格、动作正确或临床可用。</p>
       <div className="trend-table-wrap"><table className="trend-table">

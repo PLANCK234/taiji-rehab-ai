@@ -72,6 +72,7 @@ export type ManualAngleComparisonSummary = {
 };
 
 export type JointRange = { minimum: number; maximum: number; range: number };
+export type JointAnglePoint = { timestampMs: number; angleDeg: number };
 export type PoseSummary = {
   videoDurationMs: number;
   sampleHz: number;
@@ -175,6 +176,22 @@ export function nearestPoseFrame(frames: PoseFrame[], timestampMs: number) {
     nearest === undefined || Math.abs(frame.timestampMs - timestampMs) < Math.abs(nearest.timestampMs - timestampMs)
       ? frame : nearest
   ), undefined);
+}
+
+export function jointAngleSegments(frames: PoseFrame[], joint: JointName): JointAnglePoint[][] {
+  const segments: JointAnglePoint[][] = [];
+  let current: JointAnglePoint[] = [];
+  for (const frame of frames) {
+    const angle = frame.angles[joint];
+    if (angle === null) {
+      if (current.length) segments.push(current);
+      current = [];
+      continue;
+    }
+    current.push({ timestampMs: frame.timestampMs, angleDeg: angle });
+  }
+  if (current.length) segments.push(current);
+  return segments;
 }
 
 export function absoluteAngleDifference(manualAngleDeg: number | null, modelAngleDeg: number | null) {

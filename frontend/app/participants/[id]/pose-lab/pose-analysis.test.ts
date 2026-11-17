@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  absoluteAngleDifference, angleDegrees, createPoseFrame, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
+  absoluteAngleDifference, angleDegrees, createPoseFrame, jointAngleSegments, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
   poseComparisonSummaryJson, poseManualAnnotationsCsv, summarizeManualAngleComparisons, summarizePose,
   type ManualPoseAnnotation, type PosePoint,
 } from "./pose-analysis";
@@ -68,6 +68,20 @@ describe("pose prototype kinematics", () => {
     expect(nearestPoseFrame(frames, 149)?.timestampMs).toBe(100);
     expect(nearestPoseFrame(frames, 151)?.timestampMs).toBe(200);
     expect(nearestPoseFrame([], 100)).toBeUndefined();
+  });
+
+  it("splits joint angle time series at unknown samples instead of bridging gaps", () => {
+    const frame = (timestampMs: number, angle: number | null) => {
+      const value = createPoseFrame(timestampMs);
+      value.angles.right_knee = angle;
+      return value;
+    };
+    expect(jointAngleSegments([
+      frame(0, 90), frame(100, 120), frame(200, null), frame(300, null), frame(400, 150),
+    ], "right_knee")).toEqual([
+      [{ timestampMs: 0, angleDeg: 90 }, { timestampMs: 100, angleDeg: 120 }],
+      [{ timestampMs: 400, angleDeg: 150 }],
+    ]);
   });
 
   it("keeps manual and model angles separate and only compares two known values", () => {

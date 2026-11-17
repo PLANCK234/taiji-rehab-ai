@@ -63,6 +63,8 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .annotation-grid label { display: grid; gap: 8px; }
 .annotation-grid .annotation-note { grid-column: 1 / -1; }
 .trajectory-chart svg { display: block; width: 100%; height: auto; max-height: 520px; border: 1px solid #d7e3d8; border-radius: 14px; }
+.angle-time-chart { margin: 14px 0 24px; }
+.angle-time-chart svg text { fill: #3f5148; font-size: 13px; }
 .trajectory-legend { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 10px; }
 .trajectory-legend span { display: inline-flex; align-items: center; gap: 7px; }
 .trajectory-legend i { display: inline-block; width: 18px; height: 4px; border-radius: 4px; }

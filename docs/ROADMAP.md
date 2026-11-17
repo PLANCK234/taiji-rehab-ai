@@ -28,6 +28,8 @@ S6-08 在浏览器内对当前标注做总体/分关节描述性汇总，并导�
 
 S6-04 已取得首个用户声明获授权的侧面五次坐站本机样本检查点：整体人体检出 99.4%，但远侧左肢因遮挡整段不可用于角度，末段足部也出现缺失。该结果只确认实际视频可运行并记录失败模式；人工时序/参考角协议、误差报告、自动计次和太极样本仍未完成，任务保持 IN_PROGRESS。
 
+S6-09 将各关节派生角显示为可切换的时间曲线，并严格在未知采样处断开。它用于观察缺失和辅助后续人工标注，不插值、不自动计次，也不定义坐/站阶段或动作质量。
+
 REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01F0` adds single-object live Demo export; `REAL-01E0` adds manual synthetic cycle/visit grouping of existing observations. Approved visit scheduling, frozen datasets and Research activation remain separate. See [TASKS](TASKS.md), [ADR-0012](decisions/0012-training-observation-before-cycle.md) and [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md).
 
 | Stage | Deliverable | Prerequisite | Exit gate |
