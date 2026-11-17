@@ -25,6 +25,12 @@ export default function SitToStandComparison({ candidateTimes, annotations, onEx
   }));
   const pairedIds = new Set(rows.flatMap(({ manual }) => manual ? [manual.annotation.id] : []));
   const unmatched = [...byId.values()].filter(({ annotation }) => !pairedIds.has(annotation.id));
+  const differences = rows.flatMap(({ time, manual }) =>
+    manual ? [Math.abs(time - manual.annotation.timestampMs)] : []);
+  const average = differences.length
+    ? differences.reduce((sum, difference) => sum + difference, 0) / differences.length
+    : null;
+  const maximum = differences.length ? Math.max(...differences) : null;
 
   function exportComparison() {
     const header = "status,candidate_number,candidate_ms,manual_number,manual_ms,delta_ms";
@@ -39,6 +45,13 @@ export default function SitToStandComparison({ candidateTimes, annotations, onEx
   return <div role="region" aria-labelledby="sit-to-stand-comparison-heading">
     <h4 id="sit-to-stand-comparison-heading">坐站候选与人工标注对照</h4>
     <p className="note">为候选选择对应的人工站直标注。时间差按程序时刻减去人工时刻计算。</p>
+    <dl className="pose-summary-grid" aria-label="对照摘要">
+      <div><dt>已配对</dt><dd>{differences.length} 对</dd></div>
+      <div><dt>未配对的程序候选</dt><dd>{rows.length - differences.length} 条</dd></div>
+      <div><dt>未配对的人工标注</dt><dd>{unmatched.length} 条</dd></div>
+      <div><dt>平均绝对时间差</dt><dd>{average === null ? "暂无配对" : `${seconds(average)} 秒`}</dd></div>
+      <div><dt>最大绝对时间差</dt><dd>{maximum === null ? "暂无配对" : `${seconds(maximum)} 秒`}</dd></div>
+    </dl>
     {rows.length ? <div className="trend-table-wrap"><table className="trend-table">
       <thead><tr><th scope="col">程序候选</th><th scope="col">人工标注</th>
         <th scope="col">时间差</th></tr></thead>
