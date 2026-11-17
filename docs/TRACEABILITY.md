@@ -1,5 +1,7 @@
 # Requirements traceability
 
+S6-16 对应 AT-POSE-01 的人工对照子集。实现见 `sit-to-stand-comparison.tsx`，同目录组件测试覆盖一对一约束、早晚、取消、删除和 CSV。实际浏览器复用两段授权样本验收，见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。
+
 S6-15 对应 AT-POSE-01 的坐站候选演示。算法在 `frontend/app/participants/[id]/pose-lab/sit-to-stand.ts`，沿用离线髋膝 v2 选侧和连续帧判定。`sit-to-stand.test.ts` 覆盖左侧配对、断档及未知/零结果，`pose-lab.real.ts` 覆盖入口和重新分析清除。
 
 DEMO-V2-31 对应 AT-PAT-03 合成读取恢复子集。`frontend/app/patient/report-form.test.tsx` 用服务端属性变化检查失败后恢复空或非空记录、合并修订去重和成功刷新草稿保留。重试路径仍为页面刷新，组件测试验证没有自报写请求。

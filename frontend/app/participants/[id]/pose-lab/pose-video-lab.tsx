@@ -25,6 +25,7 @@ import {
   type PoseSummary,
 } from "./pose-analysis";
 import { sitToStandCandidates, type SitToStandResult } from "./sit-to-stand";
+import SitToStandComparison from "./sit-to-stand-comparison";
 
 const SAMPLE_HZ = 10;
 const MAX_VIDEO_SECONDS = 120;
@@ -482,7 +483,9 @@ export default function PoseVideoLab() {
           ? pendingImportRange.joints.map((joint) => JOINT_LABELS[joint]).join("、") : "无"}。</p>
         <div className="button-row">
           <button type="button" onClick={() => {
-            setAnnotations(pendingImportedAnnotations);
+            setAnnotations(pendingImportedAnnotations.map((annotation) => ({
+              ...annotation, id: `manual-${annotationSequenceRef.current++}`,
+            })));
             setAnnotationImportMessage(`已在本标签页导入 ${pendingImportedAnnotations.length} 条人工标注；模型角度已按当前视频重新计算。`);
             setPendingImportedAnnotations([]);
           }}>确认导入</button>
@@ -554,6 +557,9 @@ export default function PoseVideoLab() {
               </button>)}
             </div>
           </> : null}
+          {sitToStand.timestampsMs !== null ? <SitToStandComparison
+            candidateTimes={sitToStand.timestampsMs} annotations={annotations}
+            onExport={(csv) => downloadText("sit-to-stand-comparison.csv", csv, "text/csv;charset=utf-8")} /> : null}
         </> : null}
       </div>
       <h3>测量可用性（全部采样时刻为分母）</h3>
