@@ -63,8 +63,21 @@ test("DEMO-V2: score 5 gives III; current database plan survives reopening", asy
   await page.reload();
   await expect(page.getByText("功能等级：III", { exact: false })).toBeVisible();
   await page.getByRole("link", { name: "← 编号对象列表" }).click();
-  await page.getByLabel("搜索研究编号或演示名称").fill("SYN-DEMO-V2-005");
-  await page.getByRole("link", { name: "打开方案 →" }).click();
+  const assigned = page.getByRole("region", { name: "已分配编号对象" });
+  const search = assigned.getByRole("searchbox", { name: "搜索研究编号" });
+  await search.fill("  syn-demo-v2-005  ");
+  await expect(assigned.getByRole("status")).toHaveText("找到 1 个编号对象。");
+  await expect(assigned.getByRole("link", { name: "SYN-001", exact: true })).toHaveCount(0);
+  await search.fill("SYN-NO-MATCH-FOR-SEARCH");
+  await expect(assigned.getByRole("status")).toHaveText("没有匹配的编号对象。");
+  await expect(assigned.getByRole("listitem")).toHaveCount(0);
+  await assigned.getByRole("button", { name: "清除编号搜索" }).click();
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue("");
+  await expect(assigned.getByRole("link", { name: "SYN-001", exact: true })).toBeVisible();
+  await search.fill("v2-005");
+  await expect(assigned.getByRole("status")).toHaveText("找到 1 个编号对象。");
+  await assigned.getByRole("link", { name: "打开方案 →" }).click();
   await expect(page.getByText("功能等级：III", { exact: false })).toBeVisible();
 });
 

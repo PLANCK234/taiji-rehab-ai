@@ -1,5 +1,7 @@
 # Requirements traceability
 
+DEMO-V2-32 对应 AT-DEMO-02 的对象查找子集。编号搜索见 `frontend/app/workspace/participant-list.tsx`，隔离 `demo-v2.real.ts` 覆盖复制格式、无匹配、清除输入和按片段重开已确认方案。
+
 S6-18 对应 AT-POSE-01 的先人工标注子集。姿态实验室开始分析前提供原视频模式，相关组件及 `pose-lab.real.ts` 验证原视频定位、人工 CSV 下载、退出模式后标记保留。
 
 S6-17 对应 AT-POSE-01 的配对摘要子集。`sit-to-stand-comparison.test.tsx` 覆盖未配对数量、方向相反时绝对差汇总、取消与删除更新，以及真实零差值与暂无配对的区分。

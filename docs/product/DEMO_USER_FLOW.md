@@ -5,7 +5,7 @@
 | 步骤 | 页面 | 操作与跳转 | 持久化结果 |
 |---|---|---|---|
 | 1 登录 | `/login` | 邮箱/密码登录后进 `/workspace` | 原有账号与会话 |
-| 2 编号对象 | `/workspace` | 搜索已有 `SYN-` 编号；新建时可明确勾选模拟同意并填写 Demo 基础资料 | 原有 `participants`、`consent_records`；新增 `demo_participant_profiles` |
+| 2 编号对象 | `/workspace` | 搜索已分配对象的完整或部分 `SYN-` 编号，可清除搜索。新建时可明确勾选模拟同意并填写 Demo 基础资料 | 原有 `participants`、`consent_records`；新增 `demo_participant_profiles` |
 | 3 基础评估 | `/assessments/{id}` 或工作台快速录入 | 人工 SPPB 0–12 与测量日期；确认后进 Demo 方案；缺失/无效仍不可生成自主动作 | 原有 `assessments` 与追加式 `assessment_revisions` |
 | 4 分级/方案 | `/participants/{id}/demo` | 后端 `demo-rule-v1` 返回功能等级与独立展示模式；I/II/III 有组合；IV/UNASSESSED 无自动组合 | 新增 `demo_grade_results`，关联确认版本与依据 |
 | 5 动作库 | 同方案页 | 搜索、等级/分类筛选、动作详情弹窗；详情显示视频区域，现无素材并明确标记待添加 | 12 条 `DEMO_ONLY` 版本化本地种子，不编造医学图片或视频 |
