@@ -72,6 +72,8 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .angle-time-controls { display: grid; gap: 8px; margin: -10px 0 24px; }
 .angle-time-controls input { width: 100%; }
 .angle-time-annotation-buttons { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.annotation-import-preview { margin: 12px 0; padding: 14px 16px; border: 1px solid #b8cbbd; border-radius: 14px; background: #f2f7f1; }
+.annotation-import-preview p { margin: 0 0 8px; }
 .trajectory-legend { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 10px; }
 .trajectory-legend span { display: inline-flex; align-items: center; gap: 7px; }
 .trajectory-legend i { display: inline-block; width: 18px; height: 4px; border-radius: 4px; }

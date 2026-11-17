@@ -1,12 +1,12 @@
 # 当前交接检查点
 
-更新时间：2026-11-17 北京时间（S6-12 本地导入人工标注 CSV）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
+更新时间：2026-11-17 北京时间（S6-13 标注 CSV 导入前预览确认）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
 
 | 项目 | 当前状态 |
 |---|---|
-| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；S6-12 前一提交为 `9983525`，最终 HEAD 以实际 Git 为准。未合并 main。 |
-| 最近独立任务 | `S6-12` DONE：固定格式人工标注 CSV 可在空标注状态本地导入；严格校验人工字段，模型角和差值按当前视频重算。`S6-04` 仍为 IN_PROGRESS。 |
-| 验证 | 前端 lint/typecheck/58 tests、Next 生产 build；共享本机 PostgreSQL→FastAPI→Next→Edge 对 `SYN-5STS-001` 实际导出→删除→导入，标注/曲线恢复，陈旧派生值重算，分析与导入无非 GET 请求。 |
+| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；S6-13 前一提交为 `e4bed78`，最终 HEAD 以实际 Git 为准。未合并 main。 |
+| 最近独立任务 | `S6-13` DONE：CSV 校验后先显示无文件名预览，明确确认才恢复标注，取消保持不变；派生值仍按当前视频重算。`S6-04` 仍为 IN_PROGRESS。 |
+| 验证 | 前端 lint/typecheck/58 tests、Next 生产 build；共享本机 PostgreSQL→FastAPI→Next→Edge 对 `SYN-5STS-001` 实际预览→取消→再次预览→确认，敏感文件名不可见，标记 0→0→1，分析与预览无非 GET 请求。 |
 | 当前缺口 | 已有一个五次坐站运行样本、描述性角度曲线、时间联动、人工标记呈现及本地 CSV 恢复，但仍没有标准人工标注协议、人工参考角、时间/角度误差、获验证自动次数/阶段、太极样本、相机标定、Research 持久化或临床评分。导入的人工事件不等于验证真值。真实医护确认计划、审核视频、患者异常处置及其他 REAL 父任务缺口不变。 |
 | 临床与数据阻断 | S3-01 继续 BLOCKED。Q-01/Q-10 的真实影像目的、同意、留存和权限未批准；S6-03 不解除它们。Q-03/Q-09 等临床规则/发布责任同样未签核；Research 默认拒绝。 |
 | 下一 Task ID | 继续 `S6-04`：由研究团队确定五次坐站人工起止/阶段/次数和少量参考角标注约定，对现有样本形成时间/角度对照；再补代表性太极样本。不得先定义临床阈值。 |

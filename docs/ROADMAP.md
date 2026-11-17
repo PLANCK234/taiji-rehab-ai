@@ -36,6 +36,8 @@ S6-11 将人工时间点以曲线标记和可点击定位按钮呈现，便于�
 
 S6-12 支持把本系统导出的人工标注 CSV 重新载入当前视频；导入严格校验且不覆盖现有内存标注，模型派生值按当前分析重算。它用于恢复人工工作，不把文件中的事件解释为批准的动作协议。
 
+S6-13 在导入前增加不含文件名的数量/时段/人工角/关节预览，必须明确确认后才改变内存标注，也可取消。预览只降低误导入风险，不审核事件语义。
+
 REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01F0` adds single-object live Demo export; `REAL-01E0` adds manual synthetic cycle/visit grouping of existing observations. Approved visit scheduling, frozen datasets and Research activation remain separate. See [TASKS](TASKS.md), [ADR-0012](decisions/0012-training-observation-before-cycle.md) and [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md).
 
 | Stage | Deliverable | Prerequisite | Exit gate |

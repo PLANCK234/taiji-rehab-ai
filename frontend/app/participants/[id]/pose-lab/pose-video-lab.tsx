@@ -176,6 +176,7 @@ export default function PoseVideoLab() {
   const [message, setMessage] = useState("请选择一段单人、全身尽量可见的视频。");
   const [error, setError] = useState("");
   const [annotations, setAnnotations] = useState<ManualPoseAnnotation[]>([]);
+  const [pendingImportedAnnotations, setPendingImportedAnnotations] = useState<ManualPoseAnnotation[]>([]);
   const [eventLabel, setEventLabel] = useState("");
   const [repeatIndex, setRepeatIndex] = useState("");
   const [phaseLabel, setPhaseLabel] = useState("");
@@ -197,7 +198,8 @@ export default function PoseVideoLab() {
   }, []);
 
   const selectVideo = async (file: File | undefined) => {
-    setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setCurrentVideoTime(0); setAnnotationError("");
+    setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setPendingImportedAnnotations([]);
+    setCurrentVideoTime(0); setAnnotationError("");
     setAnnotationImportMessage("");
     if (!file) return;
     if (!authorized) { setError("请先确认视频使用范围。未读取该文件。"); return; }
@@ -339,14 +341,19 @@ export default function PoseVideoLab() {
           ? frame.angles[annotation.referenceJoint] : null };
       });
       if (!imported.length) { setAnnotationError("CSV 中没有可导入的标注行。"); return; }
-      setAnnotations(imported);
-      setAnnotationImportMessage(`已在本标签页导入 ${imported.length} 条人工标注；模型角度已按当前视频重新计算。`);
+      setPendingImportedAnnotations(imported);
     } catch (caught) {
       setAnnotationError(caught instanceof Error ? caught.message : "无法读取标注 CSV。");
     }
   };
 
   const comparisonSummary = summarizeManualAngleComparisons(annotations);
+  const pendingImportRange = pendingImportedAnnotations.length ? {
+    first: pendingImportedAnnotations[0].timestampMs,
+    last: pendingImportedAnnotations[pendingImportedAnnotations.length - 1].timestampMs,
+    manualAngleCount: pendingImportedAnnotations.filter((annotation) => annotation.manualReferenceAngleDeg !== null).length,
+    joints: [...new Set(pendingImportedAnnotations.flatMap((annotation) => annotation.referenceJoint ? [annotation.referenceJoint] : []))],
+  } : null;
 
   return <>
     <section aria-labelledby="pose-input-heading">
@@ -425,11 +432,29 @@ export default function PoseVideoLab() {
           onClick={() => downloadText("pose-angle-comparison-summary.json", poseComparisonSummaryJson(annotations), "application/json")}>导出角度对照摘要 JSON</button>
       </div>
       <label htmlFor="pose-annotation-import">导入已标注 CSV（本机，最大 1 MB）</label>
-      <input id="pose-annotation-import" type="file" accept=".csv,text/csv" disabled={!summary || annotations.length > 0}
+      <input id="pose-annotation-import" type="file" accept=".csv,text/csv"
+        disabled={!summary || annotations.length > 0 || pendingImportedAnnotations.length > 0}
         onChange={(event) => {
           const file = event.currentTarget.files?.[0]; event.currentTarget.value = ""; void importAnnotations(file);
         }} />
       <p className="note">仅接受本系统导出的格式。为避免覆盖，当前标注非空时不能导入；模型角度和差值会按当前视频重新计算。</p>
+      {pendingImportRange ? <div className="annotation-import-preview" aria-label="待导入标注预览">
+        <p><strong>尚未导入：</strong>{pendingImportedAnnotations.length} 条，时段
+          {(pendingImportRange.first / 1000).toFixed(1)}–{(pendingImportRange.last / 1000).toFixed(1)} 秒；
+          其中 {pendingImportRange.manualAngleCount} 条含人工角度。</p>
+        <p>涉及关节：{pendingImportRange.joints.length
+          ? pendingImportRange.joints.map((joint) => JOINT_LABELS[joint]).join("、") : "无"}。</p>
+        <div className="button-row">
+          <button type="button" onClick={() => {
+            setAnnotations(pendingImportedAnnotations);
+            setAnnotationImportMessage(`已在本标签页导入 ${pendingImportedAnnotations.length} 条人工标注；模型角度已按当前视频重新计算。`);
+            setPendingImportedAnnotations([]);
+          }}>确认导入</button>
+          <button type="button" className="text-button" onClick={() => {
+            setPendingImportedAnnotations([]); setAnnotationImportMessage("已取消导入，当前标注未改变。");
+          }}>取消导入</button>
+        </div>
+      </div> : null}
       {annotationImportMessage ? <p role="status">{annotationImportMessage}</p> : null}
     </section> : null}
 

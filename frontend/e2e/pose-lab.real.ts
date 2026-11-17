@@ -133,6 +133,10 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.locator(".angle-time-annotation")).toHaveCount(0);
   await expect(page.getByLabel(/导入已标注 CSV/)).toBeEnabled();
   await page.getByLabel(/导入已标注 CSV/).setInputFiles(filledPath);
+  await expect(page.getByLabel("待导入标注预览")).toContainText("1 条");
+  await expect(page.getByRole("cell", { name: "人工事件 A" })).toHaveCount(0);
+  await expect(page.locator(".angle-time-annotation")).toHaveCount(0);
+  await page.getByRole("button", { name: "确认导入" }).click();
   await expect(page.getByText(/已在本标签页导入 1 条人工标注/)).toBeVisible();
   await expect(page.getByRole("cell", { name: "人工事件 A" })).toBeVisible();
   await expect(page.locator(".angle-time-annotation")).toHaveCount(1);

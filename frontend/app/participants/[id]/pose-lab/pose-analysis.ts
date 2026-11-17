@@ -374,7 +374,7 @@ export function parsePoseManualAnnotationsCsv(text: string, durationMs: number):
       modelReferenceAngleDeg: null,
       note: restoredCsvText(values[8]),
     };
-  });
+  }).sort((left, right) => left.timestampMs - right.timestampMs);
 }
 
 export function poseManualAnnotationsCsv(annotations: ManualPoseAnnotation[]) {
