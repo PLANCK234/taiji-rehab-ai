@@ -16,22 +16,32 @@ HIGH_POSITION = 0.80
 CONFIRM_SAMPLES = 2
 MAX_INTERVAL_MS = 150
 REQUIRED_COLUMNS = {"timestamp_ms", "detected", "pelvis_y_normalized"}
-JOINT_COLUMNS = {"right_hip_angle_deg", "right_knee_angle_deg"}
+JOINT_COLUMNS = {
+    side: (f"{side}_hip_angle_deg", f"{side}_knee_angle_deg") for side in ("right", "left")
+}
 
 
 @dataclass(frozen=True)
 class Sample:
     timestamp_ms: float
     pelvis_y: float | None
-    hip_deg: float | None = None
-    knee_deg: float | None = None
+    right_hip_deg: float | None = None
+    right_knee_deg: float | None = None
+    left_hip_deg: float | None = None
+    left_knee_deg: float | None = None
 
 
 def read_samples(source: bytes, *, require_joints: bool = False) -> list[Sample]:
     reader = csv.DictReader(io.StringIO(source.decode("utf-8-sig"), newline=""))
-    columns = REQUIRED_COLUMNS | JOINT_COLUMNS if require_joints else REQUIRED_COLUMNS
-    if not columns.issubset(reader.fieldnames or []):
-        raise ValueError(f"Pose CSV is missing columns: {', '.join(sorted(columns))}.")
+    header = set(reader.fieldnames or [])
+    if missing := REQUIRED_COLUMNS - header:
+        raise ValueError(f"Pose CSV is missing columns: {', '.join(sorted(missing))}.")
+    joint_columns = [
+        (hip, knee) for hip, knee in JOINT_COLUMNS.values() if {hip, knee} <= header
+    ] if require_joints else []
+    if require_joints and not joint_columns:
+        raise ValueError("Pose CSV requires a complete left or right hip/knee column pair.")
+    columns = REQUIRED_COLUMNS | {column for pair in joint_columns for column in pair}
     samples = []
     for row in reader:
         if any(row[column] is None for column in columns):
@@ -47,13 +57,16 @@ def read_samples(source: bytes, *, require_joints: bool = False) -> list[Sample]
         y = float(value) if detected == "1" and value else None
         # Out-of-frame normalized positions provide no usable signal here.
         read_joints = require_joints and detected == "1"
-        hip = _read_angle(row["right_hip_angle_deg"]) if read_joints else None
-        knee = _read_angle(row["right_knee_angle_deg"]) if read_joints else None
-        samples.append(Sample(timestamp, y if y is not None and 0 <= y <= 1 else None, hip, knee))
+        angles = [
+            _read_angle(row[column]) if read_joints and column in columns else None
+            for pair in JOINT_COLUMNS.values()
+            for column in pair
+        ]
+        samples.append(Sample(timestamp, y if y is not None and 0 <= y <= 1 else None, *angles))
     return samples
 
 
-def _read_angle(value: str) -> float | None:
+def _read_angle(value: str | None) -> float | None:
     angle = float(value) if value else None
     return angle if angle is not None and 0 <= angle <= 180 else None
 
@@ -74,10 +87,25 @@ def detect_candidates(samples: list[Sample]) -> dict:
 
 
 def detect_joint_candidates(samples: list[Sample]) -> dict:
-    hips = [sample.hip_deg for sample in samples]
-    knees = [sample.knee_deg for sample in samples]
+    signals = {
+        "right": ([row.right_hip_deg for row in samples], [row.right_knee_deg for row in samples]),
+        "left": ([row.left_hip_deg for row in samples], [row.left_knee_deg for row in samples]),
+    }
+    coverage = {
+        side: sum(
+            hip is not None and knee is not None for hip, knee in zip(hips, knees, strict=True)
+        )
+        for side, (hips, knees) in signals.items()
+    }
+    # Right first makes ties deterministic and preserves the previous preference.
+    side = max(coverage, key=coverage.__getitem__)
+    hips, knees = signals[side]
     # Below this within-clip span the angle channel provides little contrast for this probe.
-    return _detect_transitions(samples, hips, 10, confirmation=knees)
+    result = _detect_transitions(samples, hips, 10, confirmation=knees)
+    return {
+        **result, "selected_side": side if coverage[side] else None,
+        "paired_samples": coverage[side], "paired_samples_by_side": coverage,
+    }
 
 
 def _detect_transitions(
@@ -165,7 +193,7 @@ def main() -> None:
     except (OSError, ValueError) as error:
         parser.error(str(error))
     print(json.dumps({
-        "algorithm": "right-hip-knee-v1" if joints else "image-pelvis-hysteresis-v1",
+        "algorithm": "coverage-selected-hip-knee-v2" if joints else "image-pelvis-hysteresis-v1",
         "input_sha256": hashlib.sha256(source).hexdigest(),
         **result,
     }, indent=2))

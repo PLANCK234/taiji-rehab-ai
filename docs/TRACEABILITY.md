@@ -1,5 +1,9 @@
 # Requirements traceability
 
+S6-04 髋膝模式自动选择共同可用帧数更多的一侧。合成回归验证仅左侧可用、平手优先右侧、缺失输出未知及单侧旧 CSV。两段本机样本分别选右与左，输出 5 与 3 个候选。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
+S6-04 第二段获授权样本在人工标注提供前以原参数盲测。骨盆输出 3 个候选，右髋/右膝各 0 帧可用，固定右侧方案返回次数未知。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
 S6-04 新增右髋低位触发、髋膝高位共同确认的离线对照。合成测试验证缺失膝角、确认断档和 CSV 空值。获授权开发样本髋膝模式输出 5 个候选，骨盆基线复现 3 个。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
 
 S6-04 的离线工程切片见 `ml/sit_to_stand.py` 和 `ml/tests/test_sit_to_stand.py`。合成测试覆盖重复、起始直立、断档、瞬时尖峰与未知信号。本机获授权样本首跑检出 3 个候选，漏第 1、5 次。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)

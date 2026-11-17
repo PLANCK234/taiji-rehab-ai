@@ -37,7 +37,29 @@ def test_joint_mode_requires_consecutive_knee_confirmation():
 
 def test_joint_mode_reports_unknown_without_knee_signal():
     samples = [Sample(i * 100, .5, hip) for i, hip in enumerate([90, 90, 165, 165])]
-    assert detect_joint_candidates(samples)["candidate_count"] is None
+    result = detect_joint_candidates(samples)
+    assert result["candidate_count"] is None
+    assert result["selected_side"] is None
+
+
+def test_joint_mode_uses_matched_left_pair_instead_of_mixing_sides():
+    samples = [
+        Sample(i * 100, None, right_hip_deg=angle, left_hip_deg=angle, left_knee_deg=angle)
+        for i, angle in enumerate([90, 90, 165, 165])
+    ]
+    result = detect_joint_candidates(samples)
+    assert result["selected_side"] == "left"
+    assert result["paired_samples_by_side"] == {"right": 0, "left": 4}
+    assert result["candidate_timestamps_ms"] == [200]
+
+
+def test_joint_mode_prefers_right_on_equal_coverage():
+    samples = [
+        Sample(i * 100, None, right, right, left, left)
+        for i, (right, left) in enumerate(zip([90, 90, 165, 165], [90, 90, 90, 165], strict=True))
+    ]
+    assert detect_joint_candidates(samples)["selected_side"] == "right"
+    assert detect_joint_candidates(samples)["candidate_timestamps_ms"] == [200]
 
 
 def test_joint_csv_preserves_missing_angles():
@@ -46,6 +68,10 @@ def test_joint_csv_preserves_missing_angles():
     )
     assert read_samples(header + b"0,1,0.7,90,\n", require_joints=True) == [
         Sample(0, .7, 90, None)
+    ]
+    left_header = header.replace(b"right_", b"left_")
+    assert read_samples(left_header + b"0,1,0.7,90,95\n", require_joints=True) == [
+        Sample(0, .7, left_hip_deg=90, left_knee_deg=95),
     ]
 
 
