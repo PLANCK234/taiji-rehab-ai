@@ -194,6 +194,11 @@ export function jointAngleSegments(frames: PoseFrame[], joint: JointName): Joint
   return segments;
 }
 
+export function timelinePositionRatio(timestampMs: number, durationMs: number) {
+  if (!Number.isFinite(timestampMs) || !Number.isFinite(durationMs) || durationMs <= 0) return 0;
+  return Math.min(1, Math.max(0, timestampMs / durationMs));
+}
+
 export function absoluteAngleDifference(manualAngleDeg: number | null, modelAngleDeg: number | null) {
   return manualAngleDeg === null || modelAngleDeg === null
     ? null

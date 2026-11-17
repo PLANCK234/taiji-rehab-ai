@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   absoluteAngleDifference, angleDegrees, createPoseFrame, jointAngleSegments, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
   poseComparisonSummaryJson, poseManualAnnotationsCsv, summarizeManualAngleComparisons, summarizePose,
-  type ManualPoseAnnotation, type PosePoint,
+  timelinePositionRatio, type ManualPoseAnnotation, type PosePoint,
 } from "./pose-analysis";
 
 const visible = (x: number, y: number, z = 0): PosePoint => ({ x, y, z, visibility: 1, presence: 1 });
@@ -82,6 +82,13 @@ describe("pose prototype kinematics", () => {
       [{ timestampMs: 0, angleDeg: 90 }, { timestampMs: 100, angleDeg: 120 }],
       [{ timestampMs: 400, angleDeg: 150 }],
     ]);
+  });
+
+  it("keeps the timeline cursor within the available video duration", () => {
+    expect(timelinePositionRatio(500, 2000)).toBe(0.25);
+    expect(timelinePositionRatio(-100, 2000)).toBe(0);
+    expect(timelinePositionRatio(2500, 2000)).toBe(1);
+    expect(timelinePositionRatio(100, 0)).toBe(0);
   });
 
   it("keeps manual and model angles separate and only compares two known values", () => {

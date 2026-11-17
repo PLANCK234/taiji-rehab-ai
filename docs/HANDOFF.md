@@ -1,13 +1,13 @@
 # 当前交接检查点
 
-更新时间：2026-11-17 北京时间（S6-09 关节角度时间曲线）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
+更新时间：2026-11-17 北京时间（S6-10 角度曲线与视频联动）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
 
 | 项目 | 当前状态 |
 |---|---|
-| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；S6-09 前一提交为 `5d6b552`，最终 HEAD 以实际 Git 为准。未合并 main。 |
-| 最近独立任务 | `S6-09` DONE：姿态结果新增可切换关节的角度—时间曲线，未知采样严格断开；无插值、自动计次、阶段或质量判断。`S6-04` 仍为 IN_PROGRESS。 |
-| 验证 | 前端 lint/typecheck/55 tests、Next 生产 build；共享本机 PostgreSQL→FastAPI→Next→Edge 对 `SYN-5STS-001` 实际复验，右膝曲线 4 个连续段、分析无非 GET 请求。 |
-| 当前缺口 | 已有一个五次坐站运行样本和描述性角度曲线，但仍没有标准人工标注协议、人工参考角、时间/角度误差、获验证自动次数/阶段、太极样本、相机标定、Research 持久化或临床评分。单样本曲线不能证明准确率、标注一致性或临床效度。真实医护确认计划、审核视频、患者异常处置及其他 REAL 父任务缺口不变。 |
+| Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；S6-10 前一提交为 `2134986`，最终 HEAD 以实际 Git 为准。未合并 main。 |
+| 最近独立任务 | `S6-10` DONE：视频当前时刻与角度曲线游标/滑块同步，滑块反向定位视频、骨架和人工标注时刻；无自动阶段、次数或质量判断。`S6-04` 仍为 IN_PROGRESS。 |
+| 验证 | 前端 lint/typecheck/56 tests、Next 生产 build；共享本机 PostgreSQL→FastAPI→Next→Edge 对 `SYN-5STS-001` 实际复验，1.2 秒正向同步、4.0 秒反向定位，分析与联动无非 GET 请求。 |
+| 当前缺口 | 已有一个五次坐站运行样本、描述性角度曲线和人工定位联动，但仍没有标准人工标注协议、人工参考角、时间/角度误差、获验证自动次数/阶段、太极样本、相机标定、Research 持久化或临床评分。单样本曲线不能证明准确率、标注一致性或临床效度。真实医护确认计划、审核视频、患者异常处置及其他 REAL 父任务缺口不变。 |
 | 临床与数据阻断 | S3-01 继续 BLOCKED。Q-01/Q-10 的真实影像目的、同意、留存和权限未批准；S6-03 不解除它们。Q-03/Q-09 等临床规则/发布责任同样未签核；Research 默认拒绝。 |
 | 下一 Task ID | 继续 `S6-04`：由研究团队确定五次坐站人工起止/阶段/次数和少量参考角标注约定，对现有样本形成时间/角度对照；再补代表性太极样本。不得先定义临床阈值。 |
 | 下一步文件 | [姿态原型](product/POSE_PROTOTYPE.md)、[PRD](product/PRD.md)、[验收](product/ACCEPTANCE.md)、[安全](security/SECURITY.md)、[测试策略](testing/TEST_STRATEGY.md)；先检查嵌套 AGENTS 和实际 Git 状态。 |

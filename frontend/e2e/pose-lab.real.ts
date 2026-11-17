@@ -61,6 +61,11 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.getByRole("heading", { name: "关节角度时间曲线" })).toBeVisible();
   await page.getByLabel("显示关节").selectOption("right_knee");
   await expect(page.getByRole("img", { name: /右膝角度随时间变化；缺失处断开/ })).toBeVisible();
+  await page.getByLabel(/曲线时间定位/).fill("0.2");
+  await expect(page.getByLabel(/曲线时间定位/)).toHaveValue("0.2");
+  await expect(page.getByText("曲线时间定位：0.2 秒")).toBeVisible();
+  const positionedTime = await page.locator("video").evaluate((video) => (video as HTMLVideoElement).currentTime);
+  expect(positionedTime).toBeCloseTo(0.2, 1);
   await expect(page.getByText(/识别覆盖/)).toBeVisible();
   await expect(page.locator("canvas[aria-label='识别到的人体骨架叠加层']")).toBeVisible();
   expect(writes).toEqual([]);

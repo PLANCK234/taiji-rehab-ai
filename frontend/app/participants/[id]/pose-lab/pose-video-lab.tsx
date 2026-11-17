@@ -15,6 +15,7 @@ import {
   poseManualAnnotationsCsv,
   summarizeManualAngleComparisons,
   summarizePose,
+  timelinePositionRatio,
   trajectoryPoint,
   type JointName,
   type ManualPoseAnnotation,
@@ -124,10 +125,12 @@ function TrajectoryChart({ frames }: { frames: PoseFrame[] }) {
   </div>;
 }
 
-function AngleTimeChart({ frames, joint, durationMs }: { frames: PoseFrame[]; joint: JointName; durationMs: number }) {
+function AngleTimeChart({ frames, joint, durationMs, currentTimeMs }: {
+  frames: PoseFrame[]; joint: JointName; durationMs: number; currentTimeMs: number;
+}) {
   const segments = jointAngleSegments(frames, joint);
   const left = 52; const right = 580; const top = 20; const bottom = 240;
-  const x = (timestampMs: number) => left + Math.min(1, Math.max(0, timestampMs / Math.max(1, durationMs))) * (right - left);
+  const x = (timestampMs: number) => left + timelinePositionRatio(timestampMs, durationMs) * (right - left);
   const y = (angleDeg: number) => top + (180 - Math.min(180, Math.max(0, angleDeg))) / 180 * (bottom - top);
   return <div className="trajectory-chart angle-time-chart">
     <svg viewBox="0 0 600 280" role="img" aria-label={`${JOINT_LABELS[joint]}角度随时间变化；缺失处断开`}>
@@ -143,6 +146,8 @@ function AngleTimeChart({ frames, joint, durationMs }: { frames: PoseFrame[]; jo
         ? <circle key={index} cx={x(segment[0].timestampMs)} cy={y(segment[0].angleDeg)} r="3" fill="#286c51" />
         : <polyline key={index} points={segment.map((point) => `${x(point.timestampMs).toFixed(1)},${y(point.angleDeg).toFixed(1)}`).join(" ")}
           fill="none" stroke="#286c51" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />)}
+      <line className="angle-time-cursor" x1={x(currentTimeMs)} x2={x(currentTimeMs)} y1={top} y2={bottom} />
+      <text className="angle-time-cursor-label" x={x(currentTimeMs)} y="15" textAnchor="middle">当前</text>
     </svg>
     {!segments.length ? <p>该关节在全部采样时刻均为未知。</p> : null}
   </div>;
@@ -271,6 +276,15 @@ export default function PoseVideoLab() {
     const canvas = canvasRef.current;
     if (video) setCurrentVideoTime(video.currentTime);
     if (video && canvas) drawSkeleton(canvas, video, nearestPoseFrame(frames, video.currentTime * 1000));
+  };
+
+  const seekVideo = (seconds: number) => {
+    const video = videoRef.current;
+    if (!video || !Number.isFinite(seconds)) return;
+    const boundedSeconds = timelinePositionRatio(seconds * 1000, durationSeconds * 1000) * durationSeconds;
+    video.currentTime = boundedSeconds;
+    setCurrentVideoTime(boundedSeconds);
+    if (canvasRef.current) drawSkeleton(canvasRef.current, video, nearestPoseFrame(frames, boundedSeconds * 1000));
   };
 
   const addAnnotation = () => {
@@ -410,7 +424,13 @@ export default function PoseVideoLab() {
           {JOINT_LABELS[name]}（{(summary.jointAngleCoverage[name] * 100).toFixed(1)}%）
         </option>)}
       </select>
-      <AngleTimeChart frames={frames} joint={angleJoint} durationMs={summary.videoDurationMs} />
+      <AngleTimeChart frames={frames} joint={angleJoint} durationMs={summary.videoDurationMs}
+        currentTimeMs={currentVideoTime * 1000} />
+      <div className="angle-time-controls">
+        <label htmlFor="angle-time-position">曲线时间定位：{currentVideoTime.toFixed(1)} 秒</label>
+        <input id="angle-time-position" type="range" min="0" max={durationSeconds} step="0.1"
+          value={currentVideoTime} onChange={(event) => seekVideo(Number(event.target.value))} />
+      </div>
       <h3>测量可用性（全部采样时刻为分母）</h3>
       <p className="note">以下只报告模型关键点和派生角度的可用比例，不表示视频合格、动作正确或临床可用。</p>
       <div className="trend-table-wrap"><table className="trend-table">

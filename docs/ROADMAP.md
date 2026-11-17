@@ -30,6 +30,8 @@ S6-04 已取得首个用户声明获授权的侧面五次坐站本机样本检�
 
 S6-09 将各关节派生角显示为可切换的时间曲线，并严格在未知采样处断开。它用于观察缺失和辅助后续人工标注，不插值、不自动计次，也不定义坐/站阶段或动作质量。
 
+S6-10 将视频当前时刻与角度曲线游标、时间滑块和骨架叠加双向联动，降低人工选择标注时刻的操作成本。它仍只做本地定位，不产生阶段或次数标签。
+
 REAL-01 authorizes independent nonclinical engineering while Stage 3 clinical rules remain blocked. `REAL-01D0` records only already-observed activity, feedback and unclassified events; it is not the Stage 4 protocol-bound prescription/session milestone. `REAL-01F0` adds single-object live Demo export; `REAL-01E0` adds manual synthetic cycle/visit grouping of existing observations. Approved visit scheduling, frozen datasets and Research activation remain separate. See [TASKS](TASKS.md), [ADR-0012](decisions/0012-training-observation-before-cycle.md) and [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md).
 
 | Stage | Deliverable | Prerequisite | Exit gate |
