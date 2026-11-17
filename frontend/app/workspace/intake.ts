@@ -56,7 +56,7 @@ async function readScoped<T>(
 ): Promise<T | null> {
   try {
     const response = await fetcher(`${baseUrl}/api/v1${path}`, {
-      headers: { cookie: cookieHeader },
+      headers: cookieHeader ? { cookie: cookieHeader } : undefined,
       cache: "no-store",
     });
     return response.ok ? ((await response.json()) as T) : null;
@@ -67,6 +67,11 @@ async function readScoped<T>(
 
 export function getAssignedParticipants(cookieHeader: string, fetcher?: typeof fetch) {
   return readScoped<CodedParticipant[]>("/participants", cookieHeader, fetcher);
+}
+
+export async function findAssignedParticipant(studyId: string, studyCode: string) {
+  const participants = await readScoped<CodedParticipant[]>("/participants", "", fetch, "");
+  return participants?.find((row) => row.study_id === studyId && row.study_code === studyCode);
 }
 
 export function getParticipant(id: string, cookieHeader: string, fetcher?: typeof fetch) {

@@ -3,7 +3,7 @@
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AssignedStudy } from "./auth";
-import { CodedParticipant, intakeError, postIntake } from "./intake";
+import { type CodedParticipant, findAssignedParticipant, intakeError, postIntake } from "./intake";
 import { writeAssessment, type AssessmentDetail, type AssessmentRevision } from "./assessments";
 import Link from "next/link";
 
@@ -15,6 +15,7 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [recovery, setRecovery] = useState<Recovery | null>(null);
+  const [existingId, setExistingId] = useState<string>();
 
   function recover(href: string, kind: Recovery["kind"], message: string) {
     setRecovery({ href, kind });
@@ -26,8 +27,11 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
     event.preventDefault();
     if (pending || recovery) return;
     setError("");
+    setExistingId(undefined);
     setPending(true);
     const form = new FormData(event.currentTarget);
+    const studyId = String(form.get("study_id") ?? "");
+    const studyCode = String(form.get("study_code") ?? "");
     const scoreText = String(form.get("sppb_total") ?? "").trim();
     const fullDemo = form.get("demo_flow") === "on";
     if (fullDemo && (form.get("synthetic_consent") !== "on" || scoreText === "" || !form.get("measured_on"))) {
@@ -38,7 +42,7 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
     key.current ||= crypto.randomUUID();
     const result = await postIntake<CodedParticipant>(
       "/participants",
-      { study_id: form.get("study_id"), study_code: form.get("study_code") },
+      { study_id: studyId, study_code: studyCode },
       key.current,
       document.cookie,
     );
@@ -107,13 +111,21 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
       router.push(`/participants/${id}/demo`);
       router.refresh();
     } else {
+      const existing = result.status === 409 ? await findAssignedParticipant(studyId, studyCode) : undefined;
+      setExistingId(existing?.id);
       setPending(false);
-      setError(intakeError(result.status));
+      setError(existing ? "提交发生冲突。当前研究已有同编号档案，可打开核对。" : intakeError(result.status));
     }
   }
 
   return (
-    <form onSubmit={submit} onChange={() => { key.current = ""; }}>
+    <form onSubmit={submit} onChange={() => {
+      key.current = "";
+      if (existingId) {
+        setExistingId(undefined);
+        setError("");
+      }
+    }}>
       <fieldset className="quick-intake-fields" disabled={pending || recovery !== null}>
       <label htmlFor="study_id">研究</label>
       <select id="study_id" name="study_id" required disabled={!studies.length}>
@@ -139,6 +151,7 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
       <button type="submit" disabled={!studies.length}>{pending ? "保存中…" : "创建编号对象"}</button>
       </fieldset>
       {error && <p role="alert">{error}</p>}
+      {existingId && <Link href={`/participants/${existingId}`}>打开已有档案</Link>}
       {recovery ? <div className="button-row">
         <Link href={recovery.href}>{recovery.kind === "assessment" ? "打开原评估继续" : "打开原档案继续"}</Link>
         <button type="button" className="text-button" onClick={(event) => {

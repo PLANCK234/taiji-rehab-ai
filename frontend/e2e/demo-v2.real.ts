@@ -70,6 +70,55 @@ test("DEMO-V2: interrupted enrollment resumes from the saved participant or asse
   expect(createRequests).toEqual(["SYN-DEMO-RECOVERY-PROFILE", "SYN-DEMO-RECOVERY-CONFIRM"]);
 });
 
+test("DEMO-V2: conflicting enrollment links only to an assigned record in the selected study", async ({ page }) => {
+  await login(page);
+  const code = page.getByLabel("合成编号");
+  const create = page.getByRole("button", { name: "创建编号对象" });
+  const existing = page.getByRole("link", { name: "打开已有档案" });
+  const assignedPath = await page.getByRole("link", { name: "SYN-001", exact: true }).getAttribute("href");
+  expect(assignedPath).toMatch(/^\/participants\/[^/]+$/);
+
+  // This seed belongs to the selected study but is not assigned to this clinician.
+  await fillDemo(page, "SYN-003", 8);
+  await create.click();
+  await expect(page.getByText("编号或提交记录冲突，请核对后重试。")).toBeVisible();
+  await expect(existing).toHaveCount(0);
+
+  // A partial code or a record from another study cannot be used as the recovery target.
+  const scopedList = "**/api/v1/participants";
+  await page.route(scopedList, async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    const studyId = await page.getByLabel("研究", { exact: true }).inputValue();
+    await route.fulfill({ json: [
+      { id: "wrong-study", study_id: "different-study", study_code: "SYN-001" },
+      { id: "partial-code", study_id: studyId, study_code: "SYN-0010" },
+    ] });
+  });
+  await code.fill("SYN-001");
+  await create.click();
+  await expect(page.getByText("编号或提交记录冲突，请核对后重试。")).toBeVisible();
+  await expect(existing).toHaveCount(0);
+  await page.unroute(scopedList);
+
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() !== "GET") writes.push(new URL(request.url()).pathname);
+  });
+  await create.click();
+  await expect(page.getByText("提交发生冲突。当前研究已有同编号档案，可打开核对。")).toBeVisible();
+  await expect(existing).toHaveAttribute("href", assignedPath!);
+  await code.fill("SYN-DIFFERENT");
+  await expect(existing).toHaveCount(0);
+  await code.fill("SYN-001");
+  await create.click();
+  await existing.click();
+  await expect(page.getByRole("heading", { name: "SYN-001", exact: true })).toBeVisible();
+  expect(writes).toEqual(["/api/v1/participants", "/api/v1/participants"]);
+});
+
 test("DEMO-V2: score 8, action library, run feedback and refresh persistence", async ({ page }) => {
   await createDemo(page, "SYN-DEMO-V2-008", 8);
   await expect(page.getByText("功能等级：II", { exact: false })).toBeVisible();
