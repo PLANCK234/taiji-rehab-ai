@@ -1,5 +1,7 @@
 # Requirements traceability
 
+S6-04 的 AT-POSE-01 单样本时间对照复用现有 10 Hz 导出。先以 0.1 秒间隔审看视频并记录直立过渡，再在目视划定的窗口抽取右髋和右膝角峰。五个区间、取峰规则及失败模式见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。独立计次和事件计时仍待验证。
+
 > 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](testing/S6-01-REMOTE-RECONCILIATION.md)。
 
 S6-03 对 AT-POSE-01：设计见 [姿态原型](product/POSE_PROTOTYPE.md) 和 [ADR-0023](decisions/0023-browser-local-pose-prototype.md)；实现为 `frontend/app/participants/[id]/pose-lab/`、固定模型/复制脚本、CSP 与功能开关。`pose-analysis.test.ts`、`pose-video-lab.test.tsx` 验证角度/未知/导出与文件门禁；`frontend/e2e/pose-lab.real.ts` 在隔离 PostgreSQL→FastAPI→Next→Chromium 用生成的合成素材录制短 WebM，至少一帧实际返回 33 点、技术结果/JSON 可用且分析无非 GET 请求。前端 lint/typecheck/build/47 tests，完整浏览器 11 passed，资源清理成功。仅工程可行性，不覆盖真实影像授权、持久化、五次坐站/SPPB/太极评分或临床验证。
