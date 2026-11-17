@@ -140,4 +140,12 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.getByText(/已在本标签页导入 1 条人工标注/)).toBeVisible();
   await expect(page.getByRole("cell", { name: "人工事件 A" })).toBeVisible();
   await expect(page.locator(".angle-time-annotation")).toHaveCount(1);
+  await page.getByRole("button", { name: "编辑" }).click();
+  await expect(page.getByRole("button", { name: "保存标注修改" })).toBeVisible();
+  await page.getByLabel("事件标签（必填）").fill("人工事件 B");
+  await page.getByRole("button", { name: "保存标注修改" }).click();
+  await expect(page.getByRole("cell", { name: "人工事件 A" })).toHaveCount(0);
+  await expect(page.getByRole("cell", { name: "人工事件 B" })).toBeVisible();
+  await expect(page.locator(".angle-time-annotation")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "0.2 秒 · 人工事件 B" })).toBeVisible();
 });

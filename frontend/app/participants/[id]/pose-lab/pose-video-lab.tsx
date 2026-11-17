@@ -177,6 +177,7 @@ export default function PoseVideoLab() {
   const [error, setError] = useState("");
   const [annotations, setAnnotations] = useState<ManualPoseAnnotation[]>([]);
   const [pendingImportedAnnotations, setPendingImportedAnnotations] = useState<ManualPoseAnnotation[]>([]);
+  const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
   const [eventLabel, setEventLabel] = useState("");
   const [repeatIndex, setRepeatIndex] = useState("");
   const [phaseLabel, setPhaseLabel] = useState("");
@@ -199,6 +200,7 @@ export default function PoseVideoLab() {
 
   const selectVideo = async (file: File | undefined) => {
     setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setPendingImportedAnnotations([]);
+    setEditingAnnotationId(null);
     setCurrentVideoTime(0); setAnnotationError("");
     setAnnotationImportMessage("");
     if (!file) return;
@@ -298,11 +300,29 @@ export default function PoseVideoLab() {
     if (canvasRef.current) drawSkeleton(canvasRef.current, video, nearestPoseFrame(frames, boundedSeconds * 1000));
   };
 
+  const clearAnnotationForm = () => {
+    setEventLabel(""); setRepeatIndex(""); setPhaseLabel(""); setReferenceJoint("");
+    setManualReferenceAngle(""); setAnnotationNote(""); setEditingAnnotationId(null); setAnnotationError("");
+  };
+
+  const startEditingAnnotation = (annotation: ManualPoseAnnotation) => {
+    setEventLabel(annotation.eventLabel);
+    setRepeatIndex(annotation.repeatIndex?.toString() ?? "");
+    setPhaseLabel(annotation.phaseLabel);
+    setReferenceJoint(annotation.referenceJoint ?? "");
+    setManualReferenceAngle(annotation.manualReferenceAngleDeg?.toString() ?? "");
+    setAnnotationNote(annotation.note);
+    setEditingAnnotationId(annotation.id);
+    setAnnotationError("");
+    seekVideo(annotation.timestampMs / 1000);
+  };
+
   const addAnnotation = () => {
     const video = videoRef.current;
     const label = eventLabel.trim();
     if (!video || !videoReady || !label) return;
-    const timestampMs = video.currentTime * 1000;
+    const existing = editingAnnotationId ? annotations.find((annotation) => annotation.id === editingAnnotationId) : null;
+    const timestampMs = existing?.timestampMs ?? video.currentTime * 1000;
     const frame = nearestPoseFrame(frames, timestampMs);
     const parsedRepeat = repeatIndex === "" ? null : Number(repeatIndex);
     const parsedManualAngle = manualReferenceAngle === "" ? null : Number(manualReferenceAngle);
@@ -314,7 +334,7 @@ export default function PoseVideoLab() {
     }
     const modelReferenceAngle = referenceJoint && frame ? frame.angles[referenceJoint] : null;
     const annotation: ManualPoseAnnotation = {
-      id: `manual-${annotationSequenceRef.current++}`,
+      id: existing?.id ?? `manual-${annotationSequenceRef.current++}`,
       timestampMs,
       eventLabel: label,
       repeatIndex: parsedRepeat !== null && Number.isInteger(parsedRepeat) && parsedRepeat > 0 ? parsedRepeat : null,
@@ -323,9 +343,10 @@ export default function PoseVideoLab() {
       modelReferenceAngleDeg: modelReferenceAngle,
       note: annotationNote.trim(),
     };
-    setAnnotations((current) => [...current, annotation].sort((left, right) => left.timestampMs - right.timestampMs));
-    setEventLabel(""); setRepeatIndex(""); setPhaseLabel(""); setManualReferenceAngle(""); setAnnotationNote("");
-    setAnnotationError("");
+    setAnnotations((current) => (existing
+      ? current.map((item) => item.id === existing.id ? annotation : item)
+      : [...current, annotation]).sort((left, right) => left.timestampMs - right.timestampMs));
+    clearAnnotationForm();
   };
 
   const importAnnotations = async (file: File | undefined) => {
@@ -391,7 +412,10 @@ export default function PoseVideoLab() {
           onChange={(event) => setManualReferenceAngle(event.target.value)} placeholder="由人工测量或标注方案提供" /></label>
         <label className="annotation-note">备注（可选，不填身份/临床信息）<textarea value={annotationNote} onChange={(event) => setAnnotationNote(event.target.value)} /></label>
       </div>
-      <div className="button-row"><button type="button" disabled={!eventLabel.trim()} onClick={addAnnotation}>标记当前时刻</button>
+      {editingAnnotationId ? <p className="note">正在编辑已有标注；保存时保留原标注时刻，只更新下列人工字段。</p> : null}
+      <div className="button-row"><button type="button" disabled={!eventLabel.trim()} onClick={addAnnotation}>
+        {editingAnnotationId ? "保存标注修改" : "标记当前时刻"}</button>
+        {editingAnnotationId ? <button type="button" className="text-button" onClick={clearAnnotationForm}>取消编辑</button> : null}
         <span>当前视频时刻：{currentVideoTime.toFixed(1)} 秒</span></div>
       {annotationError ? <p role="alert">{annotationError}</p> : null}
       {annotations.length ? <div className="trend-table-wrap"><table className="trend-table">
@@ -402,7 +426,11 @@ export default function PoseVideoLab() {
           <td>{formatAngle(annotation.manualReferenceAngleDeg)}</td>
           <td>{formatAngle(annotation.modelReferenceAngleDeg)}</td>
           <td>{formatAngle(absoluteAngleDifference(annotation.manualReferenceAngleDeg, annotation.modelReferenceAngleDeg))}</td>
-          <td><button type="button" className="text-button" onClick={() => setAnnotations((current) => current.filter((item) => item.id !== annotation.id))}>删除</button></td>
+          <td><button type="button" className="text-button" onClick={() => startEditingAnnotation(annotation)}>编辑</button>{" "}
+            <button type="button" className="text-button" onClick={() => {
+              setAnnotations((current) => current.filter((item) => item.id !== annotation.id));
+              if (editingAnnotationId === annotation.id) clearAnnotationForm();
+            }}>删除</button></td>
         </tr>)}</tbody>
       </table></div> : <p>尚未添加人工标注。</p>}
       {annotations.length ? <>
