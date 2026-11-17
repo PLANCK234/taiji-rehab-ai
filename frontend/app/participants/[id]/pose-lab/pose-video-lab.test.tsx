@@ -19,6 +19,12 @@ describe("PoseVideoLab", () => {
     expect(fileInput.hasAttribute("disabled")).toBe(false);
     expect(screen.getByText(/不上传至服务器/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "开始本地分析" }).hasAttribute("disabled")).toBe(true);
+    const originalMode = screen.getByRole("checkbox", { name: "仅看原视频" });
+    fireEvent.click(originalMode);
+    expect(screen.queryByLabelText("识别到的人体骨架叠加层")).toBeNull();
+    expect(fileInput.hasAttribute("disabled")).toBe(false);
+    fireEvent.click(originalMode);
+    expect(screen.getByLabelText("识别到的人体骨架叠加层")).toBeTruthy();
   });
 
   it("does not call a network upload when confirmation changes", () => {

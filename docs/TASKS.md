@@ -80,6 +80,7 @@
 | S6-15 | 6 | 姿态实验室坐站候选与回看 | P1 | S6-03/04/10/11 的现有代码与授权样本 | `codex/demo-patient-report-order` | DONE | `frontend/`、合成测试、验证文档 | 对应 AT-POSE-01；浏览器复现离线髋膝方案，展示候选、选侧和时间，支持定位、数据不足与换片清除 | 本机 Edge 双视频 5/3 个候选与离线一致，回看与换片清空通过；前端 65 项、生产构建、隔离 Chromium 11 项通过 |
 | S6-16 | 6 | 坐站候选与人工标注对照 | P1 | S6-11/15 的本地姿态结果和人工标注 | `codex/demo-patient-report-order` | DONE | `frontend/`、合成测试、文档 | 对应 AT-POSE-01。人工一对一选择，显示早晚差值与双方未配对时刻，可下载 CSV | 本机两段视频已验证配对、导出和删除联动，前端 67 项及隔离 Chromium 11 项通过 |
 | S6-17 | 6 | 坐站对照摘要 | P1 | S6-16 手动配对 | `codex/demo-patient-report-order` | DONE | 姿态对照组件、测试、文档 | 对应 AT-POSE-01。显示配对及双方未配对数量、平均/最大绝对时间差；无配对显式提示；变更即更新 | lint/typecheck/67 项、生产构建、隔离 Chromium 11 项通过；本机样本配对与取消摘要通过 |
+| S6-18 | 6 | 姿态实验室仅看原视频模式 | P1 | S6-06/15/16 的本地标注与分析 | `codex/demo-patient-report-order` | DONE | 姿态实验室前端、测试、文档 | AT-POSE-01：分析前可仅看原视频并定位、标注、下载；退出后可用同一批标注分析对照 | 前端 lint、typecheck、67 项测试、生产构建及隔离 Chromium 11 项通过；本机前端已更新 |
 | S7-01 | 7 | 冻结数据离线评估与发布门禁 | P1 | Sprint 5；Q-06/09 | 未分配 | NOT_STARTED | `ml/`, `backend/` | AT-10/11；审批与泄漏测试 | — |
 | S8-01 | 8 | 试点加固与部署演练 | P1 | 审批与前序阶段 | 未分配 | NOT_STARTED | `infra/`, `docs/` | AT-13/14；恢复与临床 UAT | — |
 

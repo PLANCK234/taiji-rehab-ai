@@ -1,5 +1,7 @@
 # Requirements traceability
 
+S6-18 对应 AT-POSE-01 的先人工标注子集。姿态实验室开始分析前提供原视频模式，相关组件及 `pose-lab.real.ts` 验证原视频定位、人工 CSV 下载、退出模式后标记保留。
+
 S6-17 对应 AT-POSE-01 的配对摘要子集。`sit-to-stand-comparison.test.tsx` 覆盖未配对数量、方向相反时绝对差汇总、取消与删除更新，以及真实零差值与暂无配对的区分。
 
 S6-16 对应 AT-POSE-01 的人工对照子集。实现见 `sit-to-stand-comparison.tsx`，同目录组件测试覆盖一对一约束、早晚、取消、删除和 CSV。实际浏览器复用两段授权样本验收，见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。

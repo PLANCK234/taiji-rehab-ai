@@ -172,6 +172,8 @@ export default function PoseVideoLab() {
   const landmarkerRef = useRef<PoseLandmarkerLike | null>(null);
   const annotationSequenceRef = useRef(1);
   const [authorized, setAuthorized] = useState(false);
+  const [reviewMode, setReviewMode] = useState<"available" | "original-only" | "analysis-started">("available");
+  const originalOnly = reviewMode === "original-only";
   const [videoReady, setVideoReady] = useState(false);
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [frames, setFrames] = useState<PoseFrame[]>([]);
@@ -206,6 +208,7 @@ export default function PoseVideoLab() {
 
   const selectVideo = async (file: File | undefined) => {
     setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setPendingImportedAnnotations([]);
+    setReviewMode((current) => current === "analysis-started" ? "available" : current);
     setEditingAnnotationId(null);
     setCurrentVideoTime(0); setAnnotationError("");
     setAnnotationImportMessage("");
@@ -253,7 +256,8 @@ export default function PoseVideoLab() {
 
   const analyze = async () => {
     const video = videoRef.current;
-    if (!video || !videoReady || busy) return;
+    if (!video || !videoReady || busy || originalOnly) return;
+    setReviewMode("analysis-started");
     setBusy(true); setError(""); clearResult(); setMessage("正在加载本地姿态模型……");
     try {
       video.pause();
@@ -394,12 +398,19 @@ export default function PoseVideoLab() {
       <label htmlFor="pose-video">视频文件（MP4、WebM 等；最长 120 秒，最大 250 MB）</label>
       <input id="pose-video" type="file" accept="video/mp4,video/webm,video/quicktime" disabled={!authorized || busy}
         onChange={(event) => void selectVideo(event.target.files?.[0])} />
+      <label><input type="checkbox" checked={originalOnly} disabled={reviewMode === "analysis-started"}
+        onChange={(event) => setReviewMode(event.target.checked ? "original-only" : "available")} />
+        仅看原视频</label>
+      {originalOnly
+        ? <p className="note">请先记录人工时刻，取消勾选后可开始分析，已保存的人工标注会保留。</p>
+        : <p className="note">需要独立标注时，请在当前视频开始分析前勾选。</p>}
       <div className="pose-video-stage">
         <video ref={videoRef} controls playsInline onTimeUpdate={syncOverlay} onSeeked={syncOverlay} />
-        <canvas ref={canvasRef} aria-label="识别到的人体骨架叠加层" />
+        {originalOnly ? null : <canvas ref={canvasRef} aria-label="识别到的人体骨架叠加层" />}
       </div>
       <div className="button-row">
-        <button type="button" disabled={!videoReady || busy} onClick={() => void analyze()}>{busy ? "分析中……" : "开始本地分析"}</button>
+        <button type="button" disabled={!videoReady || busy || originalOnly} onClick={() => void analyze()}>
+          {busy ? "分析中……" : "开始本地分析"}</button>
         <span role="status">{message}</span>
       </div>
       {busy ? <progress max={1} value={progress} aria-label="分析进度" /> : null}
@@ -409,6 +420,11 @@ export default function PoseVideoLab() {
     {videoReady ? <section aria-labelledby="manual-annotation-heading">
       <h2 id="manual-annotation-heading">2. 本地人工时间点标注</h2>
       <p className="note">播放或拖动到目标时刻后添加标记。所有内容只在本标签页内存中；不要填写姓名、诊断或其他可识别信息。</p>
+      {originalOnly ? <div className="angle-time-controls">
+        <label htmlFor="pose-original-time">原视频时间定位：{currentVideoTime.toFixed(1)} 秒</label>
+        <input id="pose-original-time" type="range" min="0" max={durationSeconds} step="0.1"
+          value={currentVideoTime} onChange={(event) => seekVideo(Number(event.target.value))} />
+      </div> : null}
       <div className="annotation-grid">
         <label>事件标签（必填）<input value={eventLabel} onChange={(event) => setEventLabel(event.target.value)} placeholder="自定义，例如：人工标记 A" /></label>
         <label>重复序号（可选）<input type="number" min="1" step="1" value={repeatIndex} onChange={(event) => setRepeatIndex(event.target.value)} /></label>
@@ -428,13 +444,17 @@ export default function PoseVideoLab() {
         <span>当前视频时刻：{currentVideoTime.toFixed(1)} 秒</span></div>
       {annotationError ? <p role="alert">{annotationError}</p> : null}
       {annotations.length ? <div className="trend-table-wrap"><table className="trend-table">
-        <caption>本标签页人工标注</caption><thead><tr><th>时刻</th><th>事件</th><th>重复</th><th>阶段</th><th>关节</th><th>人工角度</th><th>模型角度</th><th>绝对差值</th><th>操作</th></tr></thead>
+        <caption>本标签页人工标注</caption><thead><tr><th>时刻</th><th>事件</th><th>重复</th><th>阶段</th>
+          <th>关节</th><th>人工角度</th>{!originalOnly ? <><th>模型角度</th><th>绝对差值</th></> : null}
+          <th>操作</th></tr></thead>
         <tbody>{annotations.map((annotation) => <tr key={annotation.id}><td>{(annotation.timestampMs / 1000).toFixed(1)} 秒</td>
           <td>{annotation.eventLabel}</td><td>{annotation.repeatIndex ?? "—"}</td><td>{annotation.phaseLabel || "—"}</td>
           <td>{annotation.referenceJoint ? JOINT_LABELS[annotation.referenceJoint] : "—"}</td>
           <td>{formatAngle(annotation.manualReferenceAngleDeg)}</td>
-          <td>{formatAngle(annotation.modelReferenceAngleDeg)}</td>
-          <td>{formatAngle(absoluteAngleDifference(annotation.manualReferenceAngleDeg, annotation.modelReferenceAngleDeg))}</td>
+          {!originalOnly ? <>
+            <td>{formatAngle(annotation.modelReferenceAngleDeg)}</td>
+            <td>{formatAngle(absoluteAngleDifference(annotation.manualReferenceAngleDeg, annotation.modelReferenceAngleDeg))}</td>
+          </> : null}
           <td><button type="button" className="text-button" onClick={() => startEditingAnnotation(annotation)}>编辑</button>{" "}
             <button type="button" className="text-button" onClick={() => {
               setAnnotations((current) => current.filter((item) => item.id !== annotation.id));
@@ -442,7 +462,7 @@ export default function PoseVideoLab() {
             }}>删除</button></td>
         </tr>)}</tbody>
       </table></div> : <p>尚未添加人工标注。</p>}
-      {annotations.length ? <>
+      {annotations.length && !originalOnly ? <>
         <h3>角度对照摘要（描述性）</h3>
         <p className="note">只汇总当前标签页中人工角与模型角同时存在的标注；缺失不补零，不表示动作质量或临床可用性。</p>
         <dl className="pose-summary-grid">
@@ -465,9 +485,10 @@ export default function PoseVideoLab() {
       <div className="button-row">
         <button type="button" disabled={!annotations.length}
           onClick={() => downloadText("pose-manual-annotations.csv", poseManualAnnotationsCsv(annotations), "text/csv;charset=utf-8")}>导出已标注 CSV</button>
-        <button type="button" disabled={!annotations.length}
-          onClick={() => downloadText("pose-angle-comparison-summary.json", poseComparisonSummaryJson(annotations), "application/json")}>导出角度对照摘要 JSON</button>
+        {!originalOnly ? <button type="button" disabled={!annotations.length}
+          onClick={() => downloadText("pose-angle-comparison-summary.json", poseComparisonSummaryJson(annotations), "application/json")}>导出角度对照摘要 JSON</button> : null}
       </div>
+      {!originalOnly ? <>
       <label htmlFor="pose-annotation-import">导入已标注 CSV（本机，最大 1 MB）</label>
       <input id="pose-annotation-import" type="file" accept=".csv,text/csv"
         disabled={!summary || annotations.length > 0 || pendingImportedAnnotations.length > 0}
@@ -495,6 +516,7 @@ export default function PoseVideoLab() {
         </div>
       </div> : null}
       {annotationImportMessage ? <p role="status">{annotationImportMessage}</p> : null}
+      </> : null}
     </section> : null}
 
     {summary ? <section aria-labelledby="pose-results-heading">

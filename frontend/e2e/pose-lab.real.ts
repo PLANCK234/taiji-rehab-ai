@@ -25,10 +25,14 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.getByRole("heading", { name: "视频姿态与运动学实验室" })).toBeVisible();
 
   const writes: string[] = [];
+  const poseAssetRequests: string[] = [];
   page.on("request", (request) => {
     if (request.method() !== "GET") writes.push(`${request.method()} ${request.url()}`);
+    if (new URL(request.url()).pathname.startsWith("/pose-assets/")) poseAssetRequests.push(request.url());
   });
   await page.getByRole("checkbox", { name: /我确认这是合成视频/ }).check();
+  const originalMode = page.getByRole("checkbox", { name: "仅看原视频" });
+  await originalMode.check();
   const png = await readFile(path.join(process.cwd(), "e2e", "fixtures", "synthetic-pose-person.png"));
   const dataUrl = `data:image/png;base64,${png.toString("base64")}`;
   await page.evaluate(async (source) => {
@@ -60,8 +64,27 @@ test("local synthetic video produces landmarks, kinematics and export without up
   }, dataUrl);
 
   await expect(page.getByText(/已在浏览器本地载入/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "开始本地分析" })).toBeDisabled();
+  await expect(page.getByLabel("识别到的人体骨架叠加层")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "3. 技术测量结果" })).toHaveCount(0);
+  await page.getByLabel(/原视频时间定位/).fill("0.4");
+  await expect(page.getByText("当前视频时刻：0.4 秒")).toBeVisible();
+  await page.getByLabel("事件标签（必填）").fill("仅看原视频核对点");
+  await page.getByRole("button", { name: "标记当前时刻" }).click();
+  const [manualDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "导出已标注 CSV" }).click(),
+  ]);
+  expect(await readFile((await manualDownload.path())!, "utf8")).toContain("400.0,仅看原视频核对点");
+  expect(poseAssetRequests).toEqual([]);
+  await originalMode.uncheck();
   await page.getByRole("button", { name: "开始本地分析" }).click();
   await expect(page.getByText(/分析完成：/)).toBeVisible({ timeout: 60_000 });
+  await expect(originalMode).toBeDisabled();
+  await expect(page.getByRole("cell", { name: "仅看原视频核对点" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /0.4 秒 · 仅看原视频核对点/ })).toBeVisible();
+  await page.getByRole("row").filter({ hasText: "仅看原视频核对点" })
+    .getByRole("button", { name: "删除" }).click();
   await expect(page.getByRole("heading", { name: "3. 技术测量结果" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "关节角度时间曲线" })).toBeVisible();
   const candidates = page.getByRole("region", { name: "坐站候选（实验）" });
