@@ -5,6 +5,15 @@ import { postIntake } from "../workspace/intake";
 import { activityText, discomfortText, type PatientReport } from "../workspace/patient-reports";
 import RetryPatientHomeButton from "./retry-button";
 
+type ReportDraft = {
+  observedAt: string;
+  activity: PatientReport["activity_state"];
+  minutes: string;
+  discomfort: PatientReport["discomfort_state"];
+  note: string;
+  requestKey: string;
+};
+
 function beijingFormTime(value: string) {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit",
@@ -34,10 +43,14 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const key = useRef("");
+  const newDraft = useRef<ReportDraft | null>(null);
   const latest = reports?.filter((row) => !reports.some((other) => other.report_id === row.report_id && other.revision_no > row.revision_no))
     .sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at) || a.report_id.localeCompare(b.report_id)) ?? [];
 
   function edit(row: PatientReport) {
+    if (!editing) {
+      newDraft.current = { observedAt, activity, minutes, discomfort, note, requestKey: key.current };
+    }
     setEditing(row);
     setObservedAt(beijingFormTime(row.observed_at));
     setActivity(row.activity_state);
@@ -46,6 +59,23 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
     setNote(row.discomfort_note ?? "");
     setReason("");
     key.current = "";
+    setMessage("");
+  }
+
+  function returnToNewReport(draft: ReportDraft | null) {
+    setEditing(null);
+    setObservedAt(draft?.observedAt ?? "");
+    setActivity(draft?.activity ?? "unknown");
+    setMinutes(draft?.minutes ?? "");
+    setDiscomfort(draft?.discomfort ?? "unknown");
+    setNote(draft?.note ?? "");
+    setReason("");
+    key.current = draft?.requestKey ?? "";
+    newDraft.current = null;
+  }
+
+  function cancelCorrection() {
+    returnToNewReport(newDraft.current);
     setMessage("");
   }
 
@@ -77,14 +107,7 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
     setPending(false);
     if (result.value) {
       setReports((previous) => [result.value!, ...(previous ?? [])]);
-      setEditing(null);
-      setObservedAt("");
-      setActivity("unknown");
-      setMinutes("");
-      setDiscomfort("unknown");
-      setNote("");
-      setReason("");
-      key.current = "";
+      returnToNewReport(editing ? newDraft.current : null);
       setMessage("合成记录已保存。此处没有自动风险判断或平台内处置服务。");
     } else {
       setMessage(result.status === 409 ? "版本已变化，请刷新后再更正。" : "保存失败，请检查模拟同意、账号绑定和填写内容。");
@@ -111,13 +134,13 @@ export default function PatientReportForm({ initialReports }: { initialReports: 
         {discomfort === "reported" ? <label>不适描述<input required maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} /></label> : null}
         {editing ? <label>更正原因（以 SYN- 开头）<input required maxLength={500} value={reason} onChange={(event) => setReason(event.target.value)} /></label> : null}
         <div className="button-row"><button disabled={pending} type="submit">{editing ? "保存更正" : "保存记录"}</button>
-          {editing ? <button type="button" onClick={() => { setEditing(null); setReason(""); key.current = ""; }}>取消更正</button> : null}</div>
+          {editing ? <button type="button" disabled={pending} onClick={cancelCorrection}>取消更正</button> : null}</div>
       </form>
       {message ? <p role="status">{message}</p> : null}
       <h3>本人记录历史</h3>
       {latest.length ? <ul>{latest.map((row) => <li key={row.report_id}>
         <p><strong>当前版本 {row.revision_no}</strong> · <ReportFacts row={row} /></p>
-        <button type="button" onClick={() => edit(row)}>更正</button>
+        <button type="button" disabled={pending} onClick={() => edit(row)}>更正</button>
         {row.revision_no > 1 ? <details><summary>查看旧版本</summary><ul>{reports.filter((old) => old.report_id === row.report_id && old.id !== row.id).sort((a, b) => b.revision_no - a.revision_no).map((old) => <li key={old.id}><strong>旧版本 {old.revision_no}</strong> · <ReportFacts row={old} /></li>)}</ul></details> : null}
       </li>)}</ul> : <p>尚未填写训练或不适记录；训练与不适状态均未知。</p>}
     </>}

@@ -1,12 +1,12 @@
 # 当前交接检查点
 
-更新时间：2026-11-17 北京时间（S6-04 单样本目视时间对照）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
+更新时间：2026-11-17 北京时间（DEMO-V2-30 患者取消更正）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
 
 | 项目 | 当前状态 |
 |---|---|
 | Branch / HEAD | 当前分支 `codex/demo-patient-report-order`；S6-14 前一提交为 `66e9ac2`，最终 HEAD 以实际 Git 为准。未合并 main。 |
-| 最近独立任务 | `S6-14` DONE：已有人工标注可在保留原时刻时编辑；保存替换不重复并重算新关节模型角，取消不改变记录。`S6-04` 仍为 IN_PROGRESS。 |
-| 验证 | 前端 lint/typecheck/58 tests、Next 生产 build；共享本机 PostgreSQL→FastAPI→Next→Edge 对 `SYN-5STS-001` 编辑 4.0 秒事件，保持 1 行/1 标记并重算右髋模型角 164.5°，取消保持原值，无非 GET 请求。 |
+| 最近独立任务 | `DEMO-V2-30`：患者端取消更正恢复新增草稿。相关代码和验收见 [TASKS](TASKS.md)。`S6-04` 保持 IN_PROGRESS，暂缓新视频验证。 |
+| 验证 | DEMO-V2-30 前端 lint、typecheck、60 项测试、生产构建及隔离 Chromium 11 项通过。临时容器、网络和镜像已清理。 |
 | 当前缺口 | 已有一个五次坐站运行样本、描述性角度曲线、时间联动、人工标记呈现及本地 CSV 恢复，但仍没有标准人工标注协议、人工参考角、时间/角度误差、获验证自动次数/阶段、太极样本、相机标定、Research 持久化或临床评分。导入的人工事件不等于验证真值。真实医护确认计划、审核视频、患者异常处置及其他 REAL 父任务缺口不变。 |
 | 临床与数据阻断 | S3-01 继续 BLOCKED。Q-01/Q-10 的真实影像目的、同意、留存和权限未批准；S6-03 不解除它们。Q-03/Q-09 等临床规则/发布责任同样未签核；Research 默认拒绝。 |
 | S6-04 检查点 | [本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)保留两组直立时间及按初查循环窗口抽取的模型角峰。第 1、4 次标注存在差异。独立计次/事件计时、可比参考角及太极样本待补。 |

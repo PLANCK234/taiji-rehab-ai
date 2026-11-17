@@ -93,6 +93,44 @@ it("submits a newly entered Beijing time as the matching UTC instant", async () 
   expect(vi.mocked(postIntake).mock.calls[0][1]).toMatchObject({ observed_at: "2026-11-05T02:00:00.000Z" });
 });
 
+it("restores the new-report draft after cancelling a correction", async () => {
+  vi.mocked(postIntake).mockResolvedValue({ status: 201, value: first });
+  render(<PatientReportForm initialReports={[first]} />);
+  const time = screen.getByLabelText<HTMLInputElement>("发生时间（北京时间）");
+  const activity = screen.getByLabelText<HTMLSelectElement>("实际训练情况");
+  fireEvent.change(time, { target: { value: "2026-11-06T10:00" } });
+  fireEvent.change(activity, { target: { value: "performed" } });
+  fireEvent.change(screen.getByLabelText(/实际时长/), { target: { value: "7" } });
+  fireEvent.change(screen.getByLabelText("不适情况"), { target: { value: "reported" } });
+  fireEvent.change(screen.getByLabelText("不适描述"), { target: { value: "SYN-新增草稿" } });
+  fireEvent.click(screen.getByRole("button", { name: "更正" }));
+  expect(time.value).toBe("2026-11-05T10:00");
+  fireEvent.click(screen.getByRole("button", { name: "取消更正" }));
+  expect(time.value).toBe("2026-11-06T10:00");
+  expect(activity.value).toBe("performed");
+  expect(screen.queryByLabelText(/更正原因/)).toBeNull();
+  expect(postIntake).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await waitFor(() => expect(postIntake).toHaveBeenCalledOnce());
+  expect(vi.mocked(postIntake).mock.calls[0].slice(0, 2)).toEqual([
+    "/patient/reports",
+    expect.objectContaining({
+      expected_revision: 0, observed_at: "2026-11-06T02:00:00.000Z",
+      actual_minutes: 7, discomfort_note: "SYN-新增草稿", change_reason: null,
+    }),
+  ]);
+});
+
+it("returns to a blank new-report form after cancelling with no draft", () => {
+  render(<PatientReportForm initialReports={[{ ...first, activity_state: "performed" }]} />);
+  fireEvent.click(screen.getByRole("button", { name: "更正" }));
+  fireEvent.click(screen.getByRole("button", { name: "取消更正" }));
+  expect(screen.getByLabelText<HTMLInputElement>("发生时间（北京时间）").value).toBe("");
+  expect(screen.getByLabelText<HTMLSelectElement>("实际训练情况").value).toBe("unknown");
+  expect(screen.queryByLabelText(/实际时长/)).toBeNull();
+  expect(postIntake).not.toHaveBeenCalled();
+});
+
 it("orders multiple current reports by latest save time before and after correction or reload", async () => {
   const a2: PatientReport = {
     ...first, id: "revision-2", revision_no: 2,

@@ -78,6 +78,13 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(staffCurrent.first()).toContainText("发生时间（北京时间）");
     await expect(staffCurrent.first().locator("time").first()).toContainText("10:00");
     await expect(staffCurrent.first()).toContainText("保存时间（北京时间）");
+    const observedTime = page.getByLabel("发生时间（北京时间）");
+    await observedTime.fill("2026-11-05T11:00");
+    await page.getByRole("button", { name: "更正", exact: true }).click();
+    await expect(observedTime).toHaveValue("2026-11-05T10:00");
+    await page.getByRole("button", { name: "取消更正" }).click();
+    await expect(observedTime).toHaveValue("2026-11-05T11:00");
+    await expect(page.getByText("当前版本 1")).toHaveCount(1);
     await page.getByRole("button", { name: "更正" }).click();
     await expect(page.getByLabel("发生时间（北京时间）")).toHaveValue("2026-11-05T10:00");
     await page.getByLabel("不适情况").selectOption("none");
