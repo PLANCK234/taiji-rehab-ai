@@ -114,7 +114,7 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
       const measured = await writeAssessment<AssessmentRevision>(
         `/assessments/${assessment.value.id}/measurements`,
         { expected_revision: 1, validity: "valid", raw_value: Number(scoreText),
-          missing_reason: null, performed_at: new Date(`${form.get("measured_on")}T12:00:00`).toISOString(),
+          missing_reason: null, performed_at: new Date(`${form.get("measured_on")}T12:00:00+08:00`).toISOString(),
           change_reason: null },
         crypto.randomUUID(), document.cookie, "PUT",
       );
@@ -167,7 +167,7 @@ export default function CreateParticipantForm({ studies, canConfirm = false }: {
       <input id="demo-score" name="sppb_total" type="number" min="0" max="12" step="1"
         aria-invalid={missingScore} aria-describedby={missingScore ? "demo-score-error" : undefined} />
       {missingScore && <small className="field-error" id="demo-score-error">请填写人工 SPPB 总分。</small>}
-      <label htmlFor="demo-date">测量日期</label>
+      <label htmlFor="demo-date">测量日期（北京时间）</label>
       <input id="demo-date" name="measured_on" type="date"
         aria-invalid={missingDate} aria-describedby={missingDate ? "demo-date-error" : undefined} />
       {missingDate && <small className="field-error" id="demo-date-error">请选择测量日期。</small>}

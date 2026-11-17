@@ -15,7 +15,7 @@ async function fillDemo(page: Page, code: string, score: number) {
   await page.getByLabel("合成编号").fill(code);
   await page.getByLabel("创建后直接完成 Demo 基础评估").check();
   await page.getByLabel("人工 SPPB 总分（0–12；留空为未评估）").fill(String(score));
-  await page.getByLabel("测量日期").fill("2026-10-30");
+  await page.getByLabel("测量日期（北京时间）").fill("2026-10-30");
   await page.getByLabel("明确记录模拟同意（仅合成数据）").check();
 }
 
@@ -24,6 +24,27 @@ async function createDemo(page: Page, code: string, score: number) {
   await fillDemo(page, code, score);
   await page.getByRole("button", { name: "创建编号对象" }).click();
   await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
+}
+
+for (const city of ["Shanghai", "Honolulu"]) {
+  test.describe(`quick assessment date in ${city}`, () => {
+    test.use({ timezoneId: city === "Shanghai" ? "Asia/Shanghai" : "Pacific/Honolulu" });
+
+    test("saves and displays the selected Beijing date", async ({ page }) => {
+      const measurement = page.waitForRequest((request) =>
+        request.method() === "PUT" && /\/api\/v1\/assessments\/[^/]+\/measurements$/.test(new URL(request.url()).pathname),
+      );
+      await createDemo(page, `SYN-DEMO-DATE-${city.toUpperCase()}`, 8);
+      const request = await measurement;
+      expect(request.postDataJSON()).toMatchObject({ performed_at: "2026-10-30T04:00:00.000Z" });
+      const assessmentPath = new URL(request.url()).pathname.replace(/^\/api\/v1/, "").replace(/\/measurements$/, "");
+      await page.goto(assessmentPath);
+      const displayedTime = page.getByText("测量时间（北京时间）：2026/10/30 12:00:00", { exact: true });
+      await expect(displayedTime).toBeVisible();
+      await page.reload();
+      await expect(displayedTime).toBeVisible();
+    });
+  });
 }
 
 test("DEMO-V2: quick assessment locates missing fields and saves an explicit zero", async ({ page }) => {
@@ -35,7 +56,7 @@ test("DEMO-V2: quick assessment locates missing fields and saves an explicit zer
   const create = page.getByRole("button", { name: "创建编号对象" });
   const quick = page.getByLabel("创建后直接完成 Demo 基础评估");
   const score = page.getByLabel("人工 SPPB 总分（0–12；留空为未评估）");
-  const date = page.getByLabel("测量日期");
+  const date = page.getByLabel("测量日期（北京时间）");
   const consent = page.getByLabel("明确记录模拟同意（仅合成数据）");
   await page.getByLabel("合成编号").fill("SYN-DEMO-QUICK-ZERO");
   await quick.check();
