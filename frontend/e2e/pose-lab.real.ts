@@ -16,7 +16,12 @@ async function login(page: Page) {
 test("local synthetic video produces landmarks, kinematics and export without upload", async ({ page }) => {
   await login(page);
   await page.getByRole("link", { name: "SYN-001" }).click();
-  await page.getByRole("link", { name: "打开本地视频姿态实验室" }).click();
+  const [poseDocument] = await Promise.all([
+    page.waitForResponse((response) => response.request().isNavigationRequest()
+      && new URL(response.url()).pathname.endsWith("/pose-lab")),
+    page.getByRole("link", { name: "打开本地视频姿态实验室" }).click(),
+  ]);
+  expect(poseDocument.headers()["content-security-policy"]).toContain("connect-src 'self'");
   await expect(page.getByRole("heading", { name: "视频姿态与运动学实验室" })).toBeVisible();
 
   const writes: string[] = [];
@@ -59,6 +64,12 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.getByText(/分析完成：/)).toBeVisible({ timeout: 60_000 });
   await expect(page.getByRole("heading", { name: "3. 技术测量结果" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "关节角度时间曲线" })).toBeVisible();
+  const candidates = page.getByRole("region", { name: "坐站候选（实验）" });
+  await candidates.getByRole("button", { name: "查找坐站候选" }).click();
+  await expect(candidates.getByRole("status")).toHaveText(/无法计次|检测到 \d+ 次坐站候选/);
+  await page.getByRole("button", { name: "开始本地分析" }).click();
+  await expect(page.getByText(/分析完成：/)).toBeVisible({ timeout: 60_000 });
+  await expect(candidates.getByRole("status")).toHaveCount(0);
   await page.getByLabel("显示关节").selectOption("right_knee");
   await expect(page.getByRole("img", { name: /右膝角度随时间变化；缺失处断开/ })).toBeVisible();
   await page.getByLabel(/曲线时间定位/).fill("0.2");

@@ -145,7 +145,8 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
         <p className="note">合成线条人物预览始终可用。{posePrototypeEnabled ? "本地视频技术原型已启用；视频不上传、不保存，不产生临床评分。" : "视频识别技术原型当前未启用。"}</p>
         <div className="button-row">
           <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
-          {posePrototypeEnabled ? <Link href={`/participants/${participant.id}/pose-lab`}>打开本地视频姿态实验室</Link> : null}
+          {/* Load a new document so the browser applies the pose lab's CSP. */}
+          {posePrototypeEnabled ? <a href={`/participants/${participant.id}/pose-lab`}>打开本地视频姿态实验室</a> : null}
         </div>
       </section>
       {canWrite && consents && screenings ? <IntakeForms

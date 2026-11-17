@@ -24,6 +24,7 @@ import {
   type PosePoint,
   type PoseSummary,
 } from "./pose-analysis";
+import { sitToStandCandidates, type SitToStandResult } from "./sit-to-stand";
 
 const SAMPLE_HZ = 10;
 const MAX_VIDEO_SECONDS = 120;
@@ -127,9 +128,10 @@ function TrajectoryChart({ frames }: { frames: PoseFrame[] }) {
   </div>;
 }
 
-function AngleTimeChart({ frames, joint, durationMs, currentTimeMs, annotations }: {
+function AngleTimeChart({ frames, joint, durationMs, currentTimeMs, annotations, candidateTimes }: {
   frames: PoseFrame[]; joint: JointName; durationMs: number; currentTimeMs: number;
   annotations: ManualPoseAnnotation[];
+  candidateTimes: number[];
 }) {
   const segments = jointAngleSegments(frames, joint);
   const left = 52; const right = 580; const top = 20; const bottom = 240;
@@ -153,6 +155,8 @@ function AngleTimeChart({ frames, joint, durationMs, currentTimeMs, annotations 
         <line x1={x(annotation.timestampMs)} x2={x(annotation.timestampMs)} y1={top} y2={bottom} />
         <circle cx={x(annotation.timestampMs)} cy={bottom} r="5"><title>{annotation.eventLabel}</title></circle>
       </g>)}
+      {candidateTimes.map((time) => <rect key={time} className="angle-time-candidate"
+        x={x(time) - 4} y={bottom + 7} width="8" height="8" aria-hidden="true" />)}
       <line className="angle-time-cursor" x1={x(currentTimeMs)} x2={x(currentTimeMs)} y1={top} y2={bottom} />
       <text className="angle-time-cursor-label" x={x(currentTimeMs)} y="15" textAnchor="middle">当前</text>
     </svg>
@@ -171,6 +175,7 @@ export default function PoseVideoLab() {
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [frames, setFrames] = useState<PoseFrame[]>([]);
   const [summary, setSummary] = useState<PoseSummary | null>(null);
+  const [sitToStand, setSitToStand] = useState<SitToStandResult | null>(null);
   const [progress, setProgress] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("请选择一段单人、全身尽量可见的视频。");
@@ -189,9 +194,9 @@ export default function PoseVideoLab() {
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const [angleJoint, setAngleJoint] = useState<JointName>("right_knee");
   const clearResult = useCallback(() => {
-    setFrames([]); setSummary(null); setProgress(0);
+    setFrames([]); setSummary(null); setProgress(0); setSitToStand(null);
     if (canvasRef.current) canvasRef.current.getContext("2d")?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-  }, []);
+  }, [setSitToStand]);
 
   useEffect(() => () => {
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
@@ -251,6 +256,9 @@ export default function PoseVideoLab() {
     setBusy(true); setError(""); clearResult(); setMessage("正在加载本地姿态模型……");
     try {
       video.pause();
+      // A clip starts at timestamp zero and needs fresh tracking state.
+      landmarkerRef.current?.close();
+      landmarkerRef.current = null;
       const landmarker = await loadLandmarker();
       const sampleCount = Math.floor(durationSeconds * SAMPLE_HZ) + 1;
       const nextFrames: PoseFrame[] = [];
@@ -506,7 +514,7 @@ export default function PoseVideoLab() {
         })}</tbody>
       </table></div>
       <h3>关节角度时间曲线</h3>
-      <p className="note">默认选择当前角度覆盖率最高的关节。曲线只连接连续已知采样，缺失区间保持断开；不据此自动计次或判断动作阶段。</p>
+      <p className="note">默认选择当前角度覆盖率最高的关节。曲线只连接连续已知采样，缺失区间保持断开。</p>
       <label htmlFor="angle-time-joint">显示关节</label>
       <select id="angle-time-joint" value={angleJoint} onChange={(event) => setAngleJoint(event.target.value as JointName)}>
         {(Object.keys(JOINT_DEFINITIONS) as JointName[]).map((name) => <option key={name} value={name}>
@@ -514,7 +522,8 @@ export default function PoseVideoLab() {
         </option>)}
       </select>
       <AngleTimeChart frames={frames} joint={angleJoint} durationMs={summary.videoDurationMs}
-        currentTimeMs={currentVideoTime * 1000} annotations={annotations} />
+        currentTimeMs={currentVideoTime * 1000} annotations={annotations}
+        candidateTimes={sitToStand?.timestampsMs ?? []} />
       <div className="angle-time-controls">
         <label htmlFor="angle-time-position">曲线时间定位：{currentVideoTime.toFixed(1)} 秒</label>
         <input id="angle-time-position" type="range" min="0" max={durationSeconds} step="0.1"
@@ -525,6 +534,27 @@ export default function PoseVideoLab() {
             {(annotation.timestampMs / 1000).toFixed(1)} 秒 · {annotation.eventLabel}
           </button>)}
         </div> : null}
+      </div>
+      <div role="region" aria-labelledby="sit-to-stand-heading">
+        <h3 id="sit-to-stand-heading">坐站候选（实验）</h3>
+        <p className="note">坐站视频可生成待人工复核的起身时刻。正式 SPPB 计时与评分仍由研究流程处理。</p>
+        <button type="button" onClick={() => setSitToStand(sitToStandCandidates(frames))}>查找坐站候选</button>
+        {sitToStand ? <>
+          <p role="status">{sitToStand.timestampsMs === null
+            ? "髋膝角度数据不足，无法计次。"
+            : `检测到 ${sitToStand.timestampsMs.length} 次坐站候选`}
+            {sitToStand.side ? ` · 采用${sitToStand.side === "left" ? "左侧" : "右侧"}髋膝（${sitToStand.pairedSamples}/${frames.length} 帧）` : ""}
+          </p>
+          {sitToStand.timestampsMs?.length ? <>
+            <p className="note">曲线下方的方块表示程序候选，圆点表示人工标注。点击时刻可回看。</p>
+            <div className="angle-time-annotation-buttons" aria-label="程序候选位置">
+              {sitToStand.timestampsMs.map((time, index) => <button key={time} type="button"
+                className="text-button" onClick={() => seekVideo(time / 1000)}>
+                候选 {index + 1} · {(time / 1000).toFixed(2)} 秒
+              </button>)}
+            </div>
+          </> : null}
+        </> : null}
       </div>
       <h3>测量可用性（全部采样时刻为分母）</h3>
       <p className="note">以下只报告模型关键点和派生角度的可用比例，不表示视频合格、动作正确或临床可用。</p>

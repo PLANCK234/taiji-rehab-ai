@@ -69,6 +69,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .angle-time-chart .angle-time-cursor-label { fill: #9c3f29; font-weight: 700; }
 .angle-time-chart .angle-time-annotation line { stroke: #7357a6; stroke-width: 1.5; stroke-dasharray: 2 4; }
 .angle-time-chart .angle-time-annotation circle { fill: #7357a6; }
+.angle-time-chart .angle-time-candidate { fill: #266467; }
 .angle-time-controls { display: grid; gap: 8px; margin: -10px 0 24px; }
 .angle-time-controls input { width: 100%; }
 .angle-time-annotation-buttons { display: flex; flex-wrap: wrap; gap: 8px 16px; }
