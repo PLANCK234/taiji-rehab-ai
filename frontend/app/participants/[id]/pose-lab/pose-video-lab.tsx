@@ -125,8 +125,9 @@ function TrajectoryChart({ frames }: { frames: PoseFrame[] }) {
   </div>;
 }
 
-function AngleTimeChart({ frames, joint, durationMs, currentTimeMs }: {
+function AngleTimeChart({ frames, joint, durationMs, currentTimeMs, annotations }: {
   frames: PoseFrame[]; joint: JointName; durationMs: number; currentTimeMs: number;
+  annotations: ManualPoseAnnotation[];
 }) {
   const segments = jointAngleSegments(frames, joint);
   const left = 52; const right = 580; const top = 20; const bottom = 240;
@@ -146,6 +147,10 @@ function AngleTimeChart({ frames, joint, durationMs, currentTimeMs }: {
         ? <circle key={index} cx={x(segment[0].timestampMs)} cy={y(segment[0].angleDeg)} r="3" fill="#286c51" />
         : <polyline key={index} points={segment.map((point) => `${x(point.timestampMs).toFixed(1)},${y(point.angleDeg).toFixed(1)}`).join(" ")}
           fill="none" stroke="#286c51" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />)}
+      {annotations.map((annotation) => <g key={annotation.id} className="angle-time-annotation" aria-hidden="true">
+        <line x1={x(annotation.timestampMs)} x2={x(annotation.timestampMs)} y1={top} y2={bottom} />
+        <circle cx={x(annotation.timestampMs)} cy={bottom} r="5"><title>{annotation.eventLabel}</title></circle>
+      </g>)}
       <line className="angle-time-cursor" x1={x(currentTimeMs)} x2={x(currentTimeMs)} y1={top} y2={bottom} />
       <text className="angle-time-cursor-label" x={x(currentTimeMs)} y="15" textAnchor="middle">当前</text>
     </svg>
@@ -425,11 +430,17 @@ export default function PoseVideoLab() {
         </option>)}
       </select>
       <AngleTimeChart frames={frames} joint={angleJoint} durationMs={summary.videoDurationMs}
-        currentTimeMs={currentVideoTime * 1000} />
+        currentTimeMs={currentVideoTime * 1000} annotations={annotations} />
       <div className="angle-time-controls">
         <label htmlFor="angle-time-position">曲线时间定位：{currentVideoTime.toFixed(1)} 秒</label>
         <input id="angle-time-position" type="range" min="0" max={durationSeconds} step="0.1"
           value={currentVideoTime} onChange={(event) => seekVideo(Number(event.target.value))} />
+        {annotations.length ? <div className="angle-time-annotation-buttons" aria-label="人工标注位置">
+          {annotations.map((annotation) => <button type="button" className="text-button" key={annotation.id}
+            onClick={() => seekVideo(annotation.timestampMs / 1000)}>
+            {(annotation.timestampMs / 1000).toFixed(1)} 秒 · {annotation.eventLabel}
+          </button>)}
+        </div> : null}
       </div>
       <h3>测量可用性（全部采样时刻为分母）</h3>
       <p className="note">以下只报告模型关键点和派生角度的可用比例，不表示视频合格、动作正确或临床可用。</p>

@@ -67,8 +67,11 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .angle-time-chart svg text { fill: #3f5148; font-size: 13px; }
 .angle-time-chart .angle-time-cursor { stroke: #c65b3c; stroke-width: 2; stroke-dasharray: 5 4; }
 .angle-time-chart .angle-time-cursor-label { fill: #9c3f29; font-weight: 700; }
+.angle-time-chart .angle-time-annotation line { stroke: #7357a6; stroke-width: 1.5; stroke-dasharray: 2 4; }
+.angle-time-chart .angle-time-annotation circle { fill: #7357a6; }
 .angle-time-controls { display: grid; gap: 8px; margin: -10px 0 24px; }
 .angle-time-controls input { width: 100%; }
+.angle-time-annotation-buttons { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .trajectory-legend { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 10px; }
 .trajectory-legend span { display: inline-flex; align-items: center; gap: 7px; }
 .trajectory-legend i { display: inline-block; width: 18px; height: 4px; border-radius: 4px; }

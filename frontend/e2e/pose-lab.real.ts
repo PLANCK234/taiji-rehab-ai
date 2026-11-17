@@ -95,6 +95,10 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await page.getByLabel("人工参考角度（可选，度）").fill("90");
   await page.getByRole("button", { name: "标记当前时刻" }).click();
   await expect(page.getByRole("cell", { name: "人工事件 A" })).toBeVisible();
+  await expect(page.locator(".angle-time-annotation")).toHaveCount(1);
+  await page.getByLabel(/曲线时间定位/).fill("0");
+  await page.getByRole("button", { name: "0.2 秒 · 人工事件 A" }).click();
+  await expect(page.getByLabel(/曲线时间定位/)).toHaveValue("0.2");
   const [filledDownload] = await Promise.all([
     page.waitForEvent("download"), page.getByRole("button", { name: "导出已标注 CSV" }).click(),
   ]);
@@ -123,4 +127,6 @@ test("local synthetic video produces landmarks, kinematics and export without up
   const comparisonText = JSON.stringify(comparison);
   expect(comparisonText).not.toContain("人工事件 A");
   expect(comparisonText).not.toContain("synthetic-pose.webm");
+  await page.getByRole("button", { name: "删除" }).click();
+  await expect(page.locator(".angle-time-annotation")).toHaveCount(0);
 });
