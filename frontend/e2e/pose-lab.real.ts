@@ -102,7 +102,8 @@ test("local synthetic video produces landmarks, kinematics and export without up
   const [filledDownload] = await Promise.all([
     page.waitForEvent("download"), page.getByRole("button", { name: "导出已标注 CSV" }).click(),
   ]);
-  const filledCsv = await readFile((await filledDownload.path())!, "utf8");
+  const filledPath = (await filledDownload.path())!;
+  const filledCsv = await readFile(filledPath, "utf8");
   expect(filledCsv).toContain("人工事件 A,1,自定义阶段,left_knee");
   expect(filledCsv).toContain("manual_reference_angle_deg,model_reference_angle_deg,absolute_angle_difference_deg");
   const filledRow = filledCsv.split("\n").find((row) => row.includes("人工事件 A"));
@@ -127,6 +128,12 @@ test("local synthetic video produces landmarks, kinematics and export without up
   const comparisonText = JSON.stringify(comparison);
   expect(comparisonText).not.toContain("人工事件 A");
   expect(comparisonText).not.toContain("synthetic-pose.webm");
+  await expect(page.getByLabel(/导入已标注 CSV/)).toBeDisabled();
   await page.getByRole("button", { name: "删除" }).click();
   await expect(page.locator(".angle-time-annotation")).toHaveCount(0);
+  await expect(page.getByLabel(/导入已标注 CSV/)).toBeEnabled();
+  await page.getByLabel(/导入已标注 CSV/).setInputFiles(filledPath);
+  await expect(page.getByText(/已在本标签页导入 1 条人工标注/)).toBeVisible();
+  await expect(page.getByRole("cell", { name: "人工事件 A" })).toBeVisible();
+  await expect(page.locator(".angle-time-annotation")).toHaveCount(1);
 });

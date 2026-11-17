@@ -294,12 +294,90 @@ function safeCsvCell(value: string | number | null) {
   return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
+const MANUAL_ANNOTATION_CSV_HEADER = [
+  "timestamp_ms", "manual_event_label", "manual_repeat_index", "manual_phase_label",
+  "manual_reference_joint", "manual_reference_angle_deg", "model_reference_angle_deg",
+  "absolute_angle_difference_deg", "reviewer_note",
+];
+
+function parseCsvRows(text: string) {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    if (quoted) {
+      if (character === '"') {
+        if (text[index + 1] === '"') { cell += '"'; index += 1; } else quoted = false;
+      } else cell += character;
+    } else if (character === '"') {
+      if (cell.length) throw new Error("CSV 引号格式无效。");
+      quoted = true;
+    } else if (character === ",") {
+      row.push(cell); cell = "";
+    } else if (character === "\n" || character === "\r") {
+      if (character === "\r" && text[index + 1] === "\n") index += 1;
+      row.push(cell); cell = "";
+      if (row.some((value) => value !== "")) rows.push(row);
+      row = [];
+    } else cell += character;
+  }
+  if (quoted) throw new Error("CSV 存在未闭合的引号。");
+  row.push(cell);
+  if (row.some((value) => value !== "")) rows.push(row);
+  return rows;
+}
+
+function restoredCsvText(value: string) {
+  return /^'[=+\-@]/.test(value) ? value.slice(1) : value;
+}
+
+export function parsePoseManualAnnotationsCsv(text: string, durationMs: number): ManualPoseAnnotation[] {
+  const rows = parseCsvRows(text.replace(/^\uFEFF/, ""));
+  if (!rows.length || rows[0].join(",") !== MANUAL_ANNOTATION_CSV_HEADER.join(",")) {
+    throw new Error("CSV 表头不匹配，请选择本系统导出的已标注 CSV。");
+  }
+  return rows.slice(1).map((values, index) => {
+    const rowNumber = index + 2;
+    if (values.length !== MANUAL_ANNOTATION_CSV_HEADER.length) throw new Error(`CSV 第 ${rowNumber} 行列数不正确。`);
+    const timestampMs = Number(values[0]);
+    if (!Number.isFinite(timestampMs) || timestampMs < 0 || timestampMs > durationMs) {
+      throw new Error(`CSV 第 ${rowNumber} 行时间超出当前视频范围。`);
+    }
+    const eventLabel = restoredCsvText(values[1]);
+    if (!eventLabel.trim()) throw new Error(`CSV 第 ${rowNumber} 行缺少事件标签。`);
+    const repeatIndex = values[2] === "" ? null : Number(values[2]);
+    if (repeatIndex !== null && (!Number.isInteger(repeatIndex) || repeatIndex <= 0)) {
+      throw new Error(`CSV 第 ${rowNumber} 行重复序号必须是正整数。`);
+    }
+    const referenceJoint = values[4] === "" ? null : values[4] as JointName;
+    if (referenceJoint !== null && !(referenceJoint in JOINT_DEFINITIONS)) {
+      throw new Error(`CSV 第 ${rowNumber} 行包含未知关节。`);
+    }
+    const manualReferenceAngleDeg = values[5] === "" ? null : Number(values[5]);
+    if (manualReferenceAngleDeg !== null && (!Number.isFinite(manualReferenceAngleDeg)
+      || manualReferenceAngleDeg < 0 || manualReferenceAngleDeg > 180)) {
+      throw new Error(`CSV 第 ${rowNumber} 行人工角度必须在 0–180 度之间。`);
+    }
+    if (manualReferenceAngleDeg !== null && referenceJoint === null) {
+      throw new Error(`CSV 第 ${rowNumber} 行人工角度缺少对应关节。`);
+    }
+    return {
+      id: `imported-${rowNumber}`,
+      timestampMs,
+      eventLabel,
+      repeatIndex,
+      phaseLabel: restoredCsvText(values[3]),
+      referenceJoint,
+      manualReferenceAngleDeg,
+      modelReferenceAngleDeg: null,
+      note: restoredCsvText(values[8]),
+    };
+  });
+}
+
 export function poseManualAnnotationsCsv(annotations: ManualPoseAnnotation[]) {
-  const header = [
-    "timestamp_ms", "manual_event_label", "manual_repeat_index", "manual_phase_label",
-    "manual_reference_joint", "manual_reference_angle_deg", "model_reference_angle_deg",
-    "absolute_angle_difference_deg", "reviewer_note",
-  ];
   const rows = [...annotations].sort((left, right) => left.timestampMs - right.timestampMs).map((annotation) => [
     annotation.timestampMs.toFixed(1), annotation.eventLabel, annotation.repeatIndex,
     annotation.phaseLabel, annotation.referenceJoint, annotation.manualReferenceAngleDeg?.toFixed(1) ?? null,
@@ -307,5 +385,5 @@ export function poseManualAnnotationsCsv(annotations: ManualPoseAnnotation[]) {
     absoluteAngleDifference(annotation.manualReferenceAngleDeg, annotation.modelReferenceAngleDeg)?.toFixed(1) ?? null,
     annotation.note,
   ].map(safeCsvCell).join(","));
-  return [header.join(","), ...rows].join("\n");
+  return [MANUAL_ANNOTATION_CSV_HEADER.join(","), ...rows].join("\n");
 }

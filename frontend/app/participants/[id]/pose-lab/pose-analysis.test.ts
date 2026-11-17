@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   absoluteAngleDifference, angleDegrees, createPoseFrame, jointAngleSegments, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
-  poseComparisonSummaryJson, poseManualAnnotationsCsv, summarizeManualAngleComparisons, summarizePose,
+  parsePoseManualAnnotationsCsv, poseComparisonSummaryJson, poseManualAnnotationsCsv, summarizeManualAngleComparisons, summarizePose,
   timelinePositionRatio, type ManualPoseAnnotation, type PosePoint,
 } from "./pose-analysis";
 
@@ -136,5 +136,24 @@ describe("pose prototype kinematics", () => {
     expect(rows[1]).toBe("100.0,人工事件,,,,,,,");
     expect(rows[2]).toContain("900.0,'=unsafe,2,\"自定义,阶段\",left_knee,93.5,91.2,2.3");
     expect(csv).toContain("\"第一行\n第二行\"");
+  });
+
+  it("imports its annotation CSV while discarding stale model-derived values", () => {
+    const csv = poseManualAnnotationsCsv([{
+      id: "source", timestampMs: 900, eventLabel: "=人工事件", repeatIndex: 2, phaseLabel: "自定义,阶段",
+      referenceJoint: "left_knee", manualReferenceAngleDeg: 93.5, modelReferenceAngleDeg: 91.2,
+      note: "第一行\n第二行",
+    }]);
+    expect(parsePoseManualAnnotationsCsv(csv, 1000)).toEqual([{
+      id: "imported-2", timestampMs: 900, eventLabel: "=人工事件", repeatIndex: 2, phaseLabel: "自定义,阶段",
+      referenceJoint: "left_knee", manualReferenceAngleDeg: 93.5, modelReferenceAngleDeg: null,
+      note: "第一行\n第二行",
+    }]);
+  });
+
+  it("rejects imported annotations outside the current video or with unknown joints", () => {
+    const header = poseManualAnnotationsCsv([]);
+    expect(() => parsePoseManualAnnotationsCsv(`${header}\n1100,事件,,,,,,,`, 1000)).toThrow("时间超出当前视频范围");
+    expect(() => parsePoseManualAnnotationsCsv(`${header}\n500,事件,,,unknown_joint,,,,`, 1000)).toThrow("包含未知关节");
   });
 });

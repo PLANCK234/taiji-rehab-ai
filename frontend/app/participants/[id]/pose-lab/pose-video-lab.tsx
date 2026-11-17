@@ -8,6 +8,7 @@ import {
   createPoseFrame,
   jointAngleSegments,
   nearestPoseFrame,
+  parsePoseManualAnnotationsCsv,
   poseAnalysisCsv,
   poseAnalysisJson,
   poseAnnotationTemplateCsv,
@@ -27,6 +28,7 @@ import {
 const SAMPLE_HZ = 10;
 const MAX_VIDEO_SECONDS = 120;
 const MAX_VIDEO_BYTES = 250 * 1024 * 1024;
+const MAX_ANNOTATION_CSV_BYTES = 1024 * 1024;
 const JOINT_LABELS: Record<JointName, string> = {
   left_shoulder: "左肩", right_shoulder: "右肩", left_elbow: "左肘", right_elbow: "右肘",
   left_hip: "左髋", right_hip: "右髋", left_knee: "左膝", right_knee: "右膝",
@@ -181,6 +183,7 @@ export default function PoseVideoLab() {
   const [manualReferenceAngle, setManualReferenceAngle] = useState("");
   const [annotationNote, setAnnotationNote] = useState("");
   const [annotationError, setAnnotationError] = useState("");
+  const [annotationImportMessage, setAnnotationImportMessage] = useState("");
   const [currentVideoTime, setCurrentVideoTime] = useState(0);
   const [angleJoint, setAngleJoint] = useState<JointName>("right_knee");
   const clearResult = useCallback(() => {
@@ -195,6 +198,7 @@ export default function PoseVideoLab() {
 
   const selectVideo = async (file: File | undefined) => {
     setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setCurrentVideoTime(0); setAnnotationError("");
+    setAnnotationImportMessage("");
     if (!file) return;
     if (!authorized) { setError("请先确认视频使用范围。未读取该文件。"); return; }
     if (file.size > MAX_VIDEO_BYTES) { setError("视频超过 250 MB，本原型未读取该文件。"); return; }
@@ -322,6 +326,26 @@ export default function PoseVideoLab() {
     setAnnotationError("");
   };
 
+  const importAnnotations = async (file: File | undefined) => {
+    setAnnotationError(""); setAnnotationImportMessage("");
+    if (!file) return;
+    if (!summary) { setAnnotationError("请先完成当前视频分析，再导入人工标注。"); return; }
+    if (annotations.length) { setAnnotationError("当前已有标注；请先导出并删除后再导入，避免静默覆盖。"); return; }
+    if (file.size > MAX_ANNOTATION_CSV_BYTES) { setAnnotationError("标注 CSV 超过 1 MB，未读取该文件。"); return; }
+    try {
+      const imported = parsePoseManualAnnotationsCsv(await file.text(), summary.videoDurationMs).map((annotation) => {
+        const frame = nearestPoseFrame(frames, annotation.timestampMs);
+        return { ...annotation, modelReferenceAngleDeg: annotation.referenceJoint && frame
+          ? frame.angles[annotation.referenceJoint] : null };
+      });
+      if (!imported.length) { setAnnotationError("CSV 中没有可导入的标注行。"); return; }
+      setAnnotations(imported);
+      setAnnotationImportMessage(`已在本标签页导入 ${imported.length} 条人工标注；模型角度已按当前视频重新计算。`);
+    } catch (caught) {
+      setAnnotationError(caught instanceof Error ? caught.message : "无法读取标注 CSV。");
+    }
+  };
+
   const comparisonSummary = summarizeManualAngleComparisons(annotations);
 
   return <>
@@ -400,6 +424,13 @@ export default function PoseVideoLab() {
         <button type="button" disabled={!annotations.length}
           onClick={() => downloadText("pose-angle-comparison-summary.json", poseComparisonSummaryJson(annotations), "application/json")}>导出角度对照摘要 JSON</button>
       </div>
+      <label htmlFor="pose-annotation-import">导入已标注 CSV（本机，最大 1 MB）</label>
+      <input id="pose-annotation-import" type="file" accept=".csv,text/csv" disabled={!summary || annotations.length > 0}
+        onChange={(event) => {
+          const file = event.currentTarget.files?.[0]; event.currentTarget.value = ""; void importAnnotations(file);
+        }} />
+      <p className="note">仅接受本系统导出的格式。为避免覆盖，当前标注非空时不能导入；模型角度和差值会按当前视频重新计算。</p>
+      {annotationImportMessage ? <p role="status">{annotationImportMessage}</p> : null}
     </section> : null}
 
     {summary ? <section aria-labelledby="pose-results-heading">
