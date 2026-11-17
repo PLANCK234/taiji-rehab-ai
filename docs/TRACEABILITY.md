@@ -1,5 +1,7 @@
 # Requirements traceability
 
+S6-04 新增右髋低位触发、髋膝高位共同确认的离线对照。合成测试验证缺失膝角、确认断档和 CSV 空值。获授权开发样本髋膝模式输出 5 个候选，骨盆基线复现 3 个。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
 S6-04 的离线工程切片见 `ml/sit_to_stand.py` 和 `ml/tests/test_sit_to_stand.py`。合成测试覆盖重复、起始直立、断档、瞬时尖峰与未知信号。本机获授权样本首跑检出 3 个候选，漏第 1、5 次。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
 
 S6-04 的 AT-POSE-01 单样本时间对照复用现有 10 Hz 导出。先以 0.1 秒间隔审看视频并记录直立过渡，再在目视划定的窗口抽取右髋和右膝角峰。五个区间、取峰规则及失败模式见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。独立计次和事件计时仍待验证。
