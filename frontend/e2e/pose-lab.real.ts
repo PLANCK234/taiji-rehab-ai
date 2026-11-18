@@ -69,6 +69,18 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.getByRole("heading", { name: "3. 技术测量结果" })).toHaveCount(0);
   await page.getByLabel(/原视频时间定位/).fill("0.4");
   await expect(page.getByText("当前视频时刻：0.4 秒")).toBeVisible();
+  const timing = page.getByRole("region", { name: "五次坐站计时复核" });
+  const confirmTiming = timing.getByRole("button", { name: "确认本次计时记录" });
+  const exportTiming = timing.getByRole("button", { name: "导出计时复核 CSV" });
+  await expect(confirmTiming).toBeDisabled();
+  await timing.getByRole("button", { name: "标记计时起点" }).click();
+  await page.getByLabel(/原视频时间定位/).fill("0.8");
+  await timing.getByRole("button", { name: "标记第五次站直" }).click();
+  await expect(timing.getByText("0.40 秒", { exact: true }).last()).toBeVisible();
+  await confirmTiming.click();
+  const [timingDownload] = await Promise.all([page.waitForEvent("download"), exportTiming.click()]);
+  expect(await readFile((await timingDownload.path())!, "utf8")).toContain("\nreviewed,,400,800,400,,,");
+  await page.getByLabel(/原视频时间定位/).fill("0.4");
   await page.getByLabel("事件标签（必填）").fill("仅看原视频核对点");
   await page.getByRole("button", { name: "标记当前时刻" }).click();
   const [manualDownload] = await Promise.all([
@@ -81,6 +93,7 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await page.getByRole("button", { name: "开始本地分析" }).click();
   await expect(page.getByText(/分析完成：/)).toBeVisible({ timeout: 60_000 });
   await expect(originalMode).toBeDisabled();
+  await expect(exportTiming).toBeEnabled();
   await expect(page.getByRole("cell", { name: "仅看原视频核对点" })).toBeVisible();
   await expect(page.getByRole("button", { name: /0.4 秒 · 仅看原视频核对点/ })).toBeVisible();
   await page.getByRole("row").filter({ hasText: "仅看原视频核对点" })
@@ -182,4 +195,19 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await expect(page.getByRole("cell", { name: "人工事件 B" })).toBeVisible();
   await expect(page.locator(".angle-time-annotation")).toHaveCount(1);
   await expect(page.getByRole("button", { name: "0.2 秒 · 人工事件 B" })).toBeVisible();
+  await page.locator("#pose-video").evaluate((element) => {
+    const input = element as HTMLInputElement;
+    const replacement = new DataTransfer();
+    replacement.items.add(new File([input.files![0]], "replacement.webm", { type: "video/webm" }));
+    Object.defineProperty(input, "files", { configurable: true, value: replacement.files });
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(timing).toBeVisible();
+  await expect(exportTiming).toBeDisabled();
+  await expect(timing.getByText("未标记", { exact: true })).toHaveCount(2);
+  await timing.getByLabel("无法判定的原因").selectOption("start_unverifiable");
+  await confirmTiming.click();
+  const [unknownDownload] = await Promise.all([page.waitForEvent("download"), exportTiming.click()]);
+  expect(await readFile((await unknownDownload.path())!, "utf8")).toContain("\nunavailable,start_unverifiable,,,,,,");
+  expect(writes).toEqual([]);
 });

@@ -1,5 +1,7 @@
 # Requirements traceability
 
+S6-19 对应 AT-POSE-01 的五次坐站计时复核子集。`sit-to-stand-timing.test.tsx` 校验起止顺序、人工和辅助用时及差值、确认与未知 CSV。`pose-lab.real.ts` 验证原视频标记、真实下载、换片清空、无法核实起点及无写入请求。
+
 DEMO-V2-37 对应 AT-DEMO-02/05 的工作台列表子集。`participant-list.test.tsx` 检查不同研究的同编号、账号隔离；`demo-v2.real.ts` 验证隐藏、恢复、刷新、直接打开原档案和零写入请求。隔离 Chromium 17 项通过。
 
 DEMO-V2-36 对应 AT-DEMO-01/05 的快速评估日期子集。`create-participant-form.tsx` 按北京时间中午转换新提交的日期；`demo-v2.real.ts` 在上海和夏威夷核对 `performed_at` 和刷新回显。隔离 Chromium 16 项通过。

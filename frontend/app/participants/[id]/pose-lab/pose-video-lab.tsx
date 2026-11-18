@@ -26,6 +26,7 @@ import {
 } from "./pose-analysis";
 import { sitToStandCandidates, type SitToStandResult } from "./sit-to-stand";
 import SitToStandComparison from "./sit-to-stand-comparison";
+import SitToStandTiming from "./sit-to-stand-timing";
 
 const SAMPLE_HZ = 10;
 const MAX_VIDEO_SECONDS = 120;
@@ -175,6 +176,7 @@ export default function PoseVideoLab() {
   const [reviewMode, setReviewMode] = useState<"available" | "original-only" | "analysis-started">("available");
   const originalOnly = reviewMode === "original-only";
   const [videoReady, setVideoReady] = useState(false);
+  const [videoVersion, setVideoVersion] = useState(0);
   const [durationSeconds, setDurationSeconds] = useState(0);
   const [frames, setFrames] = useState<PoseFrame[]>([]);
   const [summary, setSummary] = useState<PoseSummary | null>(null);
@@ -207,6 +209,7 @@ export default function PoseVideoLab() {
   }, []);
 
   const selectVideo = async (file: File | undefined) => {
+    setVideoVersion((version) => version + 1);
     setError(""); clearResult(); setVideoReady(false); setAnnotations([]); setPendingImportedAnnotations([]);
     setReviewMode((current) => current === "analysis-started" ? "available" : current);
     setEditingAnnotationId(null);
@@ -425,6 +428,15 @@ export default function PoseVideoLab() {
         <input id="pose-original-time" type="range" min="0" max={durationSeconds} step="0.1"
           value={currentVideoTime} onChange={(event) => seekVideo(Number(event.target.value))} />
       </div> : null}
+      <SitToStandTiming key={videoVersion} candidateTimes={sitToStand?.timestampsMs ?? []} disabled={busy}
+        captureTime={() => {
+          const video = videoRef.current;
+          if (!video || !Number.isFinite(video.currentTime)) return null;
+          video.pause();
+          return Math.round(video.currentTime * 1000);
+        }}
+        seekTime={(ms) => seekVideo(ms / 1000)}
+        onExport={(csv) => downloadText("sit-to-stand-timing.csv", csv, "text/csv;charset=utf-8")} />
       <div className="annotation-grid">
         <label>事件标签（必填）<input value={eventLabel} onChange={(event) => setEventLabel(event.target.value)} placeholder="自定义，例如：人工标记 A" /></label>
         <label>重复序号（可选）<input type="number" min="1" step="1" value={repeatIndex} onChange={(event) => setRepeatIndex(event.target.value)} /></label>
