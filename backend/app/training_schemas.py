@@ -48,6 +48,20 @@ class TrainingSessionView(TrainingSessionCreate):
         return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
 
 
+class TrainingTimelineEntry(BaseModel):
+    session_id: uuid.UUID
+    session_at: datetime
+    completion_status: Completion
+    actual_minutes: int | None
+    feedback_state: Literal["recorded", "missing"] | None
+    rpe: int | None
+
+
+class TrainingTimeline(BaseModel):
+    participant_id: uuid.UUID
+    entries: list[TrainingTimelineEntry]
+
+
 class TrainingFeedbackWrite(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 

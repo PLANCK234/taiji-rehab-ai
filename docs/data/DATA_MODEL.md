@@ -44,3 +44,29 @@ Every schema PR includes Alembic migration + downgrade/rollback considerations +
 ## Physical extension `0006_demo_v2` (2026-10-31)
 
 The additive migration creates `demo_participant_profiles` (one optional synthetic display row per existing participant), `demo_grade_results` (unique confirmed `assessment_revision_id`, version, grade, separate mode and JSON evidence), `demo_actions` (marked local catalog), and `demo_runs` (participant/grade link, action IDs, progress/status, optional link to existing `training_sessions`). `0007_demo_completed_actions` adds nullable `completed_action_ids` so actual completed actions are not inferred from planned IDs. `training_feedback_revisions` and `safety_events` remain unchanged. No old rows are deleted or rewritten; an authorized plan read may create a missing Demo result for a preexisting confirmed assessment. The local existing volume was backed up before forward migration. No downgrade is authorized on a populated database.
+
+## Synthetic patient binding `0008_demo_patient_binding` (2026-11-05)
+
+The additive migration permits the `patient` user role and creates `demo_patient_bindings` with one user and one participant per binding, `created_at` and nullable `revoked_at`. It stores only synthetic coded linkage, not real identity or consent. A clinician scoped to the participant may revoke the link; sessions are revoked and the row remains as history. No self-registration or reactivation route exists. Downgrade was rehearsed only on an empty disposable PostgreSQL database; never downgrade a populated Demo database without an approved rollback plan.
+
+## Synthetic publication events `0009_demo_patient_publication` (2026-11-05)
+
+`demo_patient_publications` adds one append-only event per participant/version (`published|withdrawn`), immutable `SYNTHETIC_PROCESS_ONLY` marker, actor and UTC time. Only the latest published event is projected to an active synthetic patient with current simulated consent. The event carries no plan details, action IDs, dose, video URL or clinical approval. The new table is additive; downgrade was tested only on an empty disposable PostgreSQL database.
+
+`0015_demo_patient_card_selection` adds nullable `card_code` and `card_title` to each publication event. A selected fixed synthetic option saves its title at publication time; withdrawal copies the snapshot. Older rows remain unchanged and are displayed with the legacy title. These fields are not a clinical plan, video record or approval; the populated database is never downgraded for testing.
+
+## Synthetic patient self-report revisions `0010_demo_patient_report` (2026-11-05)
+
+`demo_patient_report_revisions` stores append-only patient-authored snapshots under a stable `report_id` and increasing `revision_no`: occurred time, explicit activity state (`performed|not_performed|unknown`), optional actual minutes only if performed, explicit discomfort state (`reported|none|unknown`), description only if reported, synthetic correction reason, actor and UTC record time. No row means unknown; a null duration remains unknown and an explicit `none` is not inferred from silence. This separate source never creates or modifies staff `training_sessions`, completion, safety-event classification or a clinical plan. Current simulated consent is needed for new writes; a revoked binding blocks patient access. Free-text discomfort is not included in existing coded CSV export. Migration is additive; populated database downgrade is not approved.
+
+## Manual synthetic cycles `0011_synthetic_cycles` (backend checkpoint, 2026-11-06)
+
+`synthetic_cycles` groups one coded participant under a manually entered label. `synthetic_visit_revisions` stores append-only visit label, attendance (`unknown|attended|not_attended`), assessment state (`unknown|recorded|declined|not_measured`), optional existing assessment link and existing training session IDs. The API validates participant scope for every link. This is not an approved schedule or frozen cohort. Empty disposable PostgreSQL migration replay and synthetic browser persistence passed; populated database downgrade is not approved. See [ADR-0018](../decisions/0018-manual-synthetic-cycle-grouping.md).
+
+## Synthetic staff changes `0012_synthetic_staff_admin` (2026-11-06)
+
+`synthetic_staff_changes` is append-only: target staff, action (`create`, role/active change, study/object grant or revoke), optional scope/value, actor and UTC time. Current access still comes from `users`, `study_assignments` and `participant_assignments`; history prevents a seed rerun from silently restoring revoked defaults. No password or real identity is stored in change events. Migration is additive; a populated database must not be downgraded for testing.
+
+## Synthetic display profile revisions `0013_demo_profile_revisions` (2026-11-06)
+
+The original `demo_participant_profiles` row remains an immutable initial snapshot. New `demo_profile_revisions` stores append-only full display snapshots with `(participant_id, revision_no)` uniqueness, optional age/sex/assistance/note, correction reason, actor and UTC time. Newly created profiles also get an initial version-1 event. Existing profiles without that event are read as a legacy version 1 with actor/time unknown; the migration does not fabricate provenance or rewrite rows. The latest revision drives the current display read. This contains no identity or consent fields; populated database downgrade is not approved. See [ADR-0020](../decisions/0020-synthetic-profile-revisions.md).

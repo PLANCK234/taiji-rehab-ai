@@ -17,5 +17,14 @@ Current proposals:
 - [ADR-0012](0012-training-observation-before-cycle.md): append-only observed activity and feedback before approved cycles/rules, without prescription or clinical triage.
 - [ADR-0013](0013-live-coded-demo-export.md): audited single-participant live Demo CSV, excluding identity and free text; not a frozen research snapshot.
 - [ADR-0014](0014-isolated-demo-rule-and-run.md): isolated `DEMO_ONLY` grade, catalog and persisted training run using existing observations/feedback.
+- [ADR-0015](0015-separate-patient-portal.md): separate planned patient portal with self-only access, clinician-published content and synthetic-first development.
+- [ADR-0016](0016-synthetic-patient-publication-card.md): append-only synthetic publish/withdraw test card without actionable plan or video content.
+- [ADR-0017](0017-synthetic-patient-self-report.md): separate append-only synthetic patient facts from staff observations, with explicit unknown states and no autonomous triage.
+- [ADR-0018](0018-manual-synthetic-cycle-grouping.md): manual synthetic cycle/visit grouping of existing observations without an approved schedule or outcome inference.
+- [ADR-0019](0019-opt-in-synthetic-staff-admin.md): opt-in synthetic staff administration with append-only changes and seed-safe revocation.
+- [ADR-0020](0020-synthetic-profile-revisions.md): append-only synthetic display profile corrections with explicit unknown legacy attribution.
+- [ADR-0021](0021-observed-training-timeline-no-rate.md): scoped synthetic training observation sequence with latest feedback and no invented completion rate.
+- [ADR-0022](0022-selectable-synthetic-patient-cards.md): two fixed non-actionable card choices with explicit demo confirmation and append-only selected-title snapshots; no clinical or video approval.
+- [ADR-0023](0023-browser-local-pose-prototype.md): feature-gated, browser-local video pose and descriptive kinematics prototype with no upload, persistence or clinical scoring.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.

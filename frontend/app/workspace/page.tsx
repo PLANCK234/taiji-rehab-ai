@@ -6,6 +6,7 @@ import CreateParticipantForm from "./create-participant-form";
 import LogoutButton from "./logout-button";
 import ParticipantList from "./participant-list";
 import { getDemoPlan } from "./demo";
+import { roleLabel } from "./role-label";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,8 @@ export default async function WorkspacePage() {
   const cookieHeader = (await headers()).get("cookie") ?? "";
   const user = await getCurrentUser(cookieHeader);
   if (!user) redirect("/login");
+  if (user.role === "patient") redirect("/patient");
+  if (user.role === "admin") redirect("/admin");
   const studies = await getAssignedStudies(cookieHeader);
   const participants = await getAssignedParticipants(cookieHeader);
   const plans = Object.fromEntries(await Promise.all((participants ?? []).map(async (item) => [item.id, await getDemoPlan(item.id, cookieHeader)] as const)));
@@ -22,7 +25,7 @@ export default async function WorkspacePage() {
     <main>
       <div className="eyebrow">合成数据工作台</div>
       <h1>研究工作台</h1>
-      <p>当前账号：{user.email}（{user.role}）</p>
+      <p>当前账号：{user.email}（{roleLabel(user.role)}）</p>
       <section aria-labelledby="studies-heading">
         <h2 id="studies-heading">已分配研究</h2>
         {studies === null ? <p>研究分配暂不可用。</p> : studies.length ? (
@@ -33,7 +36,7 @@ export default async function WorkspacePage() {
       <section aria-labelledby="participants-heading">
         <h2 id="participants-heading">已分配编号对象</h2>
         {participants === null ? <p>对象列表暂不可用或当前角色无权查看。</p> : participants.length ? (
-          <ParticipantList participants={participants} plans={plans} />
+          <ParticipantList key={user.id} accountId={user.id} participants={participants} plans={plans} studies={studies ?? []} />
         ) : <p>暂无已分配对象。</p>}
         <p className="note">仅限合成数据；Demo 分级不代表临床批准。真实照片与 Research 数据准入仍关闭。</p>
       </section>

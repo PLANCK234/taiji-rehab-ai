@@ -61,6 +61,26 @@ class DemoProfileView(DemoProfileCreate):
     participant_id: uuid.UUID
 
 
+class DemoProfileCorrection(DemoProfileCreate):
+    expected_revision: int = Field(ge=1)
+    change_reason: str = Field(min_length=7, max_length=64, pattern=SYNTHETIC_CODE)
+
+
+class DemoProfileRevisionView(DemoProfileView):
+    id: uuid.UUID | None
+    revision_no: int
+    change_reason: str | None
+    recorded_by: uuid.UUID | None
+    recorded_at: datetime | None
+    source: Literal["created", "corrected", "legacy_initial"]
+
+
+class DemoProfileHistory(BaseModel):
+    participant_id: uuid.UUID
+    current_revision: int
+    records: list[DemoProfileRevisionView]
+
+
 class ConsentCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

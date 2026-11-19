@@ -2,14 +2,23 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "../../workspace/auth";
-import { getConsentHistory, getParticipant, getScreeningHistory } from "../../workspace/intake";
+import { getConsentHistory, getDemoProfileHistory, getParticipant, getScreeningHistory } from "../../workspace/intake";
 import { getAssessmentTrend, getParticipantAssessments, measurementText } from "../../workspace/assessments";
 import IntakeForms from "./intake-forms";
 import CreateAssessmentForm from "./create-assessment-form";
 import AssessmentTrendSection from "./assessment-trend";
+import TrainingTimelineSection from "./training-timeline";
 import TrainingForms from "./training-forms";
-import { getSafetyEvents, getTrainingSessions } from "../../workspace/training";
+import { getSafetyEvents, getTrainingSessions, getTrainingTimeline } from "../../workspace/training";
 import { getDemoPlan } from "../../workspace/demo";
+import { getPublicationHistory, getPublicationReadiness, getSyntheticCardOptions } from "../../workspace/patient-publication";
+import PublicationControls from "./publication-controls";
+import { getPatientReports } from "../../workspace/patient-reports";
+import StaffPatientReports from "./staff-patient-reports";
+import { getCycles } from "../../workspace/cycles";
+import CycleForms from "./cycle-forms";
+import ProfileSection from "./profile-section";
+import ManualObservations from "./manual-observations";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +37,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan, publicationHistory, cardOptions, publicationReadiness, patientReports, cycles, profileHistory, trainingTimeline] = await Promise.all([
     getConsentHistory(id, cookieHeader),
     getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader),
@@ -36,9 +45,17 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
     getTrainingSessions(id, cookieHeader),
     getSafetyEvents(id, cookieHeader),
     getDemoPlan(id, cookieHeader),
+    getPublicationHistory(id, cookieHeader),
+    getSyntheticCardOptions(id, cookieHeader),
+    user.role === "clinician" ? getPublicationReadiness(id, cookieHeader) : null,
+    getPatientReports(cookieHeader, id),
+    getCycles(id, cookieHeader),
+    getDemoProfileHistory(id, cookieHeader),
+    getTrainingTimeline(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
   const canExport = canWrite || user.role === "clinical_approver";
+  const posePrototypeEnabled = process.env.POSE_PROTOTYPE_ENABLED === "true";
 
   return (
     <main>
@@ -46,7 +63,11 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <div className="eyebrow">合成数据编号对象</div>
       <h1>{participant.study_code}</h1>
       <p>此页面仅用于开发演示，不代表真实建档或研究入组。</p>
+      <ProfileSection participantId={id} history={profileHistory} canWrite={canWrite} />
+      <ManualObservations participantId={id} canWrite={canWrite && consents?.state === "granted"} />
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
+      <PublicationControls participantId={id} initialHistory={publicationHistory} cardOptions={cardOptions} readiness={publicationReadiness} canPublish={user.role === "clinician"} />
+      <StaffPatientReports reports={patientReports} />
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">模拟同意记录</h2>
         {consents ? <>
@@ -93,6 +114,8 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
         </a>
       </section> : null}
       <AssessmentTrendSection trend={trend} />
+      <TrainingTimelineSection timeline={trainingTimeline} />
+      <CycleForms participantId={id} initialCycles={cycles} assessments={assessments ?? []} sessions={sessions ?? []} trainingTimeline={trainingTimeline} canWrite={canWrite && consents?.state === "granted"} />
       <section aria-labelledby="training-heading">
         <h2 id="training-heading">训练观察与反馈</h2>
         <p className="note">仅记录已发生的合成训练观察，不表示处方、疗效或临床安全结论。</p>
@@ -119,8 +142,12 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       </section>
       <section aria-labelledby="pose-demo-heading">
         <h2 id="pose-demo-heading">姿态演示</h2>
-        <p className="note">仅生成合成线条人物预览；摄像头、照片文件、上传和识别均未启用。</p>
-        <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
+        <p className="note">合成线条人物预览始终可用。{posePrototypeEnabled ? "本地视频技术原型已启用；视频不上传、不保存，不产生临床评分。" : "视频识别技术原型当前未启用。"}</p>
+        <div className="button-row">
+          <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
+          {/* Load a new document so the browser applies the pose lab's CSP. */}
+          {posePrototypeEnabled ? <a href={`/participants/${participant.id}/pose-lab`}>打开本地视频姿态实验室</a> : null}
+        </div>
       </section>
       {canWrite && consents && screenings ? <IntakeForms
         participantId={participant.id}

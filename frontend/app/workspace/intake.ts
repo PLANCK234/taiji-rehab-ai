@@ -6,6 +6,19 @@ export type DemoProfile = {
   needs_assistance: boolean | null;
   note: string | null;
 };
+export type DemoProfileRevision = DemoProfile & {
+  id: string | null;
+  revision_no: number;
+  change_reason: string | null;
+  recorded_by: string | null;
+  recorded_at: string | null;
+  source: "created" | "corrected" | "legacy_initial";
+};
+export type DemoProfileHistory = {
+  participant_id: string;
+  current_revision: number;
+  records: DemoProfileRevision[];
+};
 export type ConsentRecord = {
   id: string;
   participant_id: string;
@@ -43,7 +56,7 @@ async function readScoped<T>(
 ): Promise<T | null> {
   try {
     const response = await fetcher(`${baseUrl}/api/v1${path}`, {
-      headers: { cookie: cookieHeader },
+      headers: cookieHeader ? { cookie: cookieHeader } : undefined,
       cache: "no-store",
     });
     return response.ok ? ((await response.json()) as T) : null;
@@ -56,12 +69,21 @@ export function getAssignedParticipants(cookieHeader: string, fetcher?: typeof f
   return readScoped<CodedParticipant[]>("/participants", cookieHeader, fetcher);
 }
 
+export async function findAssignedParticipant(studyId: string, studyCode: string) {
+  const participants = await readScoped<CodedParticipant[]>("/participants", "", fetch, "");
+  return participants?.find((row) => row.study_id === studyId && row.study_code === studyCode);
+}
+
 export function getParticipant(id: string, cookieHeader: string, fetcher?: typeof fetch) {
   return readScoped<CodedParticipant>(`/participants/${encodeURIComponent(id)}`, cookieHeader, fetcher);
 }
 
 export function getDemoProfile(id: string, cookieHeader: string, fetcher?: typeof fetch) {
   return readScoped<DemoProfile>(`/participants/${encodeURIComponent(id)}/demo-profile`, cookieHeader, fetcher);
+}
+
+export function getDemoProfileHistory(id: string, cookieHeader: string, fetcher?: typeof fetch) {
+  return readScoped<DemoProfileHistory>(`/participants/${encodeURIComponent(id)}/demo-profile/revisions`, cookieHeader, fetcher);
 }
 
 export function getConsentHistory(id: string, cookieHeader: string, fetcher?: typeof fetch) {

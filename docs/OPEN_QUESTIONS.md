@@ -17,6 +17,8 @@
 | Q-11 | RCT allocation and blinded analyst workflow needed in MVP? | PI / statistician | out of scope pending decision |
 | Q-12 | Which observation quality/subjective response scales? | clinical team | categorical placeholders marked unvalidated |
 | Q-13 | External LLM used for literature only? Approved provider and documents? | security / PI | offline manual literature extraction |
+| Q-14 | 患者账号怎样与本人研究编号可靠绑定？谁创建/撤销账号，退出研究后访问如何处理？ | PI / 隐私负责人 / 医院 IT | 仅可用合成账号开发患者入口；不得开放真实患者登录 |
+| Q-15 | 哪些计划字段和视频经谁审核后可发布给患者？如何撤回、替换版本并通知？ | 临床负责人 / PI | 患者端不得展示 `DEMO_ONLY` 草案为正式训练计划；视频继续待添加 |
 
 **Decision closure template**: date; question ID; signed decision; authority; scope; rule/protocol version; evidence URL/file; impacted tests; effective date. No closed state without evidence.
 

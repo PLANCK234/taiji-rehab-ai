@@ -347,6 +347,62 @@
         "title": "AssessmentTrendEntry",
         "type": "object"
       },
+      "AssignmentChange": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_assigned": {
+            "title": "Expected Assigned",
+            "type": "boolean"
+          },
+          "operation": {
+            "enum": [
+              "grant",
+              "revoke"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "study",
+              "participant"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "scope_id": {
+            "format": "uuid",
+            "title": "Scope Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope",
+          "scope_id",
+          "operation",
+          "expected_assigned"
+        ],
+        "title": "AssignmentChange",
+        "type": "object"
+      },
+      "CardOptionView": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "title"
+        ],
+        "title": "CardOptionView",
+        "type": "object"
+      },
       "ConsentCreate": {
         "additionalProperties": false,
         "properties": {
@@ -494,6 +550,86 @@
           "recorded_at"
         ],
         "title": "ConsentView",
+        "type": "object"
+      },
+      "CycleRecordView": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "label",
+          "created_by",
+          "created_at"
+        ],
+        "title": "CycleRecordView",
+        "type": "object"
+      },
+      "CycleView": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "visits": {
+            "items": {
+              "$ref": "#/components/schemas/VisitView"
+            },
+            "title": "Visits",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "visits"
+        ],
+        "title": "CycleView",
+        "type": "object"
+      },
+      "CycleWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "CycleWrite",
         "type": "object"
       },
       "DemoActionView": {
@@ -711,6 +847,82 @@
         "title": "DemoPlanView",
         "type": "object"
       },
+      "DemoProfileCorrection": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "maximum": 120.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "change_reason": {
+            "maxLength": 64,
+            "minLength": 7,
+            "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+            "title": "Change Reason",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "needs_assistance": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Assistance"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "enum": [
+                  "female",
+                  "male",
+                  "other",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "change_reason"
+        ],
+        "title": "DemoProfileCorrection",
+        "type": "object"
+      },
       "DemoProfileCreate": {
         "additionalProperties": false,
         "properties": {
@@ -769,6 +981,167 @@
           }
         },
         "title": "DemoProfileCreate",
+        "type": "object"
+      },
+      "DemoProfileHistory": {
+        "properties": {
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/DemoProfileRevisionView"
+            },
+            "title": "Records",
+            "type": "array"
+          }
+        },
+        "required": [
+          "participant_id",
+          "current_revision",
+          "records"
+        ],
+        "title": "DemoProfileHistory",
+        "type": "object"
+      },
+      "DemoProfileRevisionView": {
+        "additionalProperties": false,
+        "properties": {
+          "age": {
+            "anyOf": [
+              {
+                "maximum": 120.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "needs_assistance": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Assistance"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded At"
+          },
+          "recorded_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded By"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "enum": [
+                  "female",
+                  "male",
+                  "other",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          },
+          "source": {
+            "enum": [
+              "created",
+              "corrected",
+              "legacy_initial"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "id",
+          "revision_no",
+          "change_reason",
+          "recorded_by",
+          "recorded_at",
+          "source"
+        ],
+        "title": "DemoProfileRevisionView",
         "type": "object"
       },
       "DemoProfileView": {
@@ -1087,6 +1460,182 @@
         "title": "MeasurementWrite",
         "type": "object"
       },
+      "ObservationView": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "observation_id": {
+            "format": "uuid",
+            "title": "Observation Id",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ObservationWrite"
+          }
+        },
+        "required": [
+          "id",
+          "observation_id",
+          "participant_id",
+          "revision_no",
+          "snapshot",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "ObservationView",
+        "type": "object"
+      },
+      "ObservationWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "change_reason": {
+            "anyOf": [
+              {
+                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "context_note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Note"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "metric_code": {
+            "enum": [
+              "gait_4m_seconds",
+              "sit_to_stand_5_seconds",
+              "tug_seconds",
+              "grip_strength_kg"
+            ],
+            "title": "Metric Code",
+            "type": "string"
+          },
+          "missing_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "not_scheduled",
+                  "not_attempted",
+                  "declined",
+                  "unsafe_to_attempt",
+                  "technical_failure",
+                  "lost_followup",
+                  "unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missing Reason"
+          },
+          "performed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Performed At"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "side": {
+            "default": "unknown",
+            "enum": [
+              "left",
+              "right",
+              "unknown"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "source": {
+            "const": "manual_staff_entry",
+            "default": "manual_staff_entry",
+            "title": "Source",
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "s",
+              "kg"
+            ],
+            "title": "Unit",
+            "type": "string"
+          },
+          "validity": {
+            "enum": [
+              "valid",
+              "missing",
+              "invalid"
+            ],
+            "title": "Validity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_code",
+          "unit",
+          "validity",
+          "expected_revision"
+        ],
+        "title": "ObservationWrite",
+        "type": "object"
+      },
       "ParticipantCreate": {
         "additionalProperties": false,
         "properties": {
@@ -1133,6 +1682,342 @@
           "study_code"
         ],
         "title": "ParticipantView",
+        "type": "object"
+      },
+      "PatientHomeView": {
+        "properties": {
+          "publication": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicationView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "study_code": {
+            "title": "Study Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "study_code"
+        ],
+        "title": "PatientHomeView",
+        "type": "object"
+      },
+      "PatientReportView": {
+        "properties": {
+          "activity_state": {
+            "enum": [
+              "performed",
+              "not_performed",
+              "unknown"
+            ],
+            "title": "Activity State",
+            "type": "string"
+          },
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "discomfort_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discomfort Note"
+          },
+          "discomfort_state": {
+            "enum": [
+              "reported",
+              "none",
+              "unknown"
+            ],
+            "title": "Discomfort State",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "report_id": {
+            "format": "uuid",
+            "title": "Report Id",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "report_id",
+          "participant_id",
+          "revision_no",
+          "observed_at",
+          "activity_state",
+          "actual_minutes",
+          "discomfort_state",
+          "discomfort_note",
+          "change_reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "PatientReportView",
+        "type": "object"
+      },
+      "PatientReportWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_state": {
+            "enum": [
+              "performed",
+              "not_performed",
+              "unknown"
+            ],
+            "title": "Activity State",
+            "type": "string"
+          },
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 5,
+                "pattern": "^SYN-",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "discomfort_note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discomfort Note"
+          },
+          "discomfort_state": {
+            "enum": [
+              "reported",
+              "none",
+              "unknown"
+            ],
+            "title": "Discomfort State",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "observed_at",
+          "activity_state",
+          "discomfort_state"
+        ],
+        "title": "PatientReportWrite",
+        "type": "object"
+      },
+      "PublicationReadinessView": {
+        "properties": {
+          "active_patient_binding": {
+            "title": "Active Patient Binding",
+            "type": "boolean"
+          },
+          "can_publish": {
+            "title": "Can Publish",
+            "type": "boolean"
+          },
+          "simulated_consent_granted": {
+            "title": "Simulated Consent Granted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "simulated_consent_granted",
+          "active_patient_binding",
+          "can_publish"
+        ],
+        "title": "PublicationReadinessView",
+        "type": "object"
+      },
+      "PublicationView": {
+        "properties": {
+          "card_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Code"
+          },
+          "card_title": {
+            "title": "Card Title",
+            "type": "string"
+          },
+          "marker": {
+            "title": "Marker",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "published",
+              "withdrawn"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "video_status": {
+            "const": "awaiting_review",
+            "title": "Video Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "state",
+          "marker",
+          "message",
+          "video_status",
+          "card_code",
+          "card_title"
+        ],
+        "title": "PublicationView",
+        "type": "object"
+      },
+      "PublicationWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "card_code": {
+            "anyOf": [
+              {
+                "enum": [
+                  "SYN-CARD-A",
+                  "SYN-CARD-B"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Code"
+          },
+          "expected_version": {
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "operation": {
+            "enum": [
+              "publish",
+              "withdraw"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "selection_confirmed": {
+            "default": false,
+            "title": "Selection Confirmed",
+            "type": "boolean"
+          },
+          "synthetic_only_acknowledged": {
+            "const": true,
+            "title": "Synthetic Only Acknowledged",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "operation",
+          "expected_version",
+          "synthetic_only_acknowledged"
+        ],
+        "title": "PublicationWrite",
         "type": "object"
       },
       "SafetyEventCreate": {
@@ -1349,6 +2234,93 @@
           "recorded_at"
         ],
         "title": "ScreeningView",
+        "type": "object"
+      },
+      "StaffChange": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_active": {
+            "title": "Expected Active",
+            "type": "boolean"
+          },
+          "expected_role": {
+            "enum": [
+              "clinician",
+              "clinical_approver",
+              "research_assistant",
+              "analyst"
+            ],
+            "title": "Expected Role",
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "activate",
+              "deactivate",
+              "role"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "clinician",
+                  "clinical_approver",
+                  "research_assistant",
+                  "analyst"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "required": [
+          "operation",
+          "expected_role",
+          "expected_active"
+        ],
+        "title": "StaffChange",
+        "type": "object"
+      },
+      "StaffCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "maxLength": 320,
+            "minLength": 8,
+            "pattern": "^demo-[a-z0-9._+-]+@example\\.org$",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Password",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "clinician",
+              "clinical_approver",
+              "research_assistant",
+              "analyst"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "role",
+          "password"
+        ],
+        "title": "StaffCreate",
         "type": "object"
       },
       "StudyView": {
@@ -1794,6 +2766,99 @@
         "title": "TrainingSessionView",
         "type": "object"
       },
+      "TrainingTimeline": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TrainingTimelineEntry"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_id",
+          "entries"
+        ],
+        "title": "TrainingTimeline",
+        "type": "object"
+      },
+      "TrainingTimelineEntry": {
+        "properties": {
+          "actual_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Minutes"
+          },
+          "completion_status": {
+            "enum": [
+              "completed",
+              "partial",
+              "interrupted",
+              "not_started"
+            ],
+            "title": "Completion Status",
+            "type": "string"
+          },
+          "feedback_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "recorded",
+                  "missing"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback State"
+          },
+          "rpe": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpe"
+          },
+          "session_at": {
+            "format": "date-time",
+            "title": "Session At",
+            "type": "string"
+          },
+          "session_id": {
+            "format": "uuid",
+            "title": "Session Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "session_at",
+          "completion_status",
+          "actual_minutes",
+          "feedback_state",
+          "rpe"
+        ],
+        "title": "TrainingTimelineEntry",
+        "type": "object"
+      },
       "UserView": {
         "properties": {
           "email": {
@@ -1858,6 +2923,175 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "VisitView": {
+        "properties": {
+          "assessment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id"
+          },
+          "assessment_state": {
+            "enum": [
+              "unknown",
+              "recorded",
+              "declined",
+              "not_measured"
+            ],
+            "title": "Assessment State",
+            "type": "string"
+          },
+          "attendance": {
+            "enum": [
+              "unknown",
+              "attended",
+              "not_attended"
+            ],
+            "title": "Attendance",
+            "type": "string"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "training_session_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Training Session Ids",
+            "type": "array"
+          },
+          "visit_id": {
+            "format": "uuid",
+            "title": "Visit Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "visit_id",
+          "revision_no",
+          "label",
+          "attendance",
+          "assessment_state",
+          "assessment_id",
+          "training_session_ids",
+          "change_reason",
+          "recorded_at"
+        ],
+        "title": "VisitView",
+        "type": "object"
+      },
+      "VisitWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessment Id"
+          },
+          "assessment_state": {
+            "enum": [
+              "unknown",
+              "recorded",
+              "declined",
+              "not_measured"
+            ],
+            "title": "Assessment State",
+            "type": "string"
+          },
+          "attendance": {
+            "enum": [
+              "unknown",
+              "attended",
+              "not_attended"
+            ],
+            "title": "Attendance",
+            "type": "string"
+          },
+          "change_reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 5,
+                "pattern": "^SYN-",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Reason"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "training_session_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Training Session Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "label",
+          "attendance",
+          "assessment_state"
+        ],
+        "title": "VisitWrite",
+        "type": "object"
       }
     }
   },
@@ -1867,6 +3101,206 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/scope": {
+      "get": {
+        "operationId": "scope_api_v1_admin_scope_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scope"
+      }
+    },
+    "/api/v1/admin/staff": {
+      "get": {
+        "operationId": "list_staff_api_v1_admin_staff_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Staff"
+      },
+      "post": {
+        "operationId": "create_staff_api_v1_admin_staff_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Staff"
+      }
+    },
+    "/api/v1/admin/staff/{user_id}": {
+      "post": {
+        "operationId": "change_staff_api_v1_admin_staff__user_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change Staff"
+      }
+    },
+    "/api/v1/admin/staff/{user_id}/assignments": {
+      "post": {
+        "operationId": "change_assignment_api_v1_admin_staff__user_id__assignments_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignmentChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Change Assignment"
+      }
+    },
     "/api/v1/assessments": {
       "post": {
         "operationId": "create_assessment_api_v1_assessments_post",
@@ -2148,6 +3582,140 @@
           }
         },
         "summary": "Me"
+      }
+    },
+    "/api/v1/cycles/{cycle_id}/visits": {
+      "post": {
+        "operationId": "create_visit_api_v1_cycles__cycle_id__visits_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cycle_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Cycle Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisitWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Visit"
+      }
+    },
+    "/api/v1/cycles/{cycle_id}/visits/{visit_id}": {
+      "post": {
+        "operationId": "revise_visit_api_v1_cycles__cycle_id__visits__visit_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cycle_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Cycle Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "visit_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Visit Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisitWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revise Visit"
       }
     },
     "/api/v1/demo-actions": {
@@ -2688,6 +4256,331 @@
         "summary": "Record Consent"
       }
     },
+    "/api/v1/participants/{participant_id}/cycles": {
+      "get": {
+        "operationId": "list_cycles_api_v1_participants__participant_id__cycles_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CycleView"
+                  },
+                  "title": "Response List Cycles Api V1 Participants  Participant Id  Cycles Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Cycles"
+      },
+      "post": {
+        "operationId": "create_cycle_api_v1_participants__participant_id__cycles_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CycleWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CycleRecordView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Cycle"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-patient-binding/revoke": {
+      "post": {
+        "operationId": "revoke_patient_binding_api_v1_participants__participant_id__demo_patient_binding_revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Patient Binding"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-patient-card-options": {
+      "get": {
+        "operationId": "card_options_api_v1_participants__participant_id__demo_patient_card_options_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CardOptionView"
+                  },
+                  "title": "Response Card Options Api V1 Participants  Participant Id  Demo Patient Card Options Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Card Options"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-patient-publication-readiness": {
+      "get": {
+        "operationId": "publication_readiness_api_v1_participants__participant_id__demo_patient_publication_readiness_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationReadinessView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publication Readiness"
+      }
+    },
+    "/api/v1/participants/{participant_id}/demo-patient-publications": {
+      "get": {
+        "operationId": "publication_history_api_v1_participants__participant_id__demo_patient_publications_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PublicationView"
+                  },
+                  "title": "Response Publication History Api V1 Participants  Participant Id  Demo Patient Publications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publication History"
+      },
+      "post": {
+        "operationId": "record_publication_api_v1_participants__participant_id__demo_patient_publications_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicationWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Publication"
+      }
+    },
     "/api/v1/participants/{participant_id}/demo-plan": {
       "get": {
         "operationId": "get_demo_plan_api_v1_participants__participant_id__demo_plan_get",
@@ -2824,6 +4717,106 @@
         "summary": "Create Demo Profile"
       }
     },
+    "/api/v1/participants/{participant_id}/demo-profile/revisions": {
+      "get": {
+        "operationId": "get_demo_profile_revisions_api_v1_participants__participant_id__demo_profile_revisions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoProfileHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Demo Profile Revisions"
+      },
+      "post": {
+        "operationId": "correct_demo_profile_api_v1_participants__participant_id__demo_profile_revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoProfileCorrection"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoProfileRevisionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Correct Demo Profile"
+      }
+    },
     "/api/v1/participants/{participant_id}/demo-runs": {
       "post": {
         "operationId": "start_demo_run_api_v1_participants__participant_id__demo_runs_post",
@@ -2884,6 +4877,250 @@
           }
         },
         "summary": "Start Demo Run"
+      }
+    },
+    "/api/v1/participants/{participant_id}/manual-observations": {
+      "get": {
+        "operationId": "read_api_v1_participants__participant_id__manual_observations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ObservationView"
+                  },
+                  "title": "Response Read Api V1 Participants  Participant Id  Manual Observations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read"
+      },
+      "post": {
+        "operationId": "write_api_v1_participants__participant_id__manual_observations_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "observation_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Observation Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObservationWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Write"
+      }
+    },
+    "/api/v1/participants/{participant_id}/manual-observations/{observation_id}": {
+      "post": {
+        "operationId": "write_api_v1_participants__participant_id__manual_observations__observation_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "observation_id",
+            "required": true,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Observation Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObservationWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Write"
+      }
+    },
+    "/api/v1/participants/{participant_id}/patient-reports": {
+      "get": {
+        "operationId": "staff_reports_api_v1_participants__participant_id__patient_reports_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PatientReportView"
+                  },
+                  "title": "Response Staff Reports Api V1 Participants  Participant Id  Patient Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Staff Reports"
       }
     },
     "/api/v1/participants/{participant_id}/research-export.csv": {
@@ -3230,6 +5467,198 @@
           }
         },
         "summary": "Create Training Session"
+      }
+    },
+    "/api/v1/participants/{participant_id}/training-timeline": {
+      "get": {
+        "operationId": "get_training_timeline_api_v1_participants__participant_id__training_timeline_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingTimeline"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Training Timeline"
+      }
+    },
+    "/api/v1/patient/me": {
+      "get": {
+        "operationId": "patient_home_api_v1_patient_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientHomeView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Patient Home"
+      }
+    },
+    "/api/v1/patient/reports": {
+      "get": {
+        "operationId": "own_reports_api_v1_patient_reports_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PatientReportView"
+                  },
+                  "title": "Response Own Reports Api V1 Patient Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Own Reports"
+      },
+      "post": {
+        "operationId": "create_report_api_v1_patient_reports_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientReportWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientReportView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Report"
+      }
+    },
+    "/api/v1/patient/reports/{report_id}": {
+      "post": {
+        "operationId": "revise_report_api_v1_patient_reports__report_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatientReportWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientReportView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revise Report"
       }
     },
     "/api/v1/studies": {

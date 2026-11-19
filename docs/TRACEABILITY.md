@@ -1,6 +1,70 @@
 # Requirements traceability
 
+S6-19 对应 AT-POSE-01 的五次坐站计时复核子集。`sit-to-stand-timing.test.tsx` 校验起止顺序、人工和辅助用时及差值、确认与未知 CSV。`pose-lab.real.ts` 验证原视频标记、真实下载、换片清空、无法核实起点及无写入请求。
+
+DEMO-V2-37 对应 AT-DEMO-02/05 的工作台列表子集。`participant-list.test.tsx` 检查不同研究的同编号、账号隔离；`demo-v2.real.ts` 验证隐藏、恢复、刷新、直接打开原档案和零写入请求。隔离 Chromium 17 项通过。
+
+DEMO-V2-36 对应 AT-DEMO-01/05 的快速评估日期子集。`create-participant-form.tsx` 按北京时间中午转换新提交的日期；`demo-v2.real.ts` 在上海和夏威夷核对 `performed_at` 和刷新回显。隔离 Chromium 16 项通过。
+
+DEMO-V2-35 对应 AT-DEMO-01/06 的快速评估缺项子集。`create-participant-form.tsx` 用表单字段校验生成各控件的提示；`demo-v2.real.ts` 验证提示关联、逐项聚焦、零写入保护、0 分流程及普通建档。隔离 Chromium 14 项通过。
+
+DEMO-V2-34 对应 AT-DEMO-01/06 的合成建档冲突子集。`create-participant-form.tsx` 在 409 后用 `intake.ts` 读取已有的授权列表。`demo-v2.real.ts` 验证真实重复冲突、未分配对象、跨研究与部分匹配拒绝、输入变化清除链接及无后续写入。隔离 Chromium 13 项通过。
+
+DEMO-V2-33 对应 AT-DEMO-01/06 的快速建档恢复子集。`create-participant-form.tsx` 根据已获响应的写入阶段显示原档案或原评估导航。`demo-v2.real.ts` 模拟资料写入和确认返回 503，核对已保存档案、可继续确认的 8 分草稿与建档请求次数。隔离 Chromium 12 项通过，临时资源已清理。
+
+DEMO-V2-32 对应 AT-DEMO-02 的对象查找子集。编号搜索见 `frontend/app/workspace/participant-list.tsx`，隔离 `demo-v2.real.ts` 覆盖复制格式、无匹配、清除输入和按片段重开已确认方案。
+
+S6-18 对应 AT-POSE-01 的先人工标注子集。姿态实验室开始分析前提供原视频模式，相关组件及 `pose-lab.real.ts` 验证原视频定位、人工 CSV 下载、退出模式后标记保留。
+
+S6-17 对应 AT-POSE-01 的配对摘要子集。`sit-to-stand-comparison.test.tsx` 覆盖未配对数量、方向相反时绝对差汇总、取消与删除更新，以及真实零差值与暂无配对的区分。
+
+S6-16 对应 AT-POSE-01 的人工对照子集。实现见 `sit-to-stand-comparison.tsx`，同目录组件测试覆盖一对一约束、早晚、取消、删除和 CSV。实际浏览器复用两段授权样本验收，见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。
+
+S6-15 对应 AT-POSE-01 的坐站候选演示。算法在 `frontend/app/participants/[id]/pose-lab/sit-to-stand.ts`，沿用离线髋膝 v2 选侧和连续帧判定。`sit-to-stand.test.ts` 覆盖左侧配对、断档及未知/零结果，`pose-lab.real.ts` 覆盖入口和重新分析清除。
+
+DEMO-V2-31 对应 AT-PAT-03 合成读取恢复子集。`frontend/app/patient/report-form.test.tsx` 用服务端属性变化检查失败后恢复空或非空记录、合并修订去重和成功刷新草稿保留。重试路径仍为页面刷新，组件测试验证没有自报写请求。
+
+DEMO-V2-30 对应 AT-PAT-03 合成表单交互子集。患者端更正保留新增草稿，取消更正只恢复内存表单。组件测试覆盖空白及已填写草稿，验证取消无 API 写入、后续正常新增使用原草稿。浏览器场景见 `frontend/e2e/patient.real.ts`。
+
+S6-04 髋膝模式自动选择共同可用帧数更多的一侧。合成回归验证仅左侧可用、平手优先右侧、缺失输出未知及单侧旧 CSV。两段本机样本分别选右与左，输出 5 与 3 个候选。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
+S6-04 第二段获授权样本在人工标注提供前以原参数盲测。骨盆输出 3 个候选，右髋/右膝各 0 帧可用，固定右侧方案返回次数未知。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
+S6-04 新增右髋低位触发、髋膝高位共同确认的离线对照。合成测试验证缺失膝角、确认断档和 CSV 空值。获授权开发样本髋膝模式输出 5 个候选，骨盆基线复现 3 个。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
+S6-04 的离线工程切片见 `ml/sit_to_stand.py` 和 `ml/tests/test_sit_to_stand.py`。合成测试覆盖重复、起始直立、断档、瞬时尖峰与未知信号。本机获授权样本首跑检出 3 个候选，漏第 1、5 次。[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)
+
+S6-04 的 AT-POSE-01 单样本时间对照复用现有 10 Hz 导出。先以 0.1 秒间隔审看视频并记录直立过渡，再在目视划定的窗口抽取右髋和右膝角峰。五个区间、取峰规则及失败模式见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。独立计次和事件计时仍待验证。
+
 > 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](testing/S6-01-REMOTE-RECONCILIATION.md)。
+
+S6-03 对 AT-POSE-01：设计见 [姿态原型](product/POSE_PROTOTYPE.md) 和 [ADR-0023](decisions/0023-browser-local-pose-prototype.md)；实现为 `frontend/app/participants/[id]/pose-lab/`、固定模型/复制脚本、CSP 与功能开关。`pose-analysis.test.ts`、`pose-video-lab.test.tsx` 验证角度/未知/导出与文件门禁；`frontend/e2e/pose-lab.real.ts` 在隔离 PostgreSQL→FastAPI→Next→Chromium 用生成的合成素材录制短 WebM，至少一帧实际返回 33 点、技术结果/JSON 可用且分析无非 GET 请求。前端 lint/typecheck/build/47 tests，完整浏览器 11 passed，资源清理成功。仅工程可行性，不覆盖真实影像授权、持久化、五次坐站/SPPB/太极评分或临床验证。
+
+S6-05 扩展 AT-POSE-01 的验证准备子集：`summarizePose` 以全部采样帧计算 33 点覆盖率、十关节角可用率和连续漏检；结果页只显示比例/计数，不输出 pass/fail。`poseAnnotationTemplateCsv` 生成时间对齐的空白人工事件/重复/阶段/参考角度列，E2E 实际下载并确认不含文件名。前端 49 tests，隔离生产 build/Chromium 11 passed 且清理成功。S6-04 的真实误差与失败模式报告仍未完成。
+
+S6-06 扩展 AT-POSE-01 的人工对照录入子集：`nearestPoseFrame` 将自定义视频时刻映射到最邻近模型采样帧，`poseManualAnnotationsCsv` 对标注排序、保持未知并防止电子表格公式注入；组件支持新增/删除且只存内存。`pose-lab.real.ts` 在实际合成 WebM 推理后新增自定义事件、重复/阶段/参考关节并下载已填写 CSV，仍拒绝非 GET 请求。前端 52 tests，隔离生产 build/Chromium 11 passed 且清理成功；没有验证动作定义、人工一致性或临床评分。
+
+S6-07 修正 AT-POSE-01 对照字段契约：人工输入 `manualReferenceAngleDeg` 与最近采样帧的 `modelReferenceAngleDeg` 分开，`absoluteAngleDifference` 仅在两者已知时计算。CSV 和页面独立呈现人工、模型、绝对差值；组件拒绝无关节的人工角，E2E 实际填写人工角并检查分列导出。前端 53 tests，隔离生产 build/Chromium 11 passed 且清理成功；0–180 是三点夹角数学域，不是临床阈值。
+
+S6-08 扩展 AT-POSE-01 的描述性验证准备：`summarizeManualAngleComparisons` 计算总体/分关节的可比较数量、平均/中位/最大绝对差值，并单列人工/模型缺失；`poseComparisonSummaryJson` 仅导出聚合统计。单元测试覆盖偶数中位数、未知和不含自由文本，组件显示无可比较值的未知；真实 Chromium 下载一条可比较记录的摘要且拒绝非 GET 请求。前端 54 tests；首轮 E2E 选择器歧义 10/11，精确匹配后隔离 11/11 且清理成功。没有真实样本准确率、阈值或临床解释。
+
+S6-04 首个样本检查点继续对应 AT-POSE-01 的实际视频可行性/失败模式子集：用户声明获授权的侧面 `SYN-5STS-001` 在共享本机 PostgreSQL→FastAPI→Next→Edge 中以 10 Hz 分析，166 帧中 165 帧检出人体，分析期无非 GET 请求；左侧远侧肢体角度全缺失，右髋/膝/踝角可用率为 99.4%/95.8%/80.7%。证据见 [本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)；原视频不入仓库/数据库，派生结果只在 Git 忽略目录。该检查点不覆盖人工真值、时间/角度误差、自动计次、太极或临床验证。
+
+S6-09 扩展 AT-POSE-01 的本地可视化子集：`jointAngleSegments` 在角度未知时结束当前连续段，页面按关节显示角度—时间曲线并默认选择覆盖率最高者。单元测试验证缺失样本拆段；前端 lint/typecheck/55 tests 和生产 build 通过。`SYN-5STS-001` 本机 Edge 复验的右膝曲线为 4 个连续段，分析期间无非 GET 请求。该图不插值、不自动计次、不定义动作阶段或临床质量。
+
+S6-10 扩展 AT-POSE-01 的本地人工定位子集：视频 `timeupdate/seeked` 更新曲线游标和时间滑块，滑块反向定位视频并刷新最近采样骨架；`timelinePositionRatio` 将游标限制在视频范围。单元测试覆盖正常、负值、越界和零时长；前端 lint/typecheck/56 tests、生产 build 通过。`SYN-5STS-001` 本机 Edge 验证 1.2 秒正向同步及 4.0 秒反向定位，期间无非 GET 请求。没有自动阶段、次数或临床判断。
+
+S6-11 扩展 AT-POSE-01 的人工标注核对子集：内存标注以曲线时间标记和可访问按钮显示；按钮复用本地定位，删除标注同步移除全部呈现。前端 lint/typecheck/56 tests、生产 build 通过；`SYN-5STS-001` 本机 Edge 验证 4.0 秒标注新增、从 0 秒回跳及删除，期间无非 GET 请求。人工事件名称不等于标准动作阶段或验证真值。
+
+S6-12 扩展 AT-POSE-01 的本地标注恢复子集：`parsePoseManualAnnotationsCsv` 严格解析本系统表头，验证时间/重复/关节/人工角并恢复被电子表格保护的文本；页面限制 1 MB、禁止覆盖非空标注，并使用当前 `frames` 重算模型角。单元测试覆盖往返及非法输入，前端 lint/typecheck/58 tests、生产 build 通过。`SYN-5STS-001` 本机 Edge 导出→删除→导入恢复 1 条标注/标记，并把伪造的 0°/100°派生值重算为 170°/70°，期间无非 GET 请求。
+
+S6-13 扩展 AT-POSE-01 的本地导入确认子集：解析后的标注先保存在待确认内存状态，预览仅显示数量、时间范围、人工角数量和关节；本地文件名不显示，确认前和取消后不改变正式标注。前端 lint/typecheck/58 tests、生产 build 通过；`SYN-5STS-001` 本机 Edge 验证预览/取消保持 0 个标记、确认后恢复 1 个，陈旧派生值继续重算且无非 GET 请求。
+
+S6-14 扩展 AT-POSE-01 的人工修订子集：编辑恢复人工字段并定位原时刻，保存按原 ID 替换、保持时刻并依当前帧/新关节重算模型角；取消和删除编辑中记录均有明确状态处理。组件测试覆盖取消，前端 lint/typecheck/58 tests、生产 build 通过。`SYN-5STS-001` 本机 Edge 验证 4.0 秒记录编辑后仍为 1 行/1 标记、右髋模型角重算 164.5°，取消保持原值且无非 GET 请求。
+
+DEMO-V2-28 对 AT-PAT-01 合成恢复操作子集：`frontend/app/patient/retry-button.tsx` 只调用 `router.refresh()`，`retry-button.test.tsx` 验证点击刷新，`frontend/app/patient/page.tsx` 仅在绑定不可用或服务不可用状态显示相应按钮，`frontend/e2e/patient.real.ts` 在绑定撤销后点击并核对拒绝状态保持。隔离前端 lint/typecheck/build/41 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、绑定、权限或真实患者验收变化。
+
+DEMO-V2-29 对 AT-PAT-03 合成读取故障子集：`frontend/app/patient/report-form.tsx` 在自报读取失败时隐藏表单/历史并复用只读重新检查组件；`report-form.test.tsx` 验证提示、隐藏表单和刷新，`frontend/e2e/patient.real.ts` 验证正常患者流程不出现失败按钮。隔离前端 lint/typecheck/build/42 tests、真实 Chromium 10 passed，临时容器/网络/镜像清理成功。无 API、数据库、自报写入、权限、临床判断或异常处置变化。
 
 | Requirement | Design | Tests | Sprint | State |
 |---|---|---|---|---|
@@ -17,6 +81,7 @@
 | FR-010 audit/privacy | security, `backend/app/models.py`, `backend/app/api.py`, `backend/app/intake_api.py`, `backend/app/assessment_api.py` | auth/login/logout/read and intake/assessment allow/deny audit checks in backend tests; export audit later | all | auth, synthetic intake and manual-assessment subsets implemented; remaining audit not implemented |
 | FR-011 cycle freeze | research/dataset | AT-09 | 5 | not implemented |
 | P1 synthetic pose shell | [scope](product/SCOPE.md), [security](security/SECURITY.md), [ADR-0008](decisions/0008-synthetic-pose-preview-no-images.md), `frontend/app/participants/[id]/pose-demo/page.tsx`, `frontend/app/participants/[id]/pose-demo/synthetic-pose-preview.tsx`; no image backend route or migration | `frontend/app/participants/[id]/pose-demo/synthetic-pose-preview.test.tsx` (12 frontend total), `backend/tests/test_pose_demo_boundary.py` (23 backend total), temporary PostgreSQL/Next HTTP scope and no-upload smoke; `frontend/e2e/synthetic-pose.pw.ts` Playwright/Chromium 3 tests with local synthetic API fixture | 6 | S6-01 synthetic shell and S6-02 browser UI subset locally verified 2026-10-31; AT-12 real capture/consent and manual UAT pending Q-01/10; browser test does not cover PostgreSQL |
+| P1 browser-local pose prototype | [spec](product/POSE_PROTOTYPE.md), [security](security/SECURITY.md), [ADR-0023](decisions/0023-browser-local-pose-prototype.md), `frontend/app/participants/[id]/pose-lab/`, pinned model/WASM | pure kinematics + component tests; `pose-lab.real.ts` generated synthetic WebM, actual 33-point inference, coverage, synchronized angle timeline/manual markers, confirmed annotation CSV recovery/editing, manual/model comparison and aggregate JSON export with no write; frontend 58 tests, isolated full browser 11 passed and cleanup; authorized local 5STS timeline/sync/marker/import/edit checks | 6 | S6-03/05/06/07/08/09/10/11/12/13/14 AT-POSE-01 engineering prototype locally verified through 2026-11-17; real video governance, persistence, benchmark and clinical scoring pending |
 | P1 ML registry | ML lifecycle | AT-10, AT-11 | 7 | not implemented |
 | ENG-04A synthetic API and handoff gate | `backend/tests/test_postgres_workflow.py`, `backend/tests/test_api_contract.py`, `.github/workflows/ci.yaml`, `scripts/run_eng04_integration.py`, `scripts/check_handoff.py`; [test strategy](testing/TEST_STRATEGY.md) | temporary PostgreSQL 17 upgrade/check/downgrade/upgrade; real DB coded intake, consent, screening, baseline/revisit, missingness/history, cross-study/object and role denies; OpenAPI snapshot equality; ENG next-ID handoff check | engineering | locally verified 2026-10-31; remote CI pending; existing APIs only |
 | ENG-01A synthetic reassessment fixture | `backend/app/seed_reassessment_demo.py`, `backend/tests/test_seed_reassessment_demo.py`, [README](../README.md), [test strategy](testing/TEST_STRATEGY.md) | repeatable SQLite seed/API state and changed-fixture refusal; disposable PostgreSQL migration plus seed twice/API read | engineering | locally verified 2026-10-31; only FR-002/003 synthetic subset; no grade, training, cycle or export |
@@ -28,16 +93,88 @@
 | REAL-01D0 / FR-006/007 / AT-06/07/08 partial | [ADR-0012](decisions/0012-training-observation-before-cycle.md), `backend/app/training_api.py`, `backend/app/training_schemas.py`, `backend/alembic/versions/0005_training_observations.py`, `frontend/app/participants/[id]/training-forms.tsx`, `frontend/app/participants/[id]/training/[sessionId]/page.tsx`, [API](api/API_CONTRACT.md), [dictionary](data/DATA_DICTIONARY.md) | `backend/tests/test_training_observations.py`, `test_training_postgres.py`; temporary PostgreSQL migration/check/API 4 passed; backend 32 passed/3 opt-in skipped; frontend 21 tests/lint/typecheck/build; `frontend/e2e/training.real.ts` in 4-pass real browser run | engineering | observed sessions/feedback revisions and independent unclassified events locally verified; no cycle/rule link, event review, prescription or real data |
 | REAL-01F0 / FR-008/009 / AT-01/05 partial | [ADR-0013](decisions/0013-live-coded-demo-export.md), `backend/app/research_export.py`, `backend/app/research_export_api.py`, `frontend/app/participants/[id]/page.tsx`, [API](api/API_CONTRACT.md), [dictionary](data/DATA_DICTIONARY.md) | `backend/tests/test_export_postgres.py` in disposable PostgreSQL 5-pass integration, backend 32 passed/4 opt-in skipped; `frontend/e2e/training.real.ts` Chromium download and cross-scope reject in 4-pass real browser run; content hash/rows/privacy assertions | engineering | locally verified 2026-10-31; single-participant live Demo CSV only, no frozen cycle or real-data approval |
 | REAL-01A–F business loop | [task breakdown](TASKS.md), [PRD](product/PRD.md), [acceptance](product/ACCEPTANCE.md) | Existing S1/S2/ENG rows only cover synthetic subsets; each REAL task needs own PostgreSQL/API/browser and authorization evidence | engineering | incomplete; S3-01 remains blocked by Q-03/Q-09 |
+| REAL-01A0 synthetic staff administration | [ADR-0019](decisions/0019-opt-in-synthetic-staff-admin.md), [API](api/API_CONTRACT.md), [security](security/SECURITY.md), `backend/app/staff_admin_api.py`, `backend/app/seed_demo.py`, `backend/alembic/versions/0012_synthetic_staff_admin.py`, `frontend/app/admin/page.tsx` | `backend/tests/test_auth_scope.py::test_synthetic_staff_admin_grants_and_revocation`, `backend/tests/test_seed_demo.py::test_seed_opt_in_admin_and_preserves_revoked_staff_scope`, `frontend/e2e/staff-admin.real.ts`; backend 49 passed/4 skipped, isolated browser evidence in STATUS | engineering | synthetic-only engineering subset; REAL-01A real staff identity and institutional governance pending |
+| REAL-01B0 synthetic display profile revisions | [ADR-0020](decisions/0020-synthetic-profile-revisions.md), [API](api/API_CONTRACT.md), [data model](data/DATA_MODEL.md), `backend/app/intake_api.py`, `backend/app/models.py`, `backend/alembic/versions/0013_demo_profile_revisions.py`, `frontend/app/participants/[id]/profile-section.tsx` | `backend/tests/test_synthetic_intake.py::test_synthetic_profile_correction_history_and_scope`, `::test_legacy_profile_has_explicit_unknown_attribution`, `frontend/e2e/profile.real.ts`; backend 51 passed/4 skipped, isolated browser evidence in STATUS | engineering | synthetic-only correction subset; REAL-01B real profile and signed consent pending |
 
 When a feature is implemented, add links to actual source files, migrations, test names and CI run. **Do not mark complete solely because documents exist.**
 
+ENG-04H 为 CI 工程验收，不新增临床需求：`scripts/test_run_eng04b_browser.py` 本机 5 passed；[受控红色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42936844446) 的上传步骤成功，下载附件 `13818941730` 只含合成 `failure.txt`；[探针移除后的绿色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42937146970) 五作业通过，真实 Chromium 10 passed 且临时资源清理成功。最终工作流配置无永久变化。该证据覆盖失败附件上传路径，不等于真实患者数据可进入 CI。
+
+ENG-04I 为最新合成双端分支的远端工程验收：[push 运行 42953445347](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42953445347) 与 `ce964bc` 一致，五作业成功；前端 33 tests、后端 58 passed、隔离 Chromium 10 passed、清理契约 5 tests，日志显示临时容器/网络/镜像消失，成功运行无失败附件。仅验证该合成分支提交，不扩展 AT-PAT-02/03 的临床或真实患者验收。
+
+ENG-04J 为同一合成工程门禁的运行时维护：[CI 工作流](../.github/workflows/ci.yaml) 的五种 Action 改用官方 Node.js 24 版本。[远端运行 42954953230](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42954953230) 对 `2ba611b` 五作业成功，后端 58、前端 33、ML 4、隔离浏览器 10 与清理契约 5 项通过，日志无 Node.js 20 Action 弃用提示且临时资源消失。成功运行跳过失败附件上传；`upload-artifact@v6` 红色路径待 ENG-04K 复验。此项不扩展临床/真实患者验收。
+
 ## DEMO-V2 独立合成验收追踪（2026-10-31）
+
+DEMO-V2-22 对 AT-PAT-03 合成本人多记录展示子集：`frontend/app/patient/report-form.tsx` 将各报告当前修订按保存时间倒序稳定排列；`frontend/app/patient/report-form.test.tsx` 核对乱序多报告、提交更正及重新读取后的顺序和旧版归属；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中创建发生更早但保存更晚的第二报告，核对患者保存/刷新和工作人员端排序。隔离前端 lint/typecheck/build/33 tests、真实 Chromium 10 passed 且临时资源清理成功。无 API/数据库/临床或真实患者验收变化。
+
+DEMO-V2-21 对 AT-PAT-03 合成工作人员追溯子集：`frontend/app/participants/[id]/staff-patient-reports.tsx` 以报告 ID 分组、最高修订为当前版并保留倒序旧版；`staff-patient-reports.test.tsx` 验证乱序多组、未知/零、不适与空/不可用，`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中更正后刷新、展开医护端旧版。前端 lint/typecheck/build/32 tests、真实 Chromium 10 passed 且临时资源清理成功。无 API/数据库/临床或真实患者验收变化。
+
+DEMO-V2-20 对 AT-PAT-03 合成工作人员查看子集：`frontend/app/participants/[id]/page.tsx` 对授权 API 返回的每条自报修订分别展示北京时间发生时间和保存时间；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中验证患者写入、更正和医护端两条修订的标签与时间。隔离前端 lint/typecheck/build/30 tests、真实 Chromium 10 passed，本次临时资源清理成功。权限/API/数据库与真实患者验收未变。
+
+DEMO-V2-19 对 AT-PAT-03 合成时间子集：`frontend/app/patient/report-form.tsx` 将北京时间明确用于输入、更正预填和历史展示，未改时间的更正保留原瞬时值；`frontend/app/patient/report-form.test.tsx` 核对预填、原始秒数与新记录 UTC 转换，`frontend/e2e/patient.real.ts` 核对实际浏览器更正预填。隔离前端 lint/typecheck/build/30 tests、一次性 PostgreSQL→Chromium 10 passed 且临时资源清理成功。无数据库/API/临床或真实患者验收变化。
+
+DEMO-V2-18 对 AT-PAT-03 的合成可追溯子集：`frontend/app/patient/report-form.tsx` 复用 API 中每条自报修订的完整事实；`frontend/app/patient/report-form.test.tsx` 核对乱序版本、零与未知、发生/保存时间及原因；`frontend/e2e/patient.real.ts` 在一次性 PostgreSQL 中更正、刷新并展开旧版本。隔离前端 lint/typecheck/build/28 tests、真实 Chromium 10 passed，本次临时资源清理成功。无新后端写入契约、临床判断或真实患者验收。
+
+DEMO-V2-17 对 AT-PAT-02 合成发布易用性子集：`backend/app/patient_api.py` 只读条件投影、`backend/tests/test_auth_scope.py::test_synthetic_publication_readiness_is_scoped_and_current`、`frontend/app/participants/[id]/publication-controls.tsx` 及组件测试、`frontend/e2e/patient.real.ts`。本机后端 54 passed/4 skipped；隔离前端 27 tests/lint/typecheck/build；一次性 PostgreSQL→Chromium 10 passed 且临时资源清理成功。只验证操作提示与原发布门禁，不能代表临床计划或视频审核验收。
+
+DEMO-V2-16A 对 AT-PAT-02 只有[工程契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md)与缺口核对：实际 `backend/app/patient_api.py` 固定 `awaiting_review`，`frontend/app/patient/page.tsx` 仍为待添加，仓库无视频文件。设计要求素材权利/哈希、实际观看、追加核对、发布快照及逐次本人授权；没有 API、播放器或临床审核验收证据。DEMO-V2-16 实现继续受素材依赖阻断。
+
+患者端方向见 [ADR-0015](decisions/0015-separate-patient-portal.md)、[ADR-0016](decisions/0016-synthetic-patient-publication-card.md)、[ADR-0017](decisions/0017-synthetic-patient-self-report.md)、[PRD](product/PRD.md)、[任务台账](TASKS.md) 与 [AT-PAT-01..03](product/ACCEPTANCE.md)。截至 2026-11-05，合成患者入口、不可执行卡片的发布/撤回和本人训练/不适事实录入、工作人员查看子集已实现；真实医护确认计划、审核视频与异常处置**未实现**，不得标为完整验收通过。
 
 | 验收 | 实现 | 证据与边界 |
 |---|---|---|
+| AT-PAT-01 合成子集 | `backend/alembic/versions/0008_demo_patient_binding.py`、`backend/app/patient_api.py`、`backend/app/seed_demo.py`、`frontend/app/patient/page.tsx`、登录/工作台守卫 | `backend/tests/test_auth_scope.py`、`test_seed_demo.py`；本次全量后端 45 passed/4 skipped、前端 24 passed、临时 PostgreSQL 5 passed、真实 Chromium 8 passed（含合成患者入口和绑定撤销）；仅 SYN 合成身份，不接真实患者 |
+| AT-PAT-02 合成流程子集 | `backend/alembic/versions/0009_demo_patient_publication.py`、`backend/app/patient_publication.py`、`backend/app/patient_api.py`、`frontend/app/participants/[id]/publication-controls.tsx`、`frontend/app/patient/page.tsx` | API 授权/CSRF/幂等/版本 409/撤回/模拟同意测试、临时 PostgreSQL 升降升与 Alembic check、`frontend/e2e/patient.real.ts` 发布/患者可见/撤回/无视频 8-case 浏览器运行；只有固定不可执行测试卡片，无真实计划内容或审核视频，AT-PAT-02 未完整通过 |
+| AT-PAT-03 合成事实录入子集 | `backend/alembic/versions/0010_demo_patient_report.py`、`backend/app/patient_reports_api.py`、`frontend/app/patient/report-form.tsx`、`frontend/app/participants/[id]/page.tsx` | `backend/tests/test_auth_scope.py` 覆盖本人授权、模拟同意、CSRF、幂等、版本、更正、缺失与撤销；后端 46 passed/4 skipped，前端隔离 24 tests、生产构建与 Chromium 8 cases（患者填写/更正及医护查看）。无自动风险判定或机构异常处置，AT-PAT-03 未完整通过 |
+| REAL-01E0 合成工程子集 | `backend/alembic/versions/0011_synthetic_cycles.py`、`backend/app/cycles_api.py`、`backend/tests/test_auth_scope.py`、`frontend/app/participants/[id]/cycle-forms.tsx`、`frontend/e2e/real-business.real.ts`、[ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md) | Ruff、pytest 47 passed/4 skipped；跨对象关联和旧版本拒绝；临时 PostgreSQL 迁移/旧 API 5 passed；前端 24 tests/build，真实 Chromium 8 passed，含手工评估与训练观察关联、修订及刷新持久。无正式方案日程、冻结快照或真实数据，AT-01/09 未完整通过 |
 | AT-DEMO-01/02 | [流程](product/DEMO_USER_FLOW.md)、`backend/app/demo_rule.py`、`backend/app/assessment_api.py`、`frontend/app/workspace/create-participant-form.tsx`、`frontend/app/participants/[id]/demo/` | `backend/tests/test_demo_rule.py` 与 `test_manual_assessments.py`；`frontend/e2e/demo-v2.real.ts` 8→II、5→III、重开；只供合成展示 |
 | AT-DEMO-03 | `backend/app/seed_demo_actions.py`、`backend/app/demo_api.py`、方案页 | 12 条本地幂等种子；Chromium 搜索/等级筛选/详情弹窗；无医学照片 |
 | AT-DEMO-04/05 | `backend/alembic/versions/0006_demo_v2.py`、`0007_demo_completed_actions.py`、`demo_runs`、原 `training_sessions`/`training_feedback_revisions`、训练页 | PostgreSQL 浏览器开始/暂停/继续/结束/实际完成动作/RPE/完成/刷新与中止未知值 7 passed；API 无反馈拒绝完成、完成动作校验与重复提交；后端 42 passed/4 skipped |
 | AT-DEMO-06 | 原认证/作用域/审计、迁移、`backend/openapi.json` | 临时 PostgreSQL 升/降/升与旧 API 5 项、原浏览器越权与旧流程；真实数据/临床审批不在本验收 |
+| AT-DEMO-07 | `frontend/app/style.css`、`frontend/app/participants/[id]/demo/demo-video.tsx`、方案动作详情与训练页 | `demo-video.test.tsx` 验证无素材占位与本地素材播放控件；隔离 Docker 前端 lint/typecheck/23 tests/build；浏览器登录页视觉核对。尚无实际视频素材，未验收真实视频播放 |
+| DEMO-V2-09 本机与临时外网登录来源 | `backend/app/api.py`、`infra/compose.yaml` | 后端 pytest 43 passed/4 opt-in skipped（含 `test_auth_scope.py` 11 passed）；Ruff 与 Compose config；临时外网登录页 200，外网/本机无效凭据 401，ready 200。未用有效密码做外网验收；非 local/test 不接受额外本机来源 |
 
 `FR-004/005` 与 `AT-02/04` 的正式临床规则/审批状态仍由 S3-01/Q-03/Q-09 约束；本表不宣称通过。
+
+REAL-01C0：[人工多指标契约](product/MANUAL_METRICS_CONTRACT.md) 对应 FR-003/FR-010、AT-01/AT-05 合成子集；2026-11-07 仅设计完成，现有人工评估基线 5 passed。多指标实现/数据库/浏览器验收由 REAL-01C1 承担，未通过前不标功能完成。
+
+REAL-01C1 检查点：`backend/app/manual_observations.py`、迁移 `0014`、对象页 `manual-observations.tsx`；API 基础授权/更正和真实浏览器保存/刷新已通过，完整 C0 验收仍未完成，见 STATUS。
+
+REAL-01C1 完成复验（FR-003/FR-010、AT-01/AT-05 合成子集）：[C0 契约](product/MANUAL_METRICS_CONTRACT.md) 六项由 `backend/tests/test_synthetic_intake.py` 四指标/状态/撤权测试、既有 PostgreSQL 迁移与旧评估回归、`frontend/e2e/profile.real.ts` 的独立合成同意及录入/更正/刷新覆盖。后端 52 passed/4 skipped、临时 PostgreSQL 5 passed、最终隔离 Chromium 10 passed；前端门禁见 STATUS。旧 CSV 范围仍不含原始观察，由 REAL-01F1 处理；真实数据/临床验收未声明通过。
+
+REAL-01F1（FR-009/FR-010、AT-01/AT-05 合成子集）：`backend/app/research_export.py` 增加四指标原始观察的所有修订及来源/侧别结构化列；[字典](data/DATA_DICTIONARY.md)、[API](api/API_CONTRACT.md)、[ADR-0013](decisions/0013-live-coded-demo-export.md) 记录边界。`backend/tests/test_export_postgres.py` 在临时 PostgreSQL 核对 5 个观察版本、零/缺失/无效、原始小数、脱敏、权限、行数/哈希；`frontend/e2e/profile.real.ts` 在实际 Chromium 核对更正后的 CSV。后端 52 passed/4 skipped、临时 PostgreSQL 5 passed、浏览器 10 passed；前端门禁见 STATUS。真实/批量/冻结导出不在此验收范围。
+
+REAL-01F2（FR-009/FR-010、AT-01/AT-05 合成子集）：`backend/app/research_export.py` 增加周期容器及访视全部修订、状态、同对象关联 ID；[字典](data/DATA_DICTIONARY.md)、[API](api/API_CONTRACT.md)、[ADR-0013](decisions/0013-live-coded-demo-export.md) 明确没有正式日程或冻结快照。`backend/tests/test_export_postgres.py` 在临时 PostgreSQL 核对空周期、三次访视修订、未知/到访/未到/拒测、关联与空值、脱敏、行数/哈希及既有权限；`frontend/e2e/real-business.real.ts` 实际点击下载。后端 52 passed/4 skipped、临时 PostgreSQL 5 passed、浏览器 10 passed、前端 build/lint/typecheck/24 tests。真实研究导出未获批准。
+
+REAL-01F3（FR-009/FR-010、AT-01/AT-05/AT-PAT-03 合成子集）：`backend/app/research_export.py` 增加合成患者自报全部结构化修订；[字典](data/DATA_DICTIONARY.md)、[API](api/API_CONTRACT.md)、[ADR-0013](decisions/0013-live-coded-demo-export.md) 记载来源及脱敏边界。`backend/tests/test_export_postgres.py` 用绑定的合成患者账号写入三条版本、验证患者导出 403、授权工作人员读到零/未知/明确无不适、记录者/时间、行数/哈希且不含自由文字；`frontend/e2e/patient.real.ts` 实际医护下载。后端 52 passed/4 skipped、临时 PostgreSQL 5 passed、浏览器 10 passed；前端门禁见 STATUS。真实患者使用与异常处置未获批准。
+
+REAL-01F4（FR-002/FR-009、AT-01/AT-03/AT-05 合成子集）：`backend/app/research_export.py` 增加模拟同意与筛查的逐条结构化历史；[字典](data/DATA_DICTIONARY.md)、[API](api/API_CONTRACT.md)、[ADR-0013](decisions/0013-live-coded-demo-export.md) 限定合成来源和无真实签署/安全结论。`backend/tests/test_export_postgres.py` 在临时 PostgreSQL 核对 granted→withdrawn、同条目 unknown→yes、另一条目 no、撤回后拒绝写入、人员/时间、脱敏、28 行/哈希及既有对象/角色拒绝与审计；`frontend/e2e/real-business.real.ts` 实际点击下载。后端 Ruff/52 passed、4 skipped；临时 PostgreSQL 5 passed；Chromium 10 passed；前端 build/lint/typecheck/24 tests。真实同意和研究导出未获批准。
+
+ENG-02B（FR-009、AT-01/AT-05 合成子集）：`backend/app/research_trends.py`、`research_api.py` 和 `training_schemas.py` 实现按对象授权、审计的已发生训练观察序列；`frontend/app/participants/[id]/training-timeline.tsx` 只呈现状态、0/未知分钟及最新反馈/RPE。[ADR-0021](decisions/0021-observed-training-timeline-no-rate.md) 说明无计划分母时不计算完成率；[API](api/API_CONTRACT.md) 与 [字典](data/DATA_DICTIONARY.md) 明确字段。`backend/tests/test_research_trends.py` 检查更正、零/未知、对象/角色拒绝及审计；`frontend/e2e/training.real.ts` 在隔离 PostgreSQL→浏览器核对刷新和跨研究拒绝。后端 Ruff/53 passed、4 skipped；临时 PostgreSQL 5 passed；Chromium 10 passed；前端 build/lint/typecheck/24 tests。正式周期汇总和临床结论未验收。
+
+ENG-02C（FR-008/FR-009、AT-01/AT-05 合成子集）：先核对 [ADR-0018](decisions/0018-manual-synthetic-cycle-grouping.md) 与现有 `cycle-forms.tsx`，确认最新访视、评估当前值、训练次数和历史已实现；仅用 `training-timeline` 的同对象当前投影补齐逐条关联训练详情。`frontend/app/participants/[id]/cycle-forms.test.tsx` 验证最新版本、0 分钟/RPE 与不可用详情；`frontend/e2e/real-business.real.ts` 在实际 PostgreSQL→Chromium 验证关联未知时长、反馈未填、访视更正和刷新，既有 API 测试保障同对象关联与授权。后端基线 Ruff/53 passed、4 skipped；前端 build/lint/typecheck/25 tests；浏览器 10 passed。没有正式日程、计划完成率、冻结时点快照或疗效验收。
+
+ENG-04C（工程门禁、AT-01/AT-05/AT-DEMO 合成回归）：[CI 工作流](../.github/workflows/ci.yaml) 调用既有 `scripts/run_eng04b_browser.py`，覆盖临时 PostgreSQL/迁移、FastAPI、Next、真实 Chromium、登录/评估/训练/患者/授权与下载路径；失败时上传限定 `exports/eng04b-*/` 的合成附件。2026-11-07 本地脚本 10 passed，临时容器/网络清理，YAML 解析通过；[远端 push Actions #19](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42356649612) 的 5 个作业全部通过，浏览器日志 10 passed，失败附件列表为空；远端未独立核对清理后残留。
+
+ENG-04D（工程门禁）：[隔离浏览器脚本](../scripts/run_eng04b_browser.py) 在 `finally` 后按当前唯一名称查询容器、网络和镜像；残留或查询失败时报错，原浏览器错误保留。[清理契约测试](../scripts/test_run_eng04b_browser.py) 覆盖正常、残留、Docker 不可用和双重失败；CI 在完整浏览器套件前执行。2026-11-07 本地 4 tests/Ruff、Chromium 10 passed、清理后核对成功；[远端 Actions #21](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42357806932) 5 作业通过，清理 4 tests、浏览器 10 passed，日志确认本次资源消失且无失败附件。无共享资源清理或真实数据处理。
+
+ENG-04E（恢复与测试范围）：[恢复演练](testing/RECOVERY_TEST.md#2026-11-07-eng-04e-独立克隆恢复演练) 在 `1bfd730` 的独立本地克隆内核对 Git、台账、阻断、10 项真实浏览器用例及迁移/清理脚本，运行 `check_handoff.py` → 61 Task ID 和本地链接通过；临时克隆已清理。[测试策略](testing/TEST_STRATEGY.md) 区分现有合成子集与未来获批准的完整临床 E2E。AT-01/05/AT-DEMO 仅有分散的合成回归，同对象纵向浏览器用例留给 ENG-04F；AT-04/09 等正式审核/冻结未验收。
+
+ENG-04F（AT-01/AT-05 合成纵向子集）：[实际浏览器用例](../frontend/e2e/real-business.real.ts) 对同一编码对象依次验证模拟同意、人工基线/缺失复评及趋势、页面训练观察与反馈 RPE、手工周期访视关联/更正、刷新持久和编号化实时 CSV。首次本地 9 passed/1 failed 是测试断言要求未展示的动作名称；修正为真实表格列后隔离 Chromium 10 passed、清理核对成功。[远端 Actions #24](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42359796120) 5 作业通过、Chromium 10 passed、清理成功、无失败附件。无正式临床审核、规定训练次数、冻结快照或真实数据。
+
+ENG-04G（工程失败诊断）：[隔离浏览器脚本](../scripts/run_eng04b_browser.py) 在镜像构建前创建本次合成附件目录，失败时只写阶段/异常类型；[针对性测试](../scripts/test_run_eng04b_browser.py) 验证早期失败保留主错误、清理失败附加说明且摘要不含命令文字。2026-11-07 本地 5 tests/Ruff，受控 buildx 权限失败确实生成 `failure.txt`，完整隔离 Chromium 10 passed 并核对清理；[远端 Actions #26](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/42374281253) 5 作业通过、单测 5/浏览器 10 passed。红色运行的 GitHub 上传步骤尚未直接实测。无临床或真实数据。
+
+DEMO-V2-15（AT-PAT-02 合成选择子集）：[ADR-0022](decisions/0022-selectable-synthetic-patient-cards.md)、[API](api/API_CONTRACT.md)、[数据模型](data/DATA_MODEL.md)、`backend/app/patient_api.py` 与 `0015` 增量迁移；`backend/tests/test_auth_scope.py::test_synthetic_publication_version_withdrawal_and_consent` 验证选项范围、无确认/未知代码/额外视频字段拒绝、追加快照、本人投影和撤回；`frontend/app/participants/[id]/publication-controls.test.tsx` 与 `frontend/e2e/patient.real.ts` 验证选择、显式演示确认、患者标题及撤回。2026-11-10 后端 53 passed/4 skipped、临时 PostgreSQL 5 passed、前端 Docker build/lint/typecheck/25 tests、隔离 Chromium 10 passed 且清理成功。视频审核、真实计划及正式 AT-PAT-02 仍未通过。
+
+ENG-04K（合成失败附件工程验收）：[红色运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029229695) 对 `b392c21` 执行 `upload-artifact@v6` 成功，附件 13860666093 下载后仅含两行合成摘要，哈希一致；`713ef45` 移除探针后[正常运行](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43029483196) 五作业通过，浏览器 10/清理契约 5、临时资源消失且附件为空。最终工作流无净变更，不扩展临床验收。
+
+DEMO-V2-23：[双端演示操作说明](product/PATIENT_DEMO_WALKTHROUGH.md) 对照 `frontend/e2e/patient.real.ts` 及实际医护/患者页面，记录 AT-PAT-02/03 已实现的合成发布、查看、自报、更正与撤回步骤。仅文档走查，不新增完整临床或真实患者验收。
+
+DEMO-V2-24（AT-PAT-01 合成易用性子集）：`frontend/app/login/page.tsx` 提供工作人员/患者演示账号选择，只预填固定邮箱并清除旧密码；`page.test.tsx` 验证切换与密码焦点，`frontend/e2e/patient.real.ts` 实际点击两种按钮。[远端 Actions 43032174606](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43032174606) 五作业成功，前端 34 tests、隔离浏览器 10 passed 且资源清理；不改变认证或真实患者范围。
+
+DEMO-V2-25（AT-PAT-01 合成易用性子集）：登录页密码可显示/隐藏，切换账号清空并恢复隐藏；组件测试验证状态和输入。2026-11-13 隔离 Docker 前端 lint/typecheck/34 tests/build、真实 Chromium 10 passed，临时资源清理。本机已部署；远端三次均在零步骤失败，所有者报告处理后的 [43378326928](https://github.com/PLANCK234/taiji-rehab-ai/actions/runs/43378326928) 仍由 check-run annotation 确认为 GitHub 账户账单锁定，未作为代码失败或通过证据。
+
+DEMO-V2-26（AT-PAT-01 合成身份可见性子集）：`frontend/app/workspace/role-label.ts` 集中映射六种演示角色，工作台、患者入口和管理员页面显示当前邮箱及中文角色；`staff-console.tsx` 仅替换 option 文本，原角色 value/API 载荷不变。映射单测覆盖六角色与未知回退；隔离前端 lint/typecheck/36 tests/build 通过。首轮 Chromium 9 passed/1 测试选择器失败，精确标签修正后 10 passed，资源清理成功；不改变认证、权限或真实患者范围。
+
+DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/home.ts` 将 `/patient/me` 映射为正常、绑定不可用、会话失效和服务不可用四类；`home.test.ts` 覆盖 200/403/401/503/网络异常，患者真实浏览器流程核对撤销后新提示。2026-11-13 隔离前端 lint/typecheck/40 tests/build、PostgreSQL→Chromium 10 passed，临时资源清理；API 权限和本人隔离未改变。
