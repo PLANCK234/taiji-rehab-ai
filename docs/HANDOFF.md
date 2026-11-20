@@ -12,6 +12,6 @@
 | S6-04 检查点 | [本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)保留两组直立时间及按初查循环窗口抽取的模型角峰。第 1、4 次标注存在差异。独立计次/事件计时、可比参考角及太极样本待补。 |
 | 下一 Task ID | `S6-04`。按团队确认的口径使用含可核实起点的获授权独立样本，先做人工计时，再比程序候选。太极关键动作清单及评分口径由用户向团队确认。 |
 | 下一步文件 | [姿态原型](product/POSE_PROTOTYPE.md)、[本机坐站验证](testing/S6-04-5STS-LOCAL-VALIDATION.md)、[待决事项](OPEN_QUESTIONS.md)；先检查嵌套 AGENTS 和实际 Git 状态。 |
-| 未提交/推送 | ENG-05 本地提交待功能分支推送/PR；不推送或合并 main，不删除原有卷。 |
+| 未提交/推送 | ENG-05 已推送个人功能分支并创建 [PR #7](https://github.com/PLANCK234/taiji-rehab-ai/pull/7)，待团队审核；未合并 main，未删除原卷。 |
 
 交接恢复：本文件是最新检查点，历史记录见 [SESSION_LOG](SESSION_LOG.md)。新任务完成后更新本表、[STATUS](STATUS.md)、[TASKS](TASKS.md)、[TRACEABILITY](TRACEABILITY.md)，运行实测门禁并保留可恢复 Git 检查点。
