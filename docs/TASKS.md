@@ -148,3 +148,9 @@
 | REAL-01F4 | 工程 | 合成模拟同意与筛查记录编号化导出 | P1 | REAL-01F3、既有 S1-02 | Codex 本地 | DONE | `backend/`, `frontend/e2e/real-business.real.ts`, tests/docs | 单对象 CSV 增量纳入模拟同意决定及筛查三态历史、来源/时间；不导出自由文本或真实签署信息；权限、审计、行数/哈希与合成 PostgreSQL/浏览器验收 | 2026-11-07：Ruff、后端 52 passed/4 skipped；临时 PostgreSQL 5 passed；实际 Chromium 10 passed；前端 build/lint/typecheck/24 tests。仅合成记录，不推断安全、资格或真实同意；真实导出待 Q-07/09 批准 |
 | ENG-02B | 工程 | 合成训练观察只读序列 | P1 | ENG-02A、REAL-01D0 | Codex 本地 | DONE | `backend/app/research_*`, `backend/app/training_schemas.py`, `frontend/app/participants/[id]/`, tests/docs | 单对象会话时间、状态、实际分钟及最新反馈/RPE；缺失不作零；角色/研究/对象权限与审计、刷新持久、合成 PostgreSQL/浏览器验收 | 2026-11-07：后端 Ruff/53 passed、4 skipped；临时 PostgreSQL 5 passed；实际 Chromium 10 passed，含零/未知、更正/刷新与跨研究拒绝；前端 build/lint/typecheck/24 tests。无计划分母的完成率、临床安全或疗效结论；见 ADR-0021 |
 | ENG-02C | 工程 | 合成周期关联观察的描述性汇总 | P1 | ENG-02B、REAL-01E0 | Codex 本地 | DONE | `frontend/app/participants/[id]/cycle-forms.tsx`, page, tests/docs | 核对已有最新访视、关联评估和训练次数后，仅补逐条关联训练状态、实际分钟、最新反馈/RPE 与未知提示；沿用授权 API、历史和刷新，浏览器验收 | 2026-11-07：后端基线 Ruff/53 passed、4 skipped；前端 build/lint/typecheck/25 tests；隔离 PostgreSQL→Chromium 10 passed，含访视更正、刷新和跨研究拒绝。无计划完成率、疗效或正式终点 |
+
+## DEMO-V2 运维补充（2026-11-21）
+
+| Task ID | 目标 | 依赖 | 状态 | 验证 |
+|---|---|---|---|---|
+| ENG-05 | macOS单人合成数据库自动备份及隔离恢复验证 | 现有Demo和PostgreSQL | IN_REVIEW | 12单测、21表真实恢复、两轮短间隔调度；见 [证据](testing/ENG-05-BACKUP.md) |

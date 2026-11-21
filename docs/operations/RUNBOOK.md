@@ -20,3 +20,7 @@ Quarterly cadence **proposed only**: restore an encrypted backup to isolated sta
 
 ## Monitoring without health data
 Metrics: HTTP errors/latency, DB connection counts, export job state, backup success, security denials, model release events, feedback completion percentage (aggregated). Never send patient text/images to general telemetry.
+
+## Local synthetic Demo backups
+
+For the implemented macOS backup and isolated restore drill, see [DEMO_BACKUP](DEMO_BACKUP.md). Check last-run and last-success status separately from scheduler liveness. This does not replace the proposed encrypted Research recovery gate above.

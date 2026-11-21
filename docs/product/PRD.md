@@ -91,3 +91,7 @@
 
 ## 验收
 以 [ACCEPTANCE.md](ACCEPTANCE.md) 为准；未关闭的临床阻断项见 `../OPEN_QUESTIONS.md`。
+
+## ENG-05 本地备份运维子范围
+
+授权单人Mac合成测试使用后台自动备份与独立恢复核对：首次启用、成功后24小时、失败5分钟重试；备份位于仓库外，不自动删除、不更改保留策略。原数据库只读、Research拒绝，具体见 [ADR-0024](../decisions/0024-local-demo-backup.md)。仅对应AT-13合成数据库恢复子范围。
