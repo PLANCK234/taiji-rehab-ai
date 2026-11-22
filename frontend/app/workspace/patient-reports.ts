@@ -1,8 +1,20 @@
+export type PatientPoseCounts = {
+  sample_count: number;
+  detected_count: number;
+  framing_check_pass_count: number;
+};
+
+export function poseCountsText(counts: PatientPoseCounts) {
+  return `采样 ${counts.sample_count} 次，检出人体 ${counts.detected_count} 次，取景检查通过 ${counts.framing_check_pass_count} 次`;
+}
+
 export type PatientReport = {
   id: string;
   report_id: string;
   participant_id: string;
   revision_no: number;
+  publication_version: number | null;
+  pose_summary: PatientPoseCounts | null;
   observed_at: string;
   activity_state: "performed" | "not_performed" | "unknown";
   actual_minutes: number | null;

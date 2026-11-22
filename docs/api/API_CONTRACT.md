@@ -1,5 +1,11 @@
 # REST API contract (proposed /api/v1)
 
+新建任务关联的合成自报可带 `pose_summary`。仅接受三个整数计数 `sample_count`、`detected_count`、`framing_check_pass_count`；总采样大于零，取景通过数不大于检出数，检出数不大于总数。自报视图返回可空摘要；修订保留首次提交摘要。该字段不接收画面、逐帧内容、评分或角度。
+
+合成患者新增自报时可传可选的 `publication_version`。服务端在本人作用域检查该版本为当前有效发布，撤回或替换后以 409 拒绝新关联。自报返回可空的 `publication_version`；已有记录保持空值，更正沿用原关联。
+
+合成患者卡片选项响应在 `code`、`title` 之外返回 `message`，供获分配医护预览；其正文与患者投影由同一服务端常量生成。响应增量字段不改变发布请求。
+
 **Status**: Sprint 1 implements authentication, coded reads and synthetic intake; S2-01 adds synthetic manual SPPB total assessment entry, and ENG-02A adds a read-only trend projection. Other routes remain design proposals. `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503) are public. Implemented business routes are prefixed `/api/v1`; use JSON, UUIDs, server-side session/RBAC/study/participant scope. All require authentication except login. Error format is in [ERRORS.md](ERRORS.md).
 
 | Implemented path | Behavior |

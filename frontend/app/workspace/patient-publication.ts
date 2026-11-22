@@ -8,7 +8,7 @@ export type PatientPublication = {
   card_title: string;
 };
 
-export type SyntheticCardOption = { code: string; title: string };
+export type SyntheticCardOption = { code: string; title: string; message: string };
 
 export type PublicationReadiness = {
   simulated_consent_granted: boolean;

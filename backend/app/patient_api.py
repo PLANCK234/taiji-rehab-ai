@@ -47,6 +47,7 @@ class PublicationView(BaseModel):
 class CardOptionView(BaseModel):
     code: str
     title: str
+    message: str
 
 
 class PublicationReadinessView(BaseModel):
@@ -94,7 +95,10 @@ def card_options(
     )
     audit(db, "read", "demo_patient_card_options", "allowed", auth.user.id, participant_id)
     db.commit()
-    return [CardOptionView(code=code, title=title) for code, title in CARD_OPTIONS.items()]
+    return [
+        CardOptionView(code=code, title=title, message=MESSAGE)
+        for code, title in CARD_OPTIONS.items()
+    ]
 
 
 @router.get(

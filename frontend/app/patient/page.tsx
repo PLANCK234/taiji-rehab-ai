@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "../workspace/auth";
 import LogoutButton from "../workspace/logout-button";
 import { getPatientReports } from "../workspace/patient-reports";
-import PatientReportForm from "./report-form";
 import { roleLabel } from "../workspace/role-label";
 import { readPatientHome } from "./home";
 import RetryPatientHomeButton from "./retry-button";
+import PatientTaskFeedback from "./task-feedback";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +25,8 @@ export default async function PatientPage() {
     <p>当前账号：{user.email}（{roleLabel(user.role)}）</p>
     {homeResult.kind === "ready" ? <>
       <p>我的演示编号：{homeResult.home.study_code}</p>
-      <section>
-        <h2>训练计划与视频</h2>
+      <section aria-labelledby="patient-plan-heading">
+        <h2 id="patient-plan-heading">训练计划与视频</h2>
         {homeResult.home.publication ? <>
           <p role="status">合成流程测试版本 {homeResult.home.publication.version} · 不可作为训练指导</p>
           <p>当前卡片：{homeResult.home.publication.card_title}</p>
@@ -34,13 +34,14 @@ export default async function PatientPage() {
           <div className="demo-video-frame"><div className="demo-video-empty" role="status">
             <span className="demo-video-icon" aria-hidden="true">▶</span>
             <strong>视频待添加</strong>
-            <span>尚无经审核的视频素材，当前不能播放。</span>
+            <span>当前卡片暂无可播放视频。</span>
           </div></div>
         </> : <p>目前没有经医护确认并发布给此账号的计划或视频。</p>}
         <p className="note">研究工作台中的 DEMO_ONLY 内容不会自动成为患者训练指导。</p>
       </section>
-      <PatientReportForm key={JSON.stringify([user.id, homeResult.home.study_code])}
-        initialReports={reports} />
+      <PatientTaskFeedback key={JSON.stringify([user.id, homeResult.home.study_code, homeResult.home.publication?.version])}
+        initialReports={reports} publicationVersion={homeResult.home.publication?.version}
+        cameraEnabled={process.env.POSE_PROTOTYPE_ENABLED === "true"} />
     </> : homeResult.kind === "binding_unavailable" ? (
       <section>
         <h2>演示编号不可用</h2>

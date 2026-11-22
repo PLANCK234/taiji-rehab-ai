@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { postIntake } from "../workspace/intake";
-import { activityText, discomfortText, type PatientReport } from "../workspace/patient-reports";
+import { activityText, discomfortText, poseCountsText, type PatientPoseCounts, type PatientReport } from "../workspace/patient-reports";
 import RetryPatientHomeButton from "./retry-button";
 
 type ReportDraft = {
@@ -12,6 +12,7 @@ type ReportDraft = {
   discomfort: PatientReport["discomfort_state"];
   note: string;
   requestKey: string;
+  attachTask: boolean;
 };
 
 function beijingFormTime(value: string) {
@@ -25,25 +26,43 @@ function beijingFormTime(value: string) {
 
 function ReportFacts({ row }: { row: PatientReport }) {
   return <>
+    {row.publication_version != null && <>演示任务版本 {row.publication_version} · </>}
     发生时间（北京时间）：{new Date(row.observed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {activityText[row.activity_state]} · {row.actual_minutes === null ? "时长未知" : `${row.actual_minutes} 分钟`} · {discomfortText[row.discomfort_state]}{row.discomfort_note ? `：${row.discomfort_note}` : ""}
     {row.change_reason ? ` · 更正原因：${row.change_reason}` : ""}
+    {row.pose_summary && <><br />姿态识别摘要：{poseCountsText(row.pose_summary)}</>}
     <br /><small>保存时间（北京时间）：{new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</small>
   </>;
 }
 
-export default function PatientReportForm({ initialReports }: { initialReports: PatientReport[] | null }) {
+type TaskReportOptions = {
+  publicationVersion?: number;
+  poseSummary?: PatientPoseCounts | null;
+  onPoseSummarySaved?: (summary: PatientPoseCounts) => void;
+};
+
+export default function PatientReportForm({ initialReports, ...taskOptions }: TaskReportOptions & {
+  initialReports: PatientReport[] | null;
+}) {
   return <section aria-labelledby="patient-report-heading">
-    <h2 id="patient-report-heading">训练与不适记录</h2>
+    <h2 id="patient-report-heading" tabIndex={-1}>训练与不适记录</h2>
     <p className="note">仅供合成数据流程试用。请记录已经发生的事实；没有记录时状态未知。此页面不提供紧急响应或临床判断。</p>
     {initialReports === null ? <div>
       <p>训练与不适记录暂时无法读取。</p>
       <RetryPatientHomeButton label="重新检查记录" />
-    </div> : <EditablePatientReports initialReports={initialReports} />}
+    </div> : <EditablePatientReports initialReports={initialReports} {...taskOptions} />}
   </section>;
 }
 
-function EditablePatientReports({ initialReports }: { initialReports: PatientReport[] }) {
+function EditablePatientReports({
+  initialReports, publicationVersion, poseSummary, onPoseSummarySaved,
+}: TaskReportOptions & {
+  initialReports: PatientReport[];
+}) {
   const [savedReports, setSavedReports] = useState<PatientReport[]>([]);
+  const lastSavedRecord = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    lastSavedRecord.current?.focus();
+  }, [savedReports]);
   const reportsById = new Map(savedReports.map((row) => [row.id, row]));
   for (const row of initialReports) reportsById.set(row.id, row);
   const reports = [...reportsById.values()];
@@ -55,15 +74,18 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
   const [note, setNote] = useState("");
   const [reason, setReason] = useState("");
   const [pending, setPending] = useState(false);
+  const [attachTask, setAttachTask] = useState(false);
+  const [confirmedSummary, setConfirmedSummary] = useState<PatientPoseCounts | null>(null);
   const [message, setMessage] = useState("");
   const key = useRef("");
+  const previousSummary = useRef(poseSummary);
   const newDraft = useRef<ReportDraft | null>(null);
   const latest = reports.filter((row) => !reports.some((other) => other.report_id === row.report_id && other.revision_no > row.revision_no))
     .sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at) || a.report_id.localeCompare(b.report_id));
 
   function edit(row: PatientReport) {
     if (!editing) {
-      newDraft.current = { observedAt, activity, minutes, discomfort, note, requestKey: key.current };
+      newDraft.current = { observedAt, activity, minutes, discomfort, note, requestKey: key.current, attachTask };
     }
     setEditing(row);
     setObservedAt(beijingFormTime(row.observed_at));
@@ -84,6 +106,7 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
     setDiscomfort(draft?.discomfort ?? "unknown");
     setNote(draft?.note ?? "");
     setReason("");
+    setAttachTask(draft?.attachTask ?? false);
     key.current = draft?.requestKey ?? "";
     newDraft.current = null;
   }
@@ -100,12 +123,21 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
       return;
     }
     key.current ||= crypto.randomUUID();
+    if (previousSummary.current !== poseSummary) {
+      key.current = crypto.randomUUID();
+      previousSummary.current = poseSummary;
+    }
+    const linkedVersion = !editing && attachTask ? publicationVersion : undefined;
+    const includedSummary = linkedVersion !== undefined && poseSummary === confirmedSummary
+      ? confirmedSummary : null;
     setPending(true);
     setMessage("");
     const result = await postIntake<PatientReport>(
       editing ? `/patient/reports/${editing.report_id}` : "/patient/reports",
       {
         expected_revision: editing?.revision_no ?? 0,
+        ...(linkedVersion !== undefined ? { publication_version: linkedVersion } : {}),
+        ...(includedSummary ? { pose_summary: includedSummary } : {}),
         observed_at: editing && observedAt === beijingFormTime(editing.observed_at)
           ? editing.observed_at
           : new Date(`${observedAt}:00+08:00`).toISOString(),
@@ -121,16 +153,34 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
     setPending(false);
     if (result.value) {
       setSavedReports((previous) => [result.value!, ...previous]);
+      if (includedSummary) {
+        setConfirmedSummary(null);
+        onPoseSummarySaved?.(includedSummary);
+      }
       returnToNewReport(editing ? newDraft.current : null);
       setMessage("合成记录已保存。此处没有自动风险判断或平台内处置服务。");
     } else {
-      setMessage(result.status === 409 ? "版本已变化，请刷新后再更正。" : "保存失败，请检查模拟同意、账号绑定和填写内容。");
+      setMessage(result.status === 409
+        ? (editing ? "版本已变化，请刷新后再更正。" : "演示任务或记录状态已变化，请刷新后重试。")
+        : "保存失败，请检查模拟同意、账号绑定和填写内容。");
     }
   }
 
   return <>
       <form onSubmit={submit} onChange={() => { key.current = ""; }}>
         <h3>{editing ? `更正记录 · 版本 ${editing.revision_no}` : "新增本人记录"}</h3>
+        {!editing && publicationVersion !== undefined && <label>
+          <input type="checkbox" checked={attachTask} onChange={(event) => {
+            setAttachTask(event.target.checked);
+            if (!event.target.checked) setConfirmedSummary(null);
+          }} />
+          将本次反馈关联到演示任务版本 {publicationVersion}
+        </label>}
+        {!editing && attachTask && poseSummary && <label>
+          <input type="checkbox" checked={confirmedSummary === poseSummary}
+            onChange={(event) => setConfirmedSummary(event.target.checked ? poseSummary : null)} />
+          一并提交本次姿态识别摘要（{poseCountsText(poseSummary)}）
+        </label>}
         <label>发生时间（北京时间）<input type="datetime-local" required value={observedAt} onChange={(event) => setObservedAt(event.target.value)} /></label>
         <label>实际训练情况<select value={activity} onChange={(event) => setActivity(event.target.value as PatientReport["activity_state"])}>
           <option value="unknown">不清楚／未说明</option><option value="performed">做了训练</option><option value="not_performed">没有训练</option>
@@ -147,7 +197,9 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
       {message ? <p role="status">{message}</p> : null}
       <h3>本人记录历史</h3>
       {latest.length ? <ul>{latest.map((row) => <li key={row.report_id}>
-        <p><strong>当前版本 {row.revision_no}</strong> · <ReportFacts row={row} /></p>
+        <p tabIndex={-1} ref={row.id === savedReports[0]?.id ? lastSavedRecord : undefined}>
+          <strong>当前版本 {row.revision_no}</strong> · <ReportFacts row={row} />
+        </p>
         <button type="button" disabled={pending} onClick={() => edit(row)}>更正</button>
         {row.revision_no > 1 ? <details><summary>查看旧版本</summary><ul>{reports.filter((old) => old.report_id === row.report_id && old.id !== row.id).sort((a, b) => b.revision_no - a.revision_no).map((old) => <li key={old.id}><strong>旧版本 {old.revision_no}</strong> · <ReportFacts row={old} /></li>)}</ul></details> : null}
       </li>)}</ul> : <p>尚未填写训练或不适记录；训练与不适状态均未知。</p>}

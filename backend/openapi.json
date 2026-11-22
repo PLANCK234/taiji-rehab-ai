@@ -391,6 +391,10 @@
             "title": "Code",
             "type": "string"
           },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -398,7 +402,8 @@
         },
         "required": [
           "code",
-          "title"
+          "title",
+          "message"
         ],
         "title": "CardOptionView",
         "type": "object"
@@ -1707,6 +1712,34 @@
         "title": "PatientHomeView",
         "type": "object"
       },
+      "PatientPoseCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "detected_count": {
+            "minimum": 0.0,
+            "title": "Detected Count",
+            "type": "integer"
+          },
+          "framing_check_pass_count": {
+            "minimum": 0.0,
+            "title": "Framing Check Pass Count",
+            "type": "integer"
+          },
+          "sample_count": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 2147483647.0,
+            "title": "Sample Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sample_count",
+          "detected_count",
+          "framing_check_pass_count"
+        ],
+        "title": "PatientPoseCounts",
+        "type": "object"
+      },
       "PatientReportView": {
         "properties": {
           "activity_state": {
@@ -1775,6 +1808,27 @@
             "title": "Participant Id",
             "type": "string"
           },
+          "pose_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PatientPoseCounts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publication_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Version"
+          },
           "recorded_at": {
             "format": "date-time",
             "title": "Recorded At",
@@ -1800,6 +1854,8 @@
           "report_id",
           "participant_id",
           "revision_no",
+          "publication_version",
+          "pose_summary",
           "observed_at",
           "activity_state",
           "actual_minutes",
@@ -1881,6 +1937,28 @@
             "format": "date-time",
             "title": "Observed At",
             "type": "string"
+          },
+          "pose_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PatientPoseCounts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publication_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Version"
           }
         },
         "required": [

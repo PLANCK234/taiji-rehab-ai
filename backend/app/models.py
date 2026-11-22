@@ -3,7 +3,16 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
 
@@ -139,6 +148,11 @@ class DemoPatientReportRevision(Base):
     __tablename__ = "demo_patient_report_revisions"
     __table_args__ = (
         UniqueConstraint("report_id", "revision_no"),
+        ForeignKeyConstraint(
+            ["participant_id", "publication_version"],
+            ["demo_patient_publications.participant_id", "demo_patient_publications.version"],
+            name="fk_demo_report_publication",
+        ),
         Index("ix_demo_patient_report_participant", "participant_id", "recorded_at"),
         CheckConstraint("revision_no > 0", name="ck_patient_report_revision_positive"),
         CheckConstraint(
@@ -170,6 +184,8 @@ class DemoPatientReportRevision(Base):
         Uuid, ForeignKey("participants.id"), nullable=False
     )
     revision_no: Mapped[int] = mapped_column(nullable=False)
+    publication_version: Mapped[int | None] = mapped_column()
+    pose_summary: Mapped[dict[str, int] | None] = mapped_column(JSON(none_as_null=True))
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     activity_state: Mapped[str] = mapped_column(String(20), nullable=False)
     actual_minutes: Mapped[int | None] = mapped_column()

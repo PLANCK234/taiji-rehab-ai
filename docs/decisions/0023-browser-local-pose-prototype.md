@@ -28,6 +28,8 @@ The prototype emits raw keypoints, descriptive joint angles/ranges, image-coordi
 
 ## Revisit trigger
 
+2026-11-21 合成患者端联调：仅在姿态原型开关开启、服务端读取有效本人绑定与当前合成发布卡片后显示同一浏览器组件。使用单独的摄像头授权确认，患者端不提供摘要下载；结果留在当前页面内，不写入患者自报或档案。本次范围仅覆盖合成流程。
+
 Revisit before any real-video persistence, Research deployment, patient access, automated phase/repetition detection, clinical score, model replacement, or use as a medical decision aid.
 
 ## Approvers

@@ -5,9 +5,10 @@ import { postIntake } from "../../workspace/intake";
 import type { PatientPublication, PublicationReadiness, SyntheticCardOption } from "../../workspace/patient-publication";
 
 export default function PublicationControls({
-  participantId, initialHistory, cardOptions, readiness, canPublish,
+  participantId, studyCode, initialHistory, cardOptions, readiness, canPublish,
 }: {
   participantId: string;
+  studyCode: string;
   initialHistory: PatientPublication[] | null;
   cardOptions: SyntheticCardOption[] | null;
   readiness: PublicationReadiness | null;
@@ -21,6 +22,7 @@ export default function PublicationControls({
   const [error, setError] = useState("");
   const key = useRef("");
   const latest = history?.at(-1);
+  const selectedCard = cardOptions?.find((option) => option.code === selectedCode);
 
   async function submit(operation: "publish" | "withdraw") {
     key.current ||= crypto.randomUUID();
@@ -56,12 +58,18 @@ export default function PublicationControls({
   }
 
   return <section aria-labelledby="publication-heading">
-    <h2 id="publication-heading">患者端合成发布流程</h2>
-    <p className="note">可选择一张固定的合成流程测试卡片；不包含训练动作、剂量或临床指导。视频素材尚未审核，不能播放。</p>
+    <h2 id="publication-heading" tabIndex={-1}>患者端合成发布流程</h2>
+    <p className="note">可选择一张固定的合成流程测试卡片；不包含训练动作、剂量或临床指导。</p>
+    <p className="note">视频待提供和核对。现在发布的测试卡片只包含文字。</p>
     {history === null ? <p>发布历史暂不可用。</p> : <>
       <p>当前状态：{latest?.state === "published" ? "合成卡片已发布" : "没有有效发布"} · 版本 {latest?.version ?? 0}</p>
       {history.length > 0 ? <ul>{history.map((row) => (
-        <li key={row.version}>版本 {row.version} · {row.state === "published" ? "发布" : "撤回"} · {row.card_title} · 合成流程测试</li>
+        <li key={row.version}>
+          版本 {row.version} · {row.state === "published" ? "发布" : "撤回"} · {row.card_title} · 合成流程测试
+          {row.state === "published" && <> · <a href={`?feedbackVersion=${row.version}#patient-reports-heading`}>
+            核对版本 {row.version} 的反馈
+          </a></>}
+        </li>
       ))}</ul> : <p>尚无发布历史。</p>}
     </>}
     {canPublish && history !== null ? <>
@@ -77,6 +85,12 @@ export default function PublicationControls({
         <option value="">请选择</option>
         {cardOptions?.map((option) => <option key={option.code} value={option.code}>{option.title}</option>)}
       </select>
+      {selectedCard && <div role="region" aria-label="患者端卡片预览">
+        <h3>患者端卡片预览</h3>
+        <p>接收档案：{studyCode}</p>
+        <p><strong>{selectedCard.title}</strong></p>
+        <p>{selectedCard.message}</p>
+      </div>}
       {cardOptions === null ? <p className="note">卡片选项暂不可用，不能发布新卡片。</p> : null}
       <label><input type="checkbox" checked={selectionConfirmed} onChange={(event) => setSelectionConfirmed(event.target.checked)} disabled={!selectedCode} /> 我确认本次选择仅用于合成演示，不是临床审核</label>
       <label><input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} /> 我确认这只是合成流程测试，不是患者训练指导</label>

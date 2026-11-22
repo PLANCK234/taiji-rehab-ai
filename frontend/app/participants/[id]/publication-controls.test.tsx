@@ -10,6 +10,12 @@ vi.mock("../../workspace/intake", () => ({ postIntake: vi.fn() }));
 beforeEach(() => vi.mocked(postIntake).mockReset());
 afterEach(cleanup);
 
+const card = {
+  code: "SYN-CARD-A",
+  title: "演示卡片 A · 初次查看",
+  message: "合成发布流程测试卡片；没有可执行的训练计划。",
+};
+
 it("requires explicit synthetic acknowledgement and shows append-only publish/withdraw versions", async () => {
   vi.mocked(postIntake)
     .mockResolvedValueOnce({ status: 201, value: {
@@ -24,7 +30,7 @@ it("requires explicit synthetic acknowledgement and shows append-only publish/wi
       video_status: "awaiting_review", card_code: "SYN-CARD-A",
       card_title: "演示卡片 A · 初次查看",
     } });
-  render(<PublicationControls participantId="synthetic-id" initialHistory={[]} cardOptions={[{ code: "SYN-CARD-A", title: "演示卡片 A · 初次查看" }]} readiness={{ simulated_consent_granted: true, active_patient_binding: true, can_publish: true }} canPublish />);
+  render(<PublicationControls participantId="synthetic-id" studyCode="SYN-001" initialHistory={[]} cardOptions={[card]} readiness={{ simulated_consent_granted: true, active_patient_binding: true, can_publish: true }} canPublish />);
   const publish = screen.getByRole("button", { name: "发布所选测试卡片" });
   expect((publish as HTMLButtonElement).disabled).toBe(true);
   fireEvent.change(screen.getByLabelText("选择演示卡片"), { target: { value: "SYN-CARD-A" } });
@@ -47,7 +53,7 @@ it("requires explicit synthetic acknowledgement and shows append-only publish/wi
 });
 
 it("explains missing publication conditions and prevents submission", () => {
-  render(<PublicationControls participantId="synthetic-id" initialHistory={[]} cardOptions={[{ code: "SYN-CARD-A", title: "演示卡片 A · 初次查看" }]} readiness={{ simulated_consent_granted: false, active_patient_binding: false, can_publish: false }} canPublish />);
+  render(<PublicationControls participantId="synthetic-id" studyCode="SYN-001" initialHistory={[]} cardOptions={[card]} readiness={{ simulated_consent_granted: false, active_patient_binding: false, can_publish: false }} canPublish />);
   expect(screen.getByText(/当前模拟同意：未记录或已撤回/)).toBeTruthy();
   expect(screen.getByText(/合成患者绑定：无活跃绑定/)).toBeTruthy();
   expect(screen.getByRole("link", { name: "重新检查发布条件" }).getAttribute("href")).toBe("/participants/synthetic-id#publication-heading");
@@ -59,7 +65,7 @@ it("explains missing publication conditions and prevents submission", () => {
 });
 
 it("keeps unknown readiness distinct from a failed condition", () => {
-  render(<PublicationControls participantId="synthetic-id" initialHistory={[]} cardOptions={[]} readiness={null} canPublish />);
+  render(<PublicationControls participantId="synthetic-id" studyCode="SYN-001" initialHistory={[]} cardOptions={[]} readiness={null} canPublish />);
   expect(screen.getByText("发布条件暂不可用，不能发布新卡片。")).toBeTruthy();
   expect(screen.queryByText(/合成患者绑定：无活跃绑定/)).toBeNull();
 });

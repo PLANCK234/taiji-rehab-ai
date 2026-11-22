@@ -8,6 +8,8 @@ import StaffPatientReports from "./staff-patient-reports";
 afterEach(cleanup);
 
 const first: PatientReport = {
+  publication_version: null,
+  pose_summary: null,
   id: "a-1", report_id: "report-a", participant_id: "synthetic-participant",
   revision_no: 1, observed_at: "2026-11-05T02:00:00Z",
   activity_state: "performed", actual_minutes: 12,
@@ -64,4 +66,18 @@ it("keeps unavailable and empty histories distinct", () => {
   unavailable.unmount();
   render(<StaffPatientReports reports={[]} />);
   expect(screen.getByText("暂无患者自报；训练与不适状态未知。")).toBeTruthy();
+});
+
+it("shows feedback for the requested publication and keeps missing pose counts explicit", () => {
+  const { rerender } = render(<StaffPatientReports publicationVersion={2} reports={[
+    first,
+    { ...first, id: "b-1", report_id: "report-b", publication_version: 1 },
+    { ...first, id: "c-1", report_id: "report-c", publication_version: 2 },
+  ]} />);
+  expect(screen.getByText(/正在核对演示任务版本 2/)).toBeTruthy();
+  expect(screen.getByText(/未提交姿态摘要/)).toBeTruthy();
+  expect(screen.getAllByText(/当前版本 1/)).toHaveLength(1);
+  expect(screen.queryByText(/演示任务版本 1/)).toBeNull();
+  rerender(<StaffPatientReports publicationVersion={3} reports={[first]} />);
+  expect(screen.getByText("此任务版本暂无关联反馈。")).toBeTruthy();
 });
