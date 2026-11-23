@@ -135,3 +135,12 @@ All endpoints use the existing staff session and server-side study/participant s
 Assessment confirmation (`POST /assessments/{id}/confirm`) additionally persists one `demo_grade_results` per confirmed revision. Existing assessment/training response shapes and endpoints remain valid. The generated OpenAPI snapshot is `backend/openapi.json`.
 
 REAL-01C1 Demo 合成子集：GET/POST `/api/v1/participants/{id}/manual-observations`，POST `.../{observation_id}` 追加更正。快照含固定指标/单位、十进制字符串、有效性/缺失原因、时间/侧别/说明，服务端记录来源/操作者/时间；更正需预期版本与 SYN 原因。当前模拟同意、对象范围、CSRF 和幂等必需；不触发 SPPB 分级。REAL-01F1 已将结构化观察及修订纳入单对象 Demo CSV，说明文字仍排除；真实数据与临床使用未批准。
+
+## A-02 合成反馈复核（0018）
+
+- `GET /api/v1/participants/{participant_id}/patient-report-reviews`：READ_ROLES + study/object scope，返回全部复核历史；失败不能当作空列表。
+- `POST` 同路径：clinician / research_assistant，Demo、SYN 编号、当前模拟同意、CSRF、Idempotency-Key、对象锁；只允许已关联发布的当前反馈修订。
+- 输入：`report_revision_id` UUID、`expected_review_no` 非负严格整数、`result=reviewed|unable`、`note` 去首尾空白后 1–500 字；拒绝额外字段。
+- 输出：id、report_revision_id、review_no、result、note、recorded_by UUID、recorded_at UTC。新建返回 201；相同幂等请求返回原记录；键复用不同内容、复核版本变化、旧反馈修订或无任务关联返回 409；无权限/跨对象返回 403；格式错误 422。
+- 源反馈与复核共享对象写锁；先校验权限，再检查幂等收据，再检查当前版本，已提交操作可在反馈更正后安全重试。撤回发布不抹去既有事实，仍可复核当前反馈；模拟同意撤回后只读。
+- 无更新/删除路由，不修改患者事实或分析；不返回给患者、不进入既有 CSV 自由文本导出；审计只记操作与编码对象。

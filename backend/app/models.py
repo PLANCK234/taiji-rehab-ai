@@ -142,6 +142,27 @@ class DemoPatientPublication(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class DemoPatientReportReview(Base):
+    """Append-only staff review of an exact patient-authored revision."""
+
+    __tablename__ = "demo_patient_report_reviews"
+    __table_args__ = (
+        UniqueConstraint("report_revision_id", "review_no"),
+        CheckConstraint("review_no > 0", name="ck_report_review_no"),
+        CheckConstraint("result IN ('reviewed','unable')", name="ck_report_review_result"),
+        CheckConstraint("length(trim(note)) BETWEEN 1 AND 500", name="ck_report_review_note"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    report_revision_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("demo_patient_report_revisions.id"), nullable=False
+    )
+    review_no: Mapped[int] = mapped_column(nullable=False)
+    result: Mapped[str] = mapped_column(String(20), nullable=False)
+    note: Mapped[str] = mapped_column(String(500), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class DemoPatientReportRevision(Base):
     """Patient-authored synthetic fact snapshots; revisions are append-only."""
 

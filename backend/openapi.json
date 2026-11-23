@@ -2098,6 +2098,94 @@
         "title": "PublicationWrite",
         "type": "object"
       },
+      "ReportReviewView": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "report_revision_id": {
+            "format": "uuid",
+            "title": "Report Revision Id",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "reviewed",
+              "unable"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "review_no": {
+            "title": "Review No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "report_revision_id",
+          "review_no",
+          "result",
+          "note",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "ReportReviewView",
+        "type": "object"
+      },
+      "ReportReviewWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_review_no": {
+            "minimum": 0.0,
+            "title": "Expected Review No",
+            "type": "integer"
+          },
+          "note": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          },
+          "report_revision_id": {
+            "format": "uuid",
+            "title": "Report Revision Id",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "reviewed",
+              "unable"
+            ],
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_revision_id",
+          "expected_review_no",
+          "result",
+          "note"
+        ],
+        "title": "ReportReviewWrite",
+        "type": "object"
+      },
       "SafetyEventCreate": {
         "additionalProperties": false,
         "properties": {
@@ -5155,6 +5243,110 @@
           }
         },
         "summary": "Write"
+      }
+    },
+    "/api/v1/participants/{participant_id}/patient-report-reviews": {
+      "get": {
+        "operationId": "read_reviews_api_v1_participants__participant_id__patient_report_reviews_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReportReviewView"
+                  },
+                  "title": "Response Read Reviews Api V1 Participants  Participant Id  Patient Report Reviews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Reviews"
+      },
+      "post": {
+        "operationId": "write_review_api_v1_participants__participant_id__patient_report_reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportReviewWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportReviewView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Write Review"
       }
     },
     "/api/v1/participants/{participant_id}/patient-reports": {

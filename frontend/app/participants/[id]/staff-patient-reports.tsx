@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { activityText, discomfortText, poseCountsText, type PatientReport } from "../../workspace/patient-reports";
+import type { PatientReview } from "../../workspace/patient-reviews";
+import PatientReportReview from "./patient-report-review";
 
 const beijingDate = new Intl.DateTimeFormat("sv-SE", {
   timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit",
@@ -18,9 +20,12 @@ function ReportFacts({ row }: { row: PatientReport }) {
   </>;
 }
 
-export default function StaffPatientReports({ reports, publicationVersion }: {
+export default function StaffPatientReports({ reports, publicationVersion, participantId, reviews = null, canReview = false }: {
   reports: PatientReport[] | null;
   publicationVersion?: number;
+  participantId?: string;
+  reviews?: PatientReview[] | null;
+  canReview?: boolean;
 }) {
   const [onlyDiscomfort, setOnlyDiscomfort] = useState(false);
   const [observedDate, setObservedDate] = useState("");
@@ -59,8 +64,12 @@ export default function StaffPatientReports({ reports, publicationVersion }: {
     </>}
     {reports === null ? <p>患者自报记录暂不可用。</p> : visibleGroups.length ? <ul>{visibleGroups.map(([current, ...older]) => <li key={current.report_id}>
       <p><strong>当前版本 {current.revision_no}</strong> · <ReportFacts row={current} /></p>
+      {participantId && current.publication_version != null && <PatientReportReview
+        key={current.id} participantId={participantId} revisionId={current.id} reviews={reviews} canWrite={canReview} />}
       {older.length ? <details><summary>查看旧版本（{older.length}）</summary><ul>{older.map((row) => <li key={row.id}>
         <strong>旧版本 {row.revision_no}</strong> · <ReportFacts row={row} />
+        {participantId && row.publication_version != null && <PatientReportReview
+          participantId={participantId} revisionId={row.id} reviews={reviews} canWrite={false} />}
       </li>)}</ul></details> : null}
     </li>)}</ul> : taskGroups.length ? <p role="status">{observedDate
       ? "所选日期没有符合筛选条件的记录。"

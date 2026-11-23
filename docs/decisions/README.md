@@ -28,3 +28,5 @@ Current proposals:
 - [ADR-0023](0023-browser-local-pose-prototype.md): feature-gated, browser-local video pose and descriptive kinematics prototype with no upload, persistence or clinical scoring.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.
+
+- [ADR-0024](0024-synthetic-feedback-review.md): exact-revision, append-only nonclinical staff reviews; source feedback and pose counts remain unchanged.

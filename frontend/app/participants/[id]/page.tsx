@@ -15,6 +15,7 @@ import { getPublicationHistory, getPublicationReadiness, getSyntheticCardOptions
 import PublicationControls from "./publication-controls";
 import { getPatientReports } from "../../workspace/patient-reports";
 import StaffPatientReports from "./staff-patient-reports";
+import { getPatientReviews } from "../../workspace/patient-reviews";
 import { getCycles } from "../../workspace/cycles";
 import CycleForms from "./cycle-forms";
 import ProfileSection from "./profile-section";
@@ -57,6 +58,7 @@ export default async function ParticipantPage({ params, searchParams }: {
     getTrainingTimeline(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
+  const patientReviews = await getPatientReviews(id, cookieHeader);
   const canExport = canWrite || user.role === "clinical_approver";
   const posePrototypeEnabled = process.env.POSE_PROTOTYPE_ENABLED === "true";
   const { feedbackVersion } = await searchParams;
@@ -78,7 +80,8 @@ export default async function ParticipantPage({ params, searchParams }: {
       <ManualObservations participantId={id} canWrite={canWrite && consents?.state === "granted"} />
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
       <PublicationControls participantId={id} studyCode={participant.study_code} initialHistory={publicationHistory} cardOptions={cardOptions} readiness={publicationReadiness} canPublish={user.role === "clinician"} />
-      <StaffPatientReports reports={patientReports} publicationVersion={selectedFeedbackVersion} />
+      <StaffPatientReports reports={patientReports} publicationVersion={selectedFeedbackVersion}
+        participantId={id} reviews={patientReviews} canReview={canWrite} />
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">模拟同意记录</h2>
         {consents ? <>

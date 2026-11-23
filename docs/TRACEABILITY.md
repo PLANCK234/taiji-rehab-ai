@@ -1,5 +1,7 @@
 # Requirements traceability
 
+A-02 / DEMO-V2-38 → AT-PAT-03 合成复核：`backend/tests/test_patient_reviews.py` 覆盖鉴权、CSRF、幂等、版本冲突及不可变源；`patient-report-review.test.tsx` 覆盖失败输入与键复用、不可用/只读、新旧修订隔离；`frontend/e2e/patient.real.ts` 验证真实 PostgreSQL 保存/刷新/追加与患者更正后历史分离。见 [A-02 验证记录](testing/A-02-STAFF-REVIEW.md)。
+
 QA-01 首条合成手机任务的保存与摘要核对证据见 [iPhone 真机记录](testing/C-01-MOBILE-VALIDATION.md)。
 
 QA-01 异常路径由 `patient.real.ts` 验证，模拟权限拒绝和模型请求中断，反馈仍可关联任务并保存，工作人员看到「未提交姿态摘要」。
