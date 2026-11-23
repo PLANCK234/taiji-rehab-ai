@@ -640,3 +640,9 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 ## 2026-11-23 DEMO-V2-40 待复核筛选
 
 加入工作人员待复核筛选，按任务关联与反馈当前修订判断。将当前页面保存成功的复核同步给列表，取消筛选后可直接回看。复核读取失败时不显示筛选入口。lint、typecheck、75 项前端及 17 项隔离 Chromium 回归通过，Docker 生产构建成功，一次性资源清理通过。现用手机演示仍是 DEMO-V2-39。
+
+## 2026-11-23 DEMO-V2-40 现用演示更新
+
+使用 `adc576c` 更新现用 Compose 前端。已核对本机双角色、SYN-001 版本 5 的待复核筛选、原摘要、患者摄像头入口和复核权限，公开登录页及后端 ready 返回 200。更新前后的 5 项发布、1 项反馈和 0 项复核响应一致。后端、数据库和现有隧道容器 ID 一致。QA-01 的 iPhone Safari 复核保存与刷新待实测。
+
+旧前端保留为 `taiji-demo-frontend:before-adc576c`，镜像记录保存在 `private-data/backups/2026-11-23-demo-v2-40-before/runtime-rollout.json`。如需恢复，先执行 `docker image tag taiji-demo-frontend:before-adc576c infra-frontend:latest`，再执行 `docker compose --env-file .env -f infra/compose.yaml up -d --no-deps --no-build frontend` 并检查登录页。
