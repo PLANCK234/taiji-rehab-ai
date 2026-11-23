@@ -650,3 +650,9 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 ## 2026-11-23 DEMO-V2-41 指定版本链接核对
 
 指定任务版本无法核对时在反馈区域显示原因及恢复入口。撤回事件序号和重复参数不会打开全部反馈，原发布版本可从历史回看。前端 lint、typecheck、76 项测试、Docker 生产构建和隔离 Chromium 17 项通过，隔离资源清理成功。现用手机演示仍运行 DEMO-V2-40。
+
+## 2026-11-23 DEMO-V2-41 现用演示更新
+
+使用 `a303fdd` 更新现用 Compose 前端。公开登录页与后端 ready 返回 200。本机双角色烟测通过，SYN-001 的 5 项发布、1 项反馈、0 项复核响应前后一致，后端、数据库及现有隧道容器 ID 一致。尚待 QA-01 的 iPhone Safari 复核保存与刷新实测。
+
+旧前端保留为 `taiji-demo-frontend:before-a303fdd`。需要回滚时，用 `docker image tag taiji-demo-frontend:before-a303fdd infra-frontend:latest` 恢复镜像，再执行 `docker compose --env-file .env -f infra/compose.yaml up -d --no-deps --no-build frontend` 并检查登录页。
