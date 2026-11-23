@@ -630,3 +630,9 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 ## 2026-11-23 DEMO-V2-39 发布与撤回恢复
 
 前端在结果不明时保留原操作、版本、参数和幂等键，禁用其他操作并提供重读。撤回冲突由组件测试验证。首次隔离 Chromium 的提示断言同时命中 Next.js 路由提示，限定发布区域后，全量 17 项通过且一次性资源清理成功。前端 lint、typecheck、74 项及 Docker 生产构建通过。既有手机演示使用原运行版本，真机复核 QA-01 待反馈。
+
+## 2026-11-23 DEMO-V2-39 现用演示更新
+
+用 `aa0790a` 更新现用 Compose 前端。检查了 Compose 配置、浏览器包和本机双角色，公开 HTTPS 登录页及后端 ready 返回 200。更新前后 SYN-001 的 5 项发布、1 项反馈和 0 项复核响应完全一致。现用后端、数据库和隧道容器 ID 一致。QA-01 的 iPhone Safari 复核保存与刷新继续待实测。
+
+旧前端镜像另存为 `taiji-demo-frontend:before-aa0790a`，记录位于 `private-data/backups/2026-11-23-demo-v2-39-before/runtime-rollout.json`。如需恢复，先执行 `docker image tag taiji-demo-frontend:before-aa0790a infra-frontend:latest`，再执行 `docker compose --env-file .env -f infra/compose.yaml up -d --no-deps --no-build frontend` 并重新检查登录页。

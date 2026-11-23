@@ -2,7 +2,7 @@
 
 ## 2026-11-23 DEMO-V2-39 发布操作恢复
 
-在 `codex/demo-patient-report-order` 的 `01f4c12` 后完成 A-01 / AT-PAT-02 的前端恢复路径。发布或撤回结果未确认时，工作人员可用原请求重试或重读历史，卡片与其他操作暂时锁定。现用手机演示服务沿用已有版本。
+在 `codex/demo-patient-report-order` 的 `01f4c12` 后完成 A-01 / AT-PAT-02 的前端恢复路径。发布或撤回结果未确认时，工作人员可用原请求重试或重读历史，卡片与其他操作暂时锁定。现用手机演示已更新至 `aa0790a`。本机双角色与版本 5 烟测通过，公开登录页返回 200。旧前端保留为 `taiji-demo-frontend:before-aa0790a`，恢复命令见本轮 SESSION_LOG。
 
 下一个 Task ID 仍为 `QA-01`，等待 iPhone Safari 复核保存和刷新结果。测试证据见 [TRACEABILITY](TRACEABILITY.md)，此前手机入口恢复记录见下节。
 

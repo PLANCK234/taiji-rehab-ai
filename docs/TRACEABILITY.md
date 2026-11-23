@@ -218,3 +218,5 @@ DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/ho
 QA-01 / AT-PAT-03 手机复核准备见 [入口验证与真机操作](testing/A-02-STAFF-REVIEW.md#qa-01-手机复核准备)。本机账号和公开入口预检已通过，iPhone Safari 保存及刷新仍待记录。
 
 DEMO-V2-39 → AT-PAT-02 合成子集。publication-controls.test.tsx 验证撤回重试复用原请求及冲突后重读。patient.real.ts 让真实发布请求成功入库，再向浏览器返回 503，验证页面锁定、重试仅留一条发布版本，以及患者看到原卡片。前端 74 项、生产构建及隔离 Chromium 17 项通过。
+
+DEMO-V2-39 上线烟测：确认现用容器的浏览器包包含发布重试界面，本机双角色登录、SYN-001 版本 5 原摘要与复核表单、患者摄像头及权限隔离通过。公开 HTTPS 登录页返回 200。此次没有追加业务测试记录，写入与重试证据来自隔离浏览器。
