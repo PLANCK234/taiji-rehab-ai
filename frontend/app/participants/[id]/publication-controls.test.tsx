@@ -69,3 +69,28 @@ it("keeps unknown readiness distinct from a failed condition", () => {
   expect(screen.getByText("发布条件暂不可用，不能发布新卡片。")).toBeTruthy();
   expect(screen.queryByText(/合成患者绑定：无活跃绑定/)).toBeNull();
 });
+
+it("retries the same withdrawal after an unknown result and requires a reload after conflict", async () => {
+  vi.mocked(postIntake)
+    .mockResolvedValueOnce({ status: 503, value: null })
+    .mockResolvedValueOnce({ status: 409, value: null });
+  render(<PublicationControls participantId="synthetic-id" studyCode="SYN-001" initialHistory={[{
+    version: 5, state: "published", marker: "SYNTHETIC_PROCESS_ONLY",
+    message: card.message, video_status: "awaiting_review", card_code: card.code, card_title: card.title,
+  }]} cardOptions={[card]} readiness={{ simulated_consent_granted: true, active_patient_binding: true, can_publish: true }} canPublish />);
+
+  fireEvent.click(screen.getByRole("checkbox", { name: /合成流程测试/ }));
+  const withdraw = screen.getByRole<HTMLButtonElement>("button", { name: "撤回测试卡片" });
+  fireEvent.click(withdraw);
+  const retry = await screen.findByRole("button", { name: "重试本次撤回" });
+  expect(withdraw.disabled).toBe(true);
+  expect(screen.getByText(/最后确认状态/)).toBeTruthy();
+  fireEvent.click(retry);
+  await screen.findByText("发布版本已变化，请重新读取发布历史后再操作。");
+  const calls = vi.mocked(postIntake).mock.calls;
+  expect(calls[1].slice(1, 3)).toEqual(calls[0].slice(1, 3));
+  expect(calls[0][1]).toMatchObject({ operation: "withdraw", expected_version: 5 });
+  expect(screen.queryByRole("button", { name: "重试本次撤回" })).toBeNull();
+  expect(screen.getByRole("button", { name: "重新读取发布历史" })).toBeTruthy();
+  expect(withdraw.disabled).toBe(true);
+});

@@ -74,8 +74,21 @@ test("synthetic patient sees only own portal and loses access after binding revo
     expect(previewMessage).toBe("合成发布流程测试卡片；没有可执行的训练计划。");
     await confirmCard.check();
     await staffPage.getByRole("checkbox", { name: /合成流程测试/ }).check();
+    const publicationEndpoint = "**/api/v1/participants/*/demo-patient-publications";
+    await staffPage.route(publicationEndpoint, async (route) => {
+      const response = await route.fetch();
+      expect(response.status()).toBe(201);
+      await route.fulfill({ status: 503, json: {} });
+    }, { times: 1 });
     await staffPage.getByRole("button", { name: "发布所选测试卡片" }).click();
+    const publicationSection = staffPage.getByRole("region", { name: "患者端合成发布流程" });
+    await expect(publicationSection.getByRole("alert")).toContainText("暂时无法确认操作结果");
+    await expect(cardChoice).toBeDisabled();
+    await expect(staffPage.getByRole("button", { name: "撤回测试卡片" })).toBeDisabled();
+    await staffPage.getByRole("button", { name: "重试本次发布" }).click();
     await expect(staffPage.getByText(/合成卡片已发布/)).toBeVisible();
+    const published = await staffPage.request.get(`/api/v1/participants/${id}/demo-patient-publications`);
+    expect(await published.json()).toMatchObject([{ version: 1, state: "published", card_code: "SYN-CARD-B" }]);
     await page.reload();
     await expect(page.getByText(/合成流程测试版本 1/)).toBeVisible();
     await expect(page.getByText("当前卡片：演示卡片 B · 后续查看")).toBeVisible();

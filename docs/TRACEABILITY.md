@@ -216,3 +216,5 @@ DEMO-V2-26（AT-PAT-01 合成身份可见性子集）：`frontend/app/workspace/
 DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/home.ts` 将 `/patient/me` 映射为正常、绑定不可用、会话失效和服务不可用四类；`home.test.ts` 覆盖 200/403/401/503/网络异常，患者真实浏览器流程核对撤销后新提示。2026-11-13 隔离前端 lint/typecheck/40 tests/build、PostgreSQL→Chromium 10 passed，临时资源清理；API 权限和本人隔离未改变。
 
 QA-01 / AT-PAT-03 手机复核准备见 [入口验证与真机操作](testing/A-02-STAFF-REVIEW.md#qa-01-手机复核准备)。本机账号和公开入口预检已通过，iPhone Safari 保存及刷新仍待记录。
+
+DEMO-V2-39 → AT-PAT-02 合成子集。publication-controls.test.tsx 验证撤回重试复用原请求及冲突后重读。patient.real.ts 让真实发布请求成功入库，再向浏览器返回 503，验证页面锁定、重试仅留一条发布版本，以及患者看到原卡片。前端 74 项、生产构建及隔离 Chromium 17 项通过。
