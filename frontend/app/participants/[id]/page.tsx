@@ -65,6 +65,9 @@ export default async function ParticipantPage({ params, searchParams }: {
   const selectedFeedbackVersion = publicationHistory?.find(
     (entry) => entry.state === "published" && String(entry.version) === feedbackVersion,
   )?.version;
+  const versionIssue = feedbackVersion !== undefined && selectedFeedbackVersion === undefined
+    ? (publicationHistory === null ? "unavailable" : "invalid")
+    : undefined;
 
   return (
     <main>
@@ -80,7 +83,7 @@ export default async function ParticipantPage({ params, searchParams }: {
       <ManualObservations participantId={id} canWrite={canWrite && consents?.state === "granted"} />
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
       <PublicationControls participantId={id} studyCode={participant.study_code} initialHistory={publicationHistory} cardOptions={cardOptions} readiness={publicationReadiness} canPublish={user.role === "clinician"} />
-      <StaffPatientReports reports={patientReports} publicationVersion={selectedFeedbackVersion}
+      <StaffPatientReports reports={patientReports} publicationVersion={selectedFeedbackVersion} versionIssue={versionIssue}
         participantId={id} reviews={patientReviews} canReview={canWrite} />
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">模拟同意记录</h2>

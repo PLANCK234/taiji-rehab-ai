@@ -20,9 +20,10 @@ function ReportFacts({ row }: { row: PatientReport }) {
   </>;
 }
 
-export default function StaffPatientReports({ reports, publicationVersion, participantId, reviews = null, canReview = false }: {
+export default function StaffPatientReports({ reports, publicationVersion, versionIssue, participantId, reviews = null, canReview = false }: {
   reports: PatientReport[] | null;
   publicationVersion?: number;
+  versionIssue?: "unavailable" | "invalid";
   participantId?: string;
   reviews?: PatientReview[] | null;
   canReview?: boolean;
@@ -33,6 +34,22 @@ export default function StaffPatientReports({ reports, publicationVersion, parti
   const [savedReviews, setSavedReviews] = useState<PatientReview[]>([]);
   const [filterNotice, setFilterNotice] = useState("");
   const pendingCheckbox = useRef<HTMLInputElement>(null);
+  if (versionIssue) {
+    const unavailable = versionIssue === "unavailable";
+    return <section aria-labelledby="patient-reports-heading">
+      <h2 id="patient-reports-heading" tabIndex={-1}>患者自报训练与不适</h2>
+      <p role="status">{unavailable
+        ? "发布历史暂不可用，无法核对指定任务版本。"
+        : "指定的任务版本没有对应的发布记录，请从发布历史选择一个已发布版本。"}</p>
+      <div className="button-row">
+        {unavailable
+          ? <button type="button" onClick={() => window.location.reload()}>重新读取发布历史</button>
+          : <a href="#publication-heading">返回发布历史</a>}
+        <a href="?#patient-reports-heading">查看全部自报记录</a>
+      </div>
+    </section>;
+  }
+
   const allReviews = reviews === null ? null : [...new Map(
     [...reviews, ...savedReviews].map((row) => [row.id, row]),
   ).values()];

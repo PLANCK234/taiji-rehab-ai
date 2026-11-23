@@ -83,6 +83,21 @@ it("shows feedback for the requested publication and keeps missing pose counts e
   expect(screen.getByText("此任务版本暂无关联反馈。")).toBeTruthy();
 });
 
+it("keeps feedback and filters out of unresolved version views", () => {
+  const props = { reports: [{ ...first, publication_version: 5 }], reviews: [] };
+  const { rerender } = render(<StaffPatientReports {...props} versionIssue="unavailable" />);
+  expect(screen.getByRole("status").textContent).toContain("发布历史暂不可用");
+  expect(screen.getByRole("button", { name: "重新读取发布历史" })).toBeTruthy();
+  expect(screen.queryByText(/合成不适描述/)).toBeNull();
+  expect(screen.queryByRole("checkbox")).toBeNull();
+
+  rerender(<StaffPatientReports {...props} versionIssue="invalid" />);
+  expect(screen.getByRole("status").textContent).toContain("没有对应的发布记录");
+  expect(screen.getByRole("link", { name: "返回发布历史" }).getAttribute("href")).toBe("#publication-heading");
+  expect(screen.getByRole("link", { name: "查看全部自报记录" }).getAttribute("href")).toBe("?#patient-reports-heading");
+  expect(screen.queryByText(/合成不适描述/)).toBeNull();
+});
+
 it("filters task feedback by review of the current revision only", () => {
   const original = { ...first, publication_version: 5, discomfort_note: "首版自报" };
   const correction = { ...original, id: "a-2", revision_no: 2, discomfort_note: "更正自报" };

@@ -322,6 +322,17 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(patientCurrent).toHaveCount(3);
     await expect(page.getByText("目前没有经医护确认并发布给此账号的计划或视频。")).toBeVisible();
     await expect(camera).toHaveCount(0);
+    await staffPage.goto(`/participants/${id}?feedbackVersion=2#patient-reports-heading`);
+    await expect(staffReports.getByRole("status")).toContainText("指定的任务版本没有对应的发布记录");
+    await expect(staffCurrent).toHaveCount(0);
+    await staffReports.getByRole("link", { name: "返回发布历史" }).click();
+    await staffPage.getByRole("link", { name: "核对版本 1 的反馈" }).click();
+    await expect(staffCurrent).toHaveCount(2);
+    await staffPage.goto(`/participants/${id}?feedbackVersion=1&feedbackVersion=2#patient-reports-heading`);
+    await expect(staffReports.getByRole("status")).toContainText("指定的任务版本没有对应的发布记录");
+    await expect(staffCurrent).toHaveCount(0);
+    await staffReports.getByRole("link", { name: "查看全部自报记录" }).click();
+    await expect(staffCurrent).toHaveCount(3);
     const revokeStatus = await staffPage.evaluate(async (participantId) => {
       const csrf = document.cookie.split("; ").find((item) => item.startsWith("taiji_csrf="))?.split("=")[1];
       if (!csrf) throw new Error("synthetic clinician has no CSRF token");
