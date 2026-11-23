@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { activityText, discomfortText, poseCountsText, type PatientReport } from "../../workspace/patient-reports";
 import type { PatientReview } from "../../workspace/patient-reviews";
 import PatientReportReview from "./patient-report-review";
@@ -29,6 +29,14 @@ export default function StaffPatientReports({ reports, publicationVersion, parti
 }) {
   const [onlyDiscomfort, setOnlyDiscomfort] = useState(false);
   const [observedDate, setObservedDate] = useState("");
+  const [onlyPending, setOnlyPending] = useState(false);
+  const [savedReviews, setSavedReviews] = useState<PatientReview[]>([]);
+  const [filterNotice, setFilterNotice] = useState("");
+  const pendingCheckbox = useRef<HTMLInputElement>(null);
+  const allReviews = reviews === null ? null : [...new Map(
+    [...reviews, ...savedReviews].map((row) => [row.id, row]),
+  ).values()];
+  const reviewedRevisions = new Set(allReviews?.map((row) => row.report_revision_id));
   const byReport = new Map<string, PatientReport[]>();
   for (const row of reports ?? []) {
     const revisions = byReport.get(row.report_id) ?? [];
@@ -41,10 +49,21 @@ export default function StaffPatientReports({ reports, publicationVersion, parti
   const taskGroups = publicationVersion === undefined
     ? groups
     : groups.filter(([current]) => current.publication_version === publicationVersion);
+  const canFilterPending = allReviews !== null && taskGroups.some(([row]) => row.publication_version != null);
+  const filterPending = canFilterPending && onlyPending;
   const visibleGroups = taskGroups.filter(([current]) =>
+    (!filterPending || (current.publication_version != null && !reviewedRevisions.has(current.id))) &&
     (!onlyDiscomfort || current.discomfort_state === "reported") &&
     (!observedDate || beijingDate.format(new Date(current.observed_at)) === observedDate),
   );
+
+  function recordSaved(review: PatientReview) {
+    setSavedReviews((previous) => [...previous, review]);
+    if (pendingCheckbox.current?.checked) {
+      setFilterNotice("复核已保存，此条反馈已移出待复核列表。");
+      pendingCheckbox.current.focus();
+    }
+  }
 
   return <section aria-labelledby="patient-reports-heading"><h2 id="patient-reports-heading" tabIndex={-1}>患者自报训练与不适</h2>
     <p className="note">仅显示合成患者本人填写的事实与修订历史；未提交不代表完成或无不适，系统不自动判定风险。</p>
@@ -61,17 +80,26 @@ export default function StaffPatientReports({ reports, publicationVersion, parti
           onChange={(event) => setOnlyDiscomfort(event.target.checked)} />
         仅显示当前版本自报有不适
       </label>
+      {canFilterPending && <label>
+        <input ref={pendingCheckbox} type="checkbox" checked={onlyPending}
+          onChange={(event) => { setOnlyPending(event.target.checked); setFilterNotice(""); }} />
+        仅显示待复核的任务反馈
+      </label>}
     </>}
+    {filterPending && filterNotice && <p role="status">{filterNotice}</p>}
     {reports === null ? <p>患者自报记录暂不可用。</p> : visibleGroups.length ? <ul>{visibleGroups.map(([current, ...older]) => <li key={current.report_id}>
       <p><strong>当前版本 {current.revision_no}</strong> · <ReportFacts row={current} /></p>
       {participantId && current.publication_version != null && <PatientReportReview
-        key={current.id} participantId={participantId} revisionId={current.id} reviews={reviews} canWrite={canReview} />}
+        key={current.id} participantId={participantId} revisionId={current.id} reviews={allReviews}
+        onSaved={canReview ? recordSaved : undefined} />}
       {older.length ? <details><summary>查看旧版本（{older.length}）</summary><ul>{older.map((row) => <li key={row.id}>
         <strong>旧版本 {row.revision_no}</strong> · <ReportFacts row={row} />
         {participantId && row.publication_version != null && <PatientReportReview
-          participantId={participantId} revisionId={row.id} reviews={reviews} canWrite={false} />}
+          participantId={participantId} revisionId={row.id} reviews={allReviews} />}
       </li>)}</ul></details> : null}
-    </li>)}</ul> : taskGroups.length ? <p role="status">{observedDate
+    </li>)}</ul> : taskGroups.length ? <p role={filterPending && filterNotice ? undefined : "status"}>{filterPending
+      ? "没有符合筛选条件的待复核反馈。"
+      : observedDate
       ? "所选日期没有符合筛选条件的记录。"
       : "没有当前版本自报有不适的记录。"}</p>
       : publicationVersion !== undefined ? <p>此任务版本暂无关联反馈。</p>

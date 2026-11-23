@@ -6,13 +6,12 @@ import type { PatientReview } from "../../workspace/patient-reviews";
 
 const resultText = { reviewed: "已核对", unable: "无法判定" };
 
-export default function PatientReportReview({ participantId, revisionId, reviews, canWrite }: {
+export default function PatientReportReview({ participantId, revisionId, reviews, onSaved }: {
   participantId: string;
   revisionId: string;
   reviews: PatientReview[] | null;
-  canWrite: boolean;
+  onSaved?: (review: PatientReview) => void;
 }) {
-  const [saved, setSaved] = useState<PatientReview[]>([]);
   const [result, setResult] = useState<"" | PatientReview["result"]>("");
   const [note, setNote] = useState("");
   const [pending, setPending] = useState(false);
@@ -20,14 +19,13 @@ export default function PatientReportReview({ participantId, revisionId, reviews
   const [success, setSuccess] = useState(false);
   const request = useRef<{ key: string; body: string } | null>(null);
   const busy = useRef(false);
-  const history = [...new Map([...(reviews ?? []), ...saved]
-    .filter((row) => row.report_revision_id === revisionId).map((row) => [row.id, row])).values()]
+  const history = (reviews ?? []).filter((row) => row.report_revision_id === revisionId)
     .sort((a, b) => b.review_no - a.review_no);
   const latest = history[0];
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (busy.current || !result || !note.trim()) return;
+    if (!onSaved || busy.current || !result || !note.trim()) return;
     const payload = { report_revision_id: revisionId, expected_review_no: latest?.review_no ?? 0, result, note: note.trim() };
     const body = JSON.stringify(payload);
     if (request.current?.body !== body) request.current = { key: crypto.randomUUID(), body };
@@ -41,7 +39,7 @@ export default function PatientReportReview({ participantId, revisionId, reviews
     busy.current = false;
     setPending(false);
     if (response.value) {
-      setSaved((previous) => [...previous, response.value!]);
+      onSaved(response.value);
       setResult("");
       setNote("");
       request.current = null;
@@ -64,7 +62,7 @@ export default function PatientReportReview({ participantId, revisionId, reviews
         <strong>复核 {row.review_no} · {resultText[row.result]}</strong> · {row.note}
         <br /><small>复核人员编号：{row.recorded_by} · 北京时间：<time dateTime={row.recorded_at}>{new Date(row.recorded_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</time></small>
       </li>)}</ol>}
-      {canWrite && <form onSubmit={submit}>
+      {onSaved && <form onSubmit={submit}>
         <fieldset disabled={pending}>
           <legend>{latest ? "追加复核记录" : "记录本版复核"}</legend>
           <label>复核结果<select required value={result} onChange={(event) => { setResult(event.target.value as typeof result); setSuccess(false); }}>

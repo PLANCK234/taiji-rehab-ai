@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
 import type { PatientReport } from "../../workspace/patient-reports";
+import type { PatientReview } from "../../workspace/patient-reviews";
 import StaffPatientReports from "./staff-patient-reports";
 
 afterEach(cleanup);
@@ -80,4 +81,26 @@ it("shows feedback for the requested publication and keeps missing pose counts e
   expect(screen.queryByText(/演示任务版本 1/)).toBeNull();
   rerender(<StaffPatientReports publicationVersion={3} reports={[first]} />);
   expect(screen.getByText("此任务版本暂无关联反馈。")).toBeTruthy();
+});
+
+it("filters task feedback by review of the current revision only", () => {
+  const original = { ...first, publication_version: 5, discomfort_note: "首版自报" };
+  const correction = { ...original, id: "a-2", revision_no: 2, discomfort_note: "更正自报" };
+  const reviewed = { ...original, id: "b-1", report_id: "report-b", discomfort_note: "已有复核" };
+  const standalone = { ...first, id: "c-1", report_id: "report-c", discomfort_note: "独立补录" };
+  const reviews: PatientReview[] = [original, reviewed].map((row) => ({
+    id: "review-" + row.id, report_revision_id: row.id, review_no: 1, result: "unable",
+    note: "SYN-已记录无法判定", recorded_by: "staff", recorded_at: first.recorded_at,
+  }));
+  const props = { reports: [original, correction, reviewed, standalone], participantId: "synthetic-participant" };
+  const { rerender } = render(<StaffPatientReports {...props} reviews={reviews} />);
+  const checkbox = screen.getByRole("checkbox", { name: "仅显示待复核的任务反馈" });
+  fireEvent.click(checkbox);
+  expect(screen.getByText(/更正自报/)).toBeTruthy();
+  expect(screen.queryByText(/已有复核|独立补录/)).toBeNull();
+  fireEvent.change(screen.getByLabelText("发生日期（北京时间）"), { target: { value: "2026-11-06" } });
+  expect(screen.getByText("没有符合筛选条件的待复核反馈。")).toBeTruthy();
+  rerender(<StaffPatientReports {...props} reviews={null} />);
+  expect(screen.queryByRole("checkbox", { name: "仅显示待复核的任务反馈" })).toBeNull();
+  expect(screen.queryByText("没有符合筛选条件的待复核反馈。")).toBeNull();
 });

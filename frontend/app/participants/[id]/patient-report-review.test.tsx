@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import PatientReportReview from "./patient-report-review";
 import { postIntake } from "../../workspace/intake";
+import type { PatientReview } from "../../workspace/patient-reviews";
 
 vi.mock("../../workspace/intake", () => ({ postIntake: vi.fn() }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
@@ -15,7 +17,12 @@ const review = {
 it("preserves failed input and idempotency key, then appends successful review", async () => {
   vi.mocked(postIntake).mockResolvedValueOnce({ status: 503, value: null })
     .mockResolvedValueOnce({ status: 201, value: review });
-  render(<PatientReportReview participantId="p1" revisionId="revision-1" reviews={[]} canWrite />);
+  function ReviewForm() {
+    const [reviews, setReviews] = useState<PatientReview[]>([]);
+    return <PatientReportReview participantId="p1" revisionId="revision-1" reviews={reviews}
+      onSaved={(saved) => setReviews([saved])} />;
+  }
+  render(<ReviewForm />);
   fireEvent.change(screen.getByLabelText("复核结果"), { target: { value: "unable" } });
   fireEvent.change(screen.getByLabelText(/复核备注/), { target: { value: "SYN-无法判定" } });
   fireEvent.click(screen.getByRole("button", { name: "保存复核" }));
@@ -30,18 +37,18 @@ it("preserves failed input and idempotency key, then appends successful review",
 });
 
 it("does not carry old-revision reviews forward or allow writes when unavailable/read-only", () => {
-  const { rerender } = render(<PatientReportReview participantId="p1" revisionId="revision-2" reviews={[review]} canWrite={false} />);
+  const { rerender } = render(<PatientReportReview participantId="p1" revisionId="revision-2" reviews={[review]} />);
   expect(screen.getByText("本版反馈待复核")).toBeTruthy();
   expect(screen.queryByText(/SYN-无法判定/)).toBeNull();
   expect(screen.queryByRole("button")).toBeNull();
-  rerender(<PatientReportReview participantId="p1" revisionId="revision-1" reviews={null} canWrite />);
+  rerender(<PatientReportReview participantId="p1" revisionId="revision-1" reviews={null} onSaved={vi.fn()} />);
   expect(screen.queryByRole("button")).toBeNull();
   expect(screen.getByText(/复核记录暂不可用/)).toBeTruthy();
 });
 
 it("retains the draft on stale-source conflict and sends exact revision", async () => {
   vi.mocked(postIntake).mockResolvedValue({ status: 409, value: null });
-  render(<PatientReportReview participantId="p1" revisionId="revision-1" reviews={[review]} canWrite />);
+  render(<PatientReportReview participantId="p1" revisionId="revision-1" reviews={[review]} onSaved={vi.fn()} />);
   fireEvent.change(screen.getByLabelText("复核结果"), { target: { value: "reviewed" } });
   fireEvent.change(screen.getByLabelText(/复核备注/), { target: { value: "SYN-核对记录" } });
   fireEvent.click(screen.getByRole("button", { name: "保存复核" }));

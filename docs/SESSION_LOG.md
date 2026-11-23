@@ -636,3 +636,7 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 用 `aa0790a` 更新现用 Compose 前端。检查了 Compose 配置、浏览器包和本机双角色，公开 HTTPS 登录页及后端 ready 返回 200。更新前后 SYN-001 的 5 项发布、1 项反馈和 0 项复核响应完全一致。现用后端、数据库和隧道容器 ID 一致。QA-01 的 iPhone Safari 复核保存与刷新继续待实测。
 
 旧前端镜像另存为 `taiji-demo-frontend:before-aa0790a`，记录位于 `private-data/backups/2026-11-23-demo-v2-39-before/runtime-rollout.json`。如需恢复，先执行 `docker image tag taiji-demo-frontend:before-aa0790a infra-frontend:latest`，再执行 `docker compose --env-file .env -f infra/compose.yaml up -d --no-deps --no-build frontend` 并重新检查登录页。
+
+## 2026-11-23 DEMO-V2-40 待复核筛选
+
+加入工作人员待复核筛选，按任务关联与反馈当前修订判断。将当前页面保存成功的复核同步给列表，取消筛选后可直接回看。复核读取失败时不显示筛选入口。lint、typecheck、75 项前端及 17 项隔离 Chromium 回归通过，Docker 生产构建成功，一次性资源清理通过。现用手机演示仍是 DEMO-V2-39。
