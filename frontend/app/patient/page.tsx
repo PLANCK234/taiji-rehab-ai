@@ -30,6 +30,9 @@ export default async function PatientPage() {
         {homeResult.home.publication ? <>
           <p role="status">合成流程测试版本 {homeResult.home.publication.version} · 不可作为训练指导</p>
           <p>当前卡片：{homeResult.home.publication.card_title}</p>
+          {!!homeResult.home.publication.actions?.length && <ul aria-label="已发布动作">
+            {homeResult.home.publication.actions.map((action) => <li key={action.code}>{action.title}</li>)}
+          </ul>}
           <p>{homeResult.home.publication.message}</p>
           <div className="demo-video-frame"><div className="demo-video-empty" role="status">
             <span className="demo-video-icon" aria-hidden="true">▶</span>

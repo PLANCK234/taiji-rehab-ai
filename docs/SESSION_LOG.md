@@ -656,3 +656,15 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 使用 `a303fdd` 更新现用 Compose 前端。公开登录页与后端 ready 返回 200。本机双角色烟测通过，SYN-001 的 5 项发布、1 项反馈、0 项复核响应前后一致，后端、数据库及现有隧道容器 ID 一致。尚待 QA-01 的 iPhone Safari 复核保存与刷新实测。
 
 旧前端保留为 `taiji-demo-frontend:before-a303fdd`。需要回滚时，用 `docker image tag taiji-demo-frontend:before-a303fdd infra-frontend:latest` 恢复镜像，再执行 `docker compose --env-file .env -f infra/compose.yaml up -d --no-deps --no-build frontend` 并检查登录页。
+
+## 2026-11-24 合成太极动作多选
+
+工作人员独立勾选起势、云手，预览后发布。浏览器验证双选、重试、患者端回显和撤回。前端 76、后端 60（4 跳过）、浏览器 17 项通过。
+
+## 2026-11-24 简化24式多选和发布历史
+
+增加动作快照增量迁移 0019。前端 77、后端 60（4 跳过）、隔离 Chromium 17 项通过，隔离资源已清理。
+
+## 2026-11-24 C-01 实时检出调参
+
+实时人体检出门槛 0.40，增加未检出和单侧可见区分。类型检查、Lint、78 项前端测试与 17 项隔离 Chromium 通过；临时资源清理通过。外套和侧身真机改善待验证。

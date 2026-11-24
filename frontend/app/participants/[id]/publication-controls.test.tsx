@@ -70,6 +70,25 @@ it("keeps unknown readiness distinct from a failed condition", () => {
   expect(screen.queryByText(/合成患者绑定：无活跃绑定/)).toBeNull();
 });
 
+it("pins the latest version and paginates older records in reverse order", () => {
+  const history = Array.from({ length: 12 }, (_, index) => ({
+    version: index + 1, state: "published" as const, marker: "SYNTHETIC_PROCESS_ONLY" as const,
+    message: card.message, video_status: "awaiting_review" as const,
+    card_code: card.code, card_title: card.title,
+  }));
+  render(<PublicationControls participantId="synthetic-id" studyCode="SYN-001"
+    initialHistory={history} cardOptions={null} readiness={null} canPublish={false} />);
+  expect(screen.getByRole("link", { name: "核对版本 12 的反馈" })).toBeTruthy();
+  const disclosure = screen.getByText("发布历史（11 条）").closest("details")!;
+  expect(disclosure.open).toBe(false);
+  expect(disclosure.querySelectorAll("li")).toHaveLength(10);
+  expect(disclosure.querySelector("li")?.textContent).toContain("版本 11");
+  disclosure.open = true;
+  fireEvent.click(screen.getByRole("button", { name: "下一页" }));
+  expect(disclosure.querySelectorAll("li")).toHaveLength(1);
+  expect(disclosure.querySelector("li")?.textContent).toContain("版本 1");
+});
+
 it("retries the same withdrawal after an unknown result and requires a reload after conflict", async () => {
   vi.mocked(postIntake)
     .mockResolvedValueOnce({ status: 503, value: null })
@@ -84,7 +103,7 @@ it("retries the same withdrawal after an unknown result and requires a reload af
   fireEvent.click(withdraw);
   const retry = await screen.findByRole("button", { name: "重试本次撤回" });
   expect(withdraw.disabled).toBe(true);
-  expect(screen.getByText(/最后确认状态/)).toBeTruthy();
+  expect(screen.getByRole("heading", { name: "最后确认的任务状态" })).toBeTruthy();
   fireEvent.click(retry);
   await screen.findByText("发布版本已变化，请重新读取发布历史后再操作。");
   const calls = vi.mocked(postIntake).mock.calls;

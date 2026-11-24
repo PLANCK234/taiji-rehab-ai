@@ -1,5 +1,7 @@
 # REST API contract (proposed /api/v1)
 
+合成卡片选项提供 `SYN-24-01` 至 `SYN-24-24`。发布可提交 1–24 个互异的 `action_codes`，需确认选择，不能同时提交旧卡片代码。服务端按套路顺序保存动作编号与标题快照，通过 `actions` 返回；旧请求和旧记录仍兼容。[动作目录依据](https://tyxy.yau.edu.cn/__local/F/30/A4/06C022E94C47A353D1926073185_0B9FAB4F_1A977B.pdf?e=.pdf)
+
 新建任务关联的合成自报可带 `pose_summary`。仅接受三个整数计数 `sample_count`、`detected_count`、`framing_check_pass_count`；总采样大于零，取景通过数不大于检出数，检出数不大于总数。自报视图返回可空摘要；修订保留首次提交摘要。该字段不接收画面、逐帧内容、评分或角度。
 
 合成患者新增自报时可传可选的 `publication_version`。服务端在本人作用域检查该版本为当前有效发布，撤回或替换后以 409 拒绝新关联。自报返回可空的 `publication_version`；已有记录保持空值，更正沿用原关联。

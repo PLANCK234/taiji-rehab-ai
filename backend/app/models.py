@@ -138,6 +138,7 @@ class DemoPatientPublication(Base):
     marker: Mapped[str] = mapped_column(String(40), nullable=False)
     card_code: Mapped[str | None] = mapped_column(String(40))
     card_title: Mapped[str | None] = mapped_column(String(100))
+    actions: Mapped[list[dict[str, str]] | None] = mapped_column(JSON(none_as_null=True))
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 

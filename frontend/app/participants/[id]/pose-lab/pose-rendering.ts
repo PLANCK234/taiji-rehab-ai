@@ -8,13 +8,14 @@ export type PoseLandmarkerLike = {
   close(): void;
 };
 
-export async function createLandmarker(): Promise<PoseLandmarkerLike> {
+export async function createLandmarker({ live = false }: { live?: boolean } = {}): Promise<PoseLandmarkerLike> {
     const mediaPipe = await import("@mediapipe/tasks-vision");
     const vision = await mediaPipe.FilesetResolver.forVisionTasks("/pose-assets/wasm");
     const options = {
       baseOptions: { modelAssetPath: "/pose-assets/pose_landmarker_full.task", delegate: "GPU" as const },
       runningMode: "VIDEO" as const, numPoses: 1,
-      minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5,
+      minPoseDetectionConfidence: live ? 0.4 : 0.5,
+      minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5,
     };
     try {
       return await mediaPipe.PoseLandmarker.createFromOptions(vision, options);

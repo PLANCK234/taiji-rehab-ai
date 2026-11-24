@@ -59,17 +59,18 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(staffPage.getByText("视频待提供和核对。现在发布的测试卡片只包含文字。")).toBeVisible();
     await expect(staffPage.getByText(/当前模拟同意：已记录，可用于合成发布/)).toBeVisible();
     await expect(staffPage.getByText(/合成患者绑定：有效/)).toBeVisible();
-    const cardChoice = staffPage.getByLabel("选择演示卡片");
+    const actionChoices = staffPage.getByRole("group", { name: "选择演示动作（可多选）" });
     const cardPreview = staffPage.getByRole("region", { name: "患者端卡片预览" });
     const confirmCard = staffPage.getByRole("checkbox", { name: /确认本次选择/ });
     await expect(cardPreview).toHaveCount(0);
-    await cardChoice.selectOption("SYN-CARD-A");
-    await expect(cardPreview).toContainText("演示卡片 A · 初次查看");
+    await expect(actionChoices.getByRole("checkbox")).toHaveCount(24);
+    await actionChoices.getByRole("checkbox", { name: "01 起势", exact: true }).check();
+    await expect(cardPreview).toContainText("01 起势");
     await confirmCard.check();
-    await cardChoice.selectOption("SYN-CARD-B");
+    await actionChoices.getByRole("checkbox", { name: "10 云手", exact: true }).check();
     await expect(confirmCard).not.toBeChecked();
     await expect(cardPreview).toContainText("接收档案：SYN-001");
-    await expect(cardPreview).toContainText("演示卡片 B · 后续查看");
+    await expect(cardPreview.getByRole("listitem")).toHaveText(["01 起势", "10 云手"]);
     const previewMessage = await cardPreview.locator("p").last().innerText();
     expect(previewMessage).toBe("合成发布流程测试卡片；没有可执行的训练计划。");
     await confirmCard.check();
@@ -83,15 +84,19 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await staffPage.getByRole("button", { name: "发布所选测试卡片" }).click();
     const publicationSection = staffPage.getByRole("region", { name: "患者端合成发布流程" });
     await expect(publicationSection.getByRole("alert")).toContainText("暂时无法确认操作结果");
-    await expect(cardChoice).toBeDisabled();
+    await expect(actionChoices.getByRole("checkbox", { name: "01 起势", exact: true })).toBeDisabled();
+    await expect(actionChoices.getByRole("checkbox", { name: "10 云手", exact: true })).toBeDisabled();
     await expect(staffPage.getByRole("button", { name: "撤回测试卡片" })).toBeDisabled();
     await staffPage.getByRole("button", { name: "重试本次发布" }).click();
     await expect(staffPage.getByText(/合成卡片已发布/)).toBeVisible();
     const published = await staffPage.request.get(`/api/v1/participants/${id}/demo-patient-publications`);
-    expect(await published.json()).toMatchObject([{ version: 1, state: "published", card_code: "SYN-CARD-B" }]);
+    expect(await published.json()).toMatchObject([{
+      version: 1, state: "published", actions: [{ code: "SYN-24-01" }, { code: "SYN-24-10" }],
+    }]);
     await page.reload();
     await expect(page.getByText(/合成流程测试版本 1/)).toBeVisible();
-    await expect(page.getByText("当前卡片：演示卡片 B · 后续查看")).toBeVisible();
+    await expect(page.getByRole("list", { name: "已发布动作" }).getByRole("listitem"))
+      .toHaveText(["01 起势", "10 云手"]);
     await expect(page.getByText("视频待添加")).toBeVisible();
     await expect(page.getByText("当前卡片暂无可播放视频。")).toBeVisible();
     const plan = page.getByRole("region", { name: "训练计划与视频" });
@@ -135,12 +140,12 @@ test("synthetic patient sees only own portal and loses access after binding revo
     const pauseTask = camera.getByRole("button", { name: "暂停演示任务" });
     await expect(pauseTask).toBeDisabled();
     await camera.getByRole("button", { name: "开始演示任务" }).click();
-    await expect(camera.getByRole("status")).toHaveText(/实时骨架识别中|部分关键点不可见/, { timeout: 25_000 });
+    await expect(camera.getByRole("status")).toContainText("暂未识别到人体", { timeout: 25_000 });
     await pauseTask.click();
     await expect(camera.getByRole("status")).toContainText("识别已暂停");
     expect(await track.evaluate((item) => item.readyState)).toBe("live");
     await camera.getByRole("button", { name: "继续演示任务" }).click();
-    await expect(camera.getByRole("status")).toHaveText(/实时骨架识别中|部分关键点不可见/);
+    await expect(camera.getByRole("status")).toContainText("暂未识别到人体");
     await camera.getByRole("button", { name: "结束演示任务并填写记录" }).click();
     await expect(page.getByRole("heading", { name: "训练与不适记录" })).toBeFocused();
     await expect(camera.getByRole("status")).toHaveText("演示任务已结束，摄像头已停止。");
@@ -326,6 +331,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(staffReports.getByRole("status")).toContainText("指定的任务版本没有对应的发布记录");
     await expect(staffCurrent).toHaveCount(0);
     await staffReports.getByRole("link", { name: "返回发布历史" }).click();
+    await staffPage.getByText("发布历史（1 条）", { exact: true }).click();
     await staffPage.getByRole("link", { name: "核对版本 1 的反馈" }).click();
     await expect(staffCurrent).toHaveCount(2);
     await staffPage.goto(`/participants/${id}?feedbackVersion=1&feedbackVersion=2#patient-reports-heading`);

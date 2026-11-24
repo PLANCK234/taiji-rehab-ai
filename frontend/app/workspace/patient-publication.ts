@@ -6,6 +6,7 @@ export type PatientPublication = {
   video_status: "awaiting_review";
   card_code: string | null;
   card_title: string;
+  actions?: { code: string; title: string }[];
 };
 
 export type SyntheticCardOption = { code: string; title: string; message: string };

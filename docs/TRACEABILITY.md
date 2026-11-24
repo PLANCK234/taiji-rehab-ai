@@ -1,5 +1,11 @@
 # Requirements traceability
 
+AT-POSE-01 实时识别优化由 `pose-analysis.test.ts` 验证侧身单侧可见、部分出框及未检出分类，由 `patient.real.ts` 验证无人画面提示并继续完成自报。
+
+AT-PAT-02 简化24式多选由 `patient.real.ts` 验证，覆盖 24 项清单、双选回显、撤回及历史反馈；`publication-controls.test.tsx` 验证当前任务置顶、历史默认折叠及最近十条分页。
+
+AT-PAT-02 合成动作选择由 `patient.real.ts` 覆盖单项切换为组合、重新确认、患者端标题与版本一致及撤回。
+
 A-02 / DEMO-V2-38 → AT-PAT-03 合成复核：`backend/tests/test_patient_reviews.py` 覆盖鉴权、CSRF、幂等、版本冲突及不可变源；`patient-report-review.test.tsx` 覆盖失败输入与键复用、不可用/只读、新旧修订隔离；`frontend/e2e/patient.real.ts` 验证真实 PostgreSQL 保存/刷新/追加与患者更正后历史分离。见 [A-02 验证记录](testing/A-02-STAFF-REVIEW.md)。
 
 QA-01 首条合成手机任务的保存与摘要核对证据见 [iPhone 真机记录](testing/C-01-MOBILE-VALIDATION.md)。

@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPoseFrame, JOINT_DEFINITIONS, type JointName } from "./pose-analysis";
+import { createPoseFrame, JOINT_DEFINITIONS, liveFraming, type JointName } from "./pose-analysis";
 import { createLandmarker, drawSkeleton } from "./pose-rendering";
 import type { LiveSummary } from "./live-pose-summary";
 import type { PatientPoseCounts } from "../../../workspace/patient-reports";
 
 const joints = Object.keys(JOINT_DEFINITIONS) as JointName[];
+const framingMessages = {
+  full: "实时骨架识别中。",
+  "one-side": "已识别到人体，部分关键点不可见。侧身或遮挡时，仅显示可见骨架。",
+  partial: "已识别到人体，部分关键点不可见。请检查全身是否入镜和光线是否充足。",
+  missing: "暂未识别到人体。请让全身入镜，检查光线和人与背景的区分度。",
+};
 
 export default function PoseCamera({
   allowSummaryExport = true, nextStepHeadingId, taskVersion, onTaskSummary,
@@ -87,15 +93,12 @@ export default function PoseCamera({
           const result = model.detectForVideo(preview, now);
           const pose = createPoseFrame(now, result.landmarks?.[0], result.worldLandmarks?.[0]);
           drawSkeleton(overlay, preview, pose);
-          const inFrame = pose.detected && [0, 27, 28, 31, 32].every((index) => {
-            const point = pose.landmarks[index];
-            return (point.visibility ?? 1) >= 0.5 && point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1;
-          });
+          const framing = liveFraming(pose);
           firstInference ??= now;
           resultSummary.observed_ms = Math.round(now - firstInference);
           resultSummary.sample_count++;
           if (pose.detected) resultSummary.detected_count++;
-          if (inFrame) resultSummary.framing_check_pass_count++;
+          if (framing === "full") resultSummary.framing_check_pass_count++;
           for (const joint of joints) {
             const angle = pose.angles[joint];
             if (angle === null || !Number.isFinite(angle)) continue;
@@ -104,7 +107,7 @@ export default function PoseCamera({
               ? { samples: range.samples + 1, min_deg: Math.min(angle, range.min_deg), max_deg: Math.max(angle, range.max_deg) }
               : { samples: 1, min_deg: angle, max_deg: angle };
           }
-          setMessage(inFrame ? "实时骨架识别中。" : "部分关键点不可见，请调整距离和光线，让全身尽量入镜。");
+          setMessage(framingMessages[framing]);
         }
         frame = requestAnimationFrame(tick);
       } catch {
@@ -139,7 +142,7 @@ export default function PoseCamera({
         beginAnalysis.current = null;
         setPhase("loading");
         setMessage("正在加载本地模型……");
-        void createLandmarker().then((loaded) => {
+        void createLandmarker({ live: true }).then((loaded) => {
           if (stopped) {
             loaded.close();
             return;

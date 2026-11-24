@@ -1970,6 +1970,24 @@
         "title": "PatientReportWrite",
         "type": "object"
       },
+      "PublicationAction": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "title"
+        ],
+        "title": "PublicationAction",
+        "type": "object"
+      },
       "PublicationReadinessView": {
         "properties": {
           "active_patient_binding": {
@@ -1995,6 +2013,13 @@
       },
       "PublicationView": {
         "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/PublicationAction"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
           "card_code": {
             "anyOf": [
               {
@@ -2051,12 +2076,31 @@
       "PublicationWrite": {
         "additionalProperties": false,
         "properties": {
+          "action_codes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 24,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Codes"
+          },
           "card_code": {
             "anyOf": [
               {
                 "enum": [
                   "SYN-CARD-A",
-                  "SYN-CARD-B"
+                  "SYN-CARD-B",
+                  "SYN-TAIJI-OPENING",
+                  "SYN-TAIJI-CLOUD-HANDS",
+                  "SYN-TAIJI-OPENING-CLOUD-HANDS"
                 ],
                 "type": "string"
               },
