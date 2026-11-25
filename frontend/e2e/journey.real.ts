@@ -33,7 +33,12 @@ test("patient four-step shell keeps drafts and never starts training on desktop 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     if (width === 390) await page.screenshot({ path: `${process.env.E2E_OUTPUT_DIR}/patient-four-step-mobile.png`, fullPage: true });
   }
-  await page.reload();
+  const prompt = page.waitForEvent("dialog");
+  const reload = page.reload();
+  const dialog = await prompt;
+  expect(dialog.type()).toBe("beforeunload");
+  await dialog.accept();
+  await reload;
   await expect(page.getByRole("button", { name: "1. 学习", exact: true })).toHaveAttribute("aria-current", "step");
   await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
   await expect(page.getByLabel("实际训练情况")).toHaveValue("unknown");

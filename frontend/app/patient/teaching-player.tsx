@@ -32,7 +32,7 @@ export default function TeachingPlayer({ videos, active }: { videos: LocalTeachi
   useEffect(() => {
     function pauseWhenHidden() { if (document.hidden) { playRequest.current++; player.current?.pause(); } }
     document.addEventListener("visibilitychange", pauseWhenHidden);
-    return () => { playRequest.current++; document.removeEventListener("visibilitychange", pauseWhenHidden); };
+    return () => document.removeEventListener("visibilitychange", pauseWhenHidden);
   }, []);
 
   if (!video) return null;

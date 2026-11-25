@@ -8,12 +8,16 @@ function csrfCookie(): string | null {
   return entry ? decodeURIComponent(entry.split("=", 2)[1]) : null;
 }
 
-export default function LogoutButton() {
+export default function LogoutButton({ beforeLogout, onLogoutSuccess }: {
+  beforeLogout?: () => boolean;
+  onLogoutSuccess?: () => void;
+} = {}) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
   async function logout() {
+    if (beforeLogout && !beforeLogout()) return;
     const csrf = csrfCookie();
     if (!csrf) {
       setError("会话验证失败，请刷新页面。");
@@ -27,6 +31,7 @@ export default function LogoutButton() {
         headers: { "X-CSRF-Token": csrf },
       });
       if (!response.ok) throw new Error("logout failed");
+      onLogoutSuccess?.();
       router.replace("/login");
     } catch {
       setError("退出失败，请稍后重试。");

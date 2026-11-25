@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "../workspace/auth";
-import LogoutButton from "../workspace/logout-button";
+import { FeedbackLeaveGuard, PatientLogoutButton, UnsavedFeedbackNotice } from "./feedback-leave-guard";
 import { getPatientReports } from "../workspace/patient-reports";
 import PatientReportForm from "./report-form";
 import { roleLabel } from "../workspace/role-label";
@@ -23,10 +23,11 @@ export default async function PatientPage() {
   const reports = homeResult.kind === "ready" ? await getPatientReports(cookieHeader) : null;
   const localVideos = homeResult.kind === "ready" ? await localTeachingVideos() : [];
 
-  return <main className={styles.page}>
+  return <FeedbackLeaveGuard key={user.id}><main className={styles.page}>
     <div className="eyebrow">合成数据演示 · 患者入口</div>
     <h1>我的康复空间</h1>
     <p>当前账号：{user.email}（{roleLabel(user.role)}）</p>
+    <UnsavedFeedbackNotice />
     {homeResult.kind === "ready" ? <>
       <p>我的演示编号：{homeResult.home.study_code}</p>
       <PatientJourney localVideos={localVideos} key={JSON.stringify([user.id, homeResult.home.study_code])} learning={<section>
@@ -56,6 +57,6 @@ export default async function PatientPage() {
         <RetryPatientHomeButton label="重新检查服务" />
       </section>
     )}
-    <LogoutButton />
-  </main>;
+    <PatientLogoutButton />
+  </main></FeedbackLeaveGuard>;
 }

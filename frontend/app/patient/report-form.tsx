@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { postIntake } from "../workspace/intake";
 import { activityText, discomfortText, type PatientReport } from "../workspace/patient-reports";
 import RetryPatientHomeButton from "./retry-button";
+import { useFeedbackLeaveWarning } from "./feedback-leave-guard";
 
 type ReportDraft = {
   observedAt: string;
@@ -16,6 +17,10 @@ type ReportDraft = {
 
 type Field = "observedAt" | "minutes" | "note" | "reason";
 type FieldErrors = Partial<Record<Field, string>>;
+
+function hasNewDraft(draft: Pick<ReportDraft, "observedAt" | "activity" | "minutes" | "discomfort" | "note"> | null) {
+  return !!draft && (draft.observedAt !== "" || draft.activity !== "unknown" || draft.discomfort !== "unknown");
+}
 
 function saveError(status: number): string {
   if (status === 401) return "登录已失效，填写内容已保留。请在新标签页重新登录，再返回这里重试。";
@@ -73,16 +78,23 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
   const id = useId();
   useEffect(() => () => { request.current?.abort(); }, []);
   const key = useRef("");
-  const newDraft = useRef<ReportDraft | null>(null);
+  const [newDraft, setNewDraft] = useState<ReportDraft | null>(null);
   const latest = reports.filter((row) => !reports.some((other) => other.report_id === row.report_id && other.revision_no > row.revision_no))
     .sort((a, b) => Date.parse(b.recorded_at) - Date.parse(a.recorded_at) || a.report_id.localeCompare(b.report_id));
   const latestEditing = editing ? latest.find((row) => row.report_id === editing.report_id) : null;
+  const correctionDirty = !!editing && (observedAt !== beijingFormTime(editing.observed_at)
+    || activity !== editing.activity_state || (activity === "performed" ? minutes : "") !== (editing.activity_state === "performed" ? editing.actual_minutes?.toString() ?? "" : "")
+    || discomfort !== editing.discomfort_state || (discomfort === "reported" ? note : "") !== (editing.discomfort_state === "reported" ? editing.discomfort_note ?? "" : "") || reason !== "");
+  const unsaved = pending || (editing ? correctionDirty || hasNewDraft(newDraft)
+    : hasNewDraft({ observedAt, activity, minutes, discomfort, note }));
+  useFeedbackLeaveWarning(unsaved);
 
   function clearErrors() { setErrors({}); setFailedStatus(null); setMessage(""); }
 
   function edit(row: PatientReport) {
+    if (editing && correctionDirty && !window.confirm("当前更正还有未保存的修改。要放弃这些修改并查看所选记录吗？")) return;
     if (!editing) {
-      newDraft.current = { observedAt, activity, minutes, discomfort, note, requestKey: key.current };
+      setNewDraft({ observedAt, activity, minutes, discomfort, note, requestKey: key.current });
     }
     setEditing(row);
     setObservedAt(beijingFormTime(row.observed_at));
@@ -104,11 +116,12 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
     setNote(draft?.note ?? "");
     setReason("");
     key.current = draft?.requestKey ?? "";
-    newDraft.current = null;
+    setNewDraft(null);
   }
 
   function cancelCorrection() {
-    returnToNewReport(newDraft.current);
+    if (correctionDirty && !window.confirm("要取消本次更正吗？未保存的更正内容将丢失。")) return;
+    returnToNewReport(newDraft);
     clearErrors();
   }
 
@@ -158,7 +171,7 @@ function EditablePatientReports({ initialReports }: { initialReports: PatientRep
     finally { window.clearTimeout(timeout); request.current = null; busy.current = false; setPending(false); }
     if (result.value) {
       setSavedReports((previous) => [result.value!, ...previous]);
-      returnToNewReport(editing ? newDraft.current : null);
+      returnToNewReport(editing ? newDraft : null);
       setFailedStatus(null);
       setMessage("合成记录已保存。此处没有自动风险判断或平台内处置服务。");
     } else {

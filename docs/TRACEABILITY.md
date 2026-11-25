@@ -200,3 +200,7 @@ DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/ho
 ## DEMO-V2-42 / AT-PAT-08
 
 用户选择教学播放器易用性 → PRD/AT-PAT-08 → teaching-player.tsx及模块样式 → teaching-player.test.tsx新增4项、扩展teaching.preview.ts → [验证记录](testing/DEMO-V2-42-PLAYER-CONTROLS.md)。媒体访问、权限和反馈接口不变。
+
+## DEMO-V2-43 / AT-PAT-09
+
+用户选择离开提醒 → PRD/AT-PAT-09 → feedback-leave-guard.tsx、report-form.tsx、患者页Provider和LogoutButton可选回调 → 5项guard组件测试、leave-guard.real.ts及原journey/patient回归 → [实测与限制](testing/DEMO-V2-43-UNSAVED-FEEDBACK.md)。不改变数据库或数据批准边界。
