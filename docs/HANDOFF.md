@@ -1,17 +1,18 @@
 # 当前交接检查点
 
-更新时间：2026-11-21 北京时间（ENG-05 本地自动备份）。先执行 `git status --short --branch`、`git rev-parse HEAD`、`git log -3 --oneline` 并核对 [TASKS](TASKS.md)、[STATUS](STATUS.md) 与实际代码。不要把本文件中的预期分支名当作 Git 事实。
+更新时间：2026-11-25 北京时间。实际 Git 状态优先于文档。
 
 | 项目 | 当前状态 |
 |---|---|
-| Branch / HEAD | `feat/eng-05-local-auto-backup`，基于团队主分支 `68241c2`；最终提交以实际 Git 为准。 |
-| 最近独立任务 | `ENG-05` Mac备份本地验证，见 [证据](testing/ENG-05-BACKUP.md)；上一任务： `S6-19` 复用姿态实验室完成五次坐站人工起止、程序候选用时比较、未知原因与经确认的本地 CSV。 |
-| 验证 | ENG-05：12单测、21表恢复、两轮调度、后台running；以下为历史验收： S6-19 前端 lint、typecheck、69 项测试、生产构建及隔离 Chromium 17 项通过。隔离资源已清理，本机登录页返回 200。 |
-| 当前缺口 | 已有两段本机开发视频和候选计次，仍待独立样本、标准人工标注协议、可比参考角、正式计时一致性、SPPB 分项计分和太极动作评分。真实医护计划发布、审核视频、患者异常处置及其他 REAL 父任务缺口由原任务跟踪。 |
-| 临床与数据阻断 | S3-01 继续 BLOCKED。Q-01/Q-10 的真实影像目的、同意、留存和权限未批准；S6-03 不解除它们。Q-03/Q-09 等临床规则/发布责任同样未签核；Research 默认拒绝。 |
-| S6-04 检查点 | [本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)保留两组直立时间及按初查循环窗口抽取的模型角峰。第 1、4 次标注存在差异。独立计次/事件计时、可比参考角及太极样本待补。 |
-| 下一 Task ID | `S6-04`。按团队确认的口径使用含可核实起点的获授权独立样本，先做人工计时，再比程序候选。太极关键动作清单及评分口径由用户向团队确认。 |
-| 下一步文件 | [姿态原型](product/POSE_PROTOTYPE.md)、[本机坐站验证](testing/S6-04-5STS-LOCAL-VALIDATION.md)、[待决事项](OPEN_QUESTIONS.md)；先检查嵌套 AGENTS 和实际 Git 状态。 |
-| 未提交/推送 | ENG-05 已推送个人功能分支并创建 [PR #7](https://github.com/PLANCK234/taiji-rehab-ai/pull/7)，待团队审核；未合并 main，未删除原卷。 |
+| Branch / HEAD | `feat/patient-four-step-shell`；基于 main `8a7b4e7`（ENG-05 PR #7 已合并）；本任务已保存本地检查点（提交号以 `git log -1` 为准），未推送。 |
+| 最近独立任务 | `DEMO-V2-39` 团队自录13片本机试播，继承 `DEMO-V2-38` 四步框架；[证据](testing/DEMO-V2-38-PATIENT-JOURNEY.md)。 |
+| 验证 | 四步框架72项组件/18项隔离Chromium通过；视频增量lint/typecheck、79项前端测试、构建及1项本机13片实际播放/权限专项通过。 |
+| 当前缺口 | 四步只供浏览，不产生任务或训练状态；已有独立本机教学试播；未接摄像头/正式审核视频发布/算法/疲劳疼痛字段/任务关联。反馈沿用本人独立事实记录。刷新不保留草稿。 |
+| 临床与数据阻断 | S3-01、真实影像/真实患者及临床发布批准不变；团队已提供自录教学片，仅供本机试播，未完整人工审核音画，不伪造已审核。 |
+| 下一 Task ID | `DEMO-V2-16` 正式非指导性流程发布仍 BLOCKED（新增教学片不满足原契约）；接续 B-01 前与 A/C 组对齐任务/素材/摄像头接口，再登记细分任务。 |
+| 下一步文件 | `frontend/app/patient/journey.tsx`、`report-form.tsx`、[产品基线](product/PRD.md)、[视频契约](product/SYNTHETIC_VIDEO_REVIEW_CONTRACT.md)。 |
+| 未提交/推送 | 四步及视频增量前端、测试、可选本机Compose覆盖配置与文档已纳入本地检查点，未推送或创建 PR；媒体、数据库和 `.env` 不在提交中。 |
 
-交接恢复：本文件是最新检查点，历史记录见 [SESSION_LOG](SESSION_LOG.md)。新任务完成后更新本表、[STATUS](STATUS.md)、[TASKS](TASKS.md)、[TRACEABILITY](TRACEABILITY.md)，运行实测门禁并保留可恢复 Git 检查点。
+本机新版项目已保留原 `infra_pgdata` 并升级到 `0015_demo_patient_card_selection`，旧评估训练反馈核对一致；数据库升级属前一项本机运行准备，不属于本次前端代码变更。自动备份任务已指向新版项目，仍每24小时/失败5分钟重试。
+
+历史任务、临床阻断和研究任务状态保留在 [STATUS](STATUS.md)、[TASKS](TASKS.md) 与 [SESSION_LOG](SESSION_LOG.md)。

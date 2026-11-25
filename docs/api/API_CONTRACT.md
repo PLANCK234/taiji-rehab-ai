@@ -129,3 +129,11 @@ All endpoints use the existing staff session and server-side study/participant s
 Assessment confirmation (`POST /assessments/{id}/confirm`) additionally persists one `demo_grade_results` per confirmed revision. Existing assessment/training response shapes and endpoints remain valid. The generated OpenAPI snapshot is `backend/openapi.json`.
 
 REAL-01C1 Demo 合成子集：GET/POST `/api/v1/participants/{id}/manual-observations`，POST `.../{observation_id}` 追加更正。快照含固定指标/单位、十进制字符串、有效性/缺失原因、时间/侧别/说明，服务端记录来源/操作者/时间；更正需预期版本与 SYN 原因。当前模拟同意、对象范围、CSRF 和幂等必需；不触发 SPPB 分级。REAL-01F1 已将结构化观察及修订纳入单对象 Demo CSV，说明文字仍排除；真实数据与临床使用未批准。
+
+## 2026-11-25 DEMO-V2-38 页面组织说明
+
+患者四步导航仅改变展示，不新增端点、字段或授权。`GET /patient/me` 与现有患者自报接口继续按服务端本人范围执行；步骤切换不调用训练或写入接口。反馈仍为独立事实记录，不得假定已有任务/训练会话关联。
+
+## DEMO-V2-39 本机试播媒体（Next.js路由）
+
+`GET /api/local-teaching/{file}`：仅显式开启的本机试播；`file` 必须是清单内 `teaching-NN.mp4` 或 `.jpg`。每次验证患者会话和当前本人绑定（后台Demo边界仍生效），不检查正式发布，因为这是独立的本机开发素材试播，不得作为正式发布接口使用。默认关闭404、未登录401、非患者/绑定失效403、服务不可用503、文件或路径不可用404、无效字节区间416。支持200/206与Content-Range，private/no-store，防止目录穿越与越界符号链接；无上传和写入接口。

@@ -1,0 +1,14 @@
+# Optional local-only preview of team-owned teaching videos. No publication is created.
+# Set LOCAL_TEACHING_MEDIA_DIR to a private directory outside the repository.
+services:
+  frontend:
+    environment:
+      LOCAL_TEACHING_PREVIEW_ENABLED: "true"
+      LOCAL_TEACHING_VIDEO_DIR: /local-teaching
+    volumes:
+      - type: bind
+        source: ${LOCAL_TEACHING_MEDIA_DIR:?set a private local teaching directory}
+        target: /local-teaching
+        read_only: true
+        bind:
+          create_host_path: false

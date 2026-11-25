@@ -180,3 +180,11 @@ DEMO-V2-26（AT-PAT-01 合成身份可见性子集）：`frontend/app/workspace/
 DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/home.ts` 将 `/patient/me` 映射为正常、绑定不可用、会话失效和服务不可用四类；`home.test.ts` 覆盖 200/403/401/503/网络异常，患者真实浏览器流程核对撤销后新提示。2026-11-13 隔离前端 lint/typecheck/40 tests/build、PostgreSQL→Chromium 10 passed，临时资源清理；API 权限和本人隔离未改变。
 
 | ENG-05 / AT-BACKUP-01 / AT-13 synthetic subset | `scripts/demo_backup.py`; [ADR-0024](decisions/0024-local-demo-backup.md) | [12 unit tests + real restore and two scheduled cycles](testing/ENG-05-BACKUP.md) | Demo ops | local verified; PR review pending; no Research approval |
+
+## DEMO-V2-38 / AT-PAT-04 患者四步框架
+
+用户确认的 B 组首个小任务 → [产品行为](product/PRD.md) / [验收](product/ACCEPTANCE.md) → `frontend/app/patient/journey.tsx`、`journey.module.css`、`page.tsx` → `journey.test.tsx`、`frontend/e2e/journey.real.ts` 和原患者浏览器回归 → [测试证据](testing/DEMO-V2-38-PATIENT-JOURNEY.md)。本任务只完成框架，不等于分工文档 B-01/B-02 整体完成。
+
+## DEMO-V2-39 / AT-PAT-05
+
+用户提供团队自录教学素材 → [范围与实测](product/LOCAL_TEACHING_PREVIEW.md) → `teaching-player.tsx`、`local-teaching*.ts`、`api/local-teaching/[file]/route.ts`、可选Compose覆盖配置 → 本机私有源/副本清单（不提交） → 79项前端测试、`teaching.preview.ts` 本机专项通过。不改变正式合成视频发布契约或真实患者准入。

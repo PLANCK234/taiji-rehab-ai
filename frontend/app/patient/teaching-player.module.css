@@ -1,0 +1,8 @@
+.layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(170px, 1fr); gap: 24px; }
+.video { display: block; width: 100%; max-height: 520px; aspect-ratio: 16 / 9; background: #182b22; border-radius: 16px; object-fit: contain; margin: 12px 0 16px; }
+.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; max-height: 520px; overflow: auto; }
+.list button { width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 8px; color: #20352d; background: #f4f7f2; border-color: #d7e3d8; }
+.list button:hover { background: #e2eee1; }
+.list button[aria-pressed="true"] { background: #286c51; color: white; }
+.list small { color: inherit; font-weight: 400; }
+@media (max-width: 600px) { .layout { grid-template-columns: minmax(0, 1fr); } .list { max-height: 260px; } .video { max-height: 430px; } }

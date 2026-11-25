@@ -14,6 +14,9 @@ COPY e2e/real-business.real.ts ./e2e/
 COPY e2e/training.real.ts ./e2e/
 COPY e2e/demo-v2.real.ts ./e2e/
 COPY e2e/patient.real.ts ./e2e/
+COPY e2e/journey.real.ts ./e2e/
+COPY e2e/teaching.preview.ts ./e2e/
+COPY playwright.teaching.config.ts ./
 COPY e2e/profile.real.ts ./e2e/
 COPY e2e/staff-admin.real.ts ./e2e/
 COPY e2e/pose-lab.real.ts ./e2e/

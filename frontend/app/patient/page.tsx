@@ -7,6 +7,9 @@ import PatientReportForm from "./report-form";
 import { roleLabel } from "../workspace/role-label";
 import { readPatientHome } from "./home";
 import RetryPatientHomeButton from "./retry-button";
+import PatientJourney from "./journey";
+import styles from "./journey.module.css";
+import { localTeachingVideos } from "./local-teaching-server";
 
 export const dynamic = "force-dynamic";
 
@@ -18,14 +21,15 @@ export default async function PatientPage() {
   const homeResult = await readPatientHome(cookieHeader);
   if (homeResult.kind === "session_expired") redirect("/login");
   const reports = homeResult.kind === "ready" ? await getPatientReports(cookieHeader) : null;
+  const localVideos = homeResult.kind === "ready" ? await localTeachingVideos() : [];
 
-  return <main className="form-page">
+  return <main className={styles.page}>
     <div className="eyebrow">合成数据演示 · 患者入口</div>
     <h1>我的康复空间</h1>
     <p>当前账号：{user.email}（{roleLabel(user.role)}）</p>
     {homeResult.kind === "ready" ? <>
       <p>我的演示编号：{homeResult.home.study_code}</p>
-      <section>
+      <PatientJourney localVideos={localVideos} key={JSON.stringify([user.id, homeResult.home.study_code])} learning={<section>
         <h2>训练计划与视频</h2>
         {homeResult.home.publication ? <>
           <p role="status">合成流程测试版本 {homeResult.home.publication.version} · 不可作为训练指导</p>
@@ -38,9 +42,7 @@ export default async function PatientPage() {
           </div></div>
         </> : <p>目前没有经医护确认并发布给此账号的计划或视频。</p>}
         <p className="note">研究工作台中的 DEMO_ONLY 内容不会自动成为患者训练指导。</p>
-      </section>
-      <PatientReportForm key={JSON.stringify([user.id, homeResult.home.study_code])}
-        initialReports={reports} />
+      </section>} feedback={<PatientReportForm initialReports={reports} />} />
     </> : homeResult.kind === "binding_unavailable" ? (
       <section>
         <h2>演示编号不可用</h2>

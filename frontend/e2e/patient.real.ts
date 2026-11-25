@@ -62,6 +62,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(page.getByText(/合成流程测试版本 1/)).toBeVisible();
     await expect(page.getByText("当前卡片：演示卡片 B · 后续查看")).toBeVisible();
     await expect(page.getByText("视频待添加")).toBeVisible();
+    await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
     await expect(page.getByText("尚未填写训练或不适记录；训练与不适状态均未知。")).toBeVisible();
     await page.getByLabel("发生时间（北京时间）").fill("2026-11-05T10:00");
     await page.getByLabel("实际训练情况").selectOption("performed");
@@ -92,6 +93,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await page.getByRole("button", { name: "保存更正" }).click();
     await expect(page.getByText(/版本 2/)).toBeVisible();
     await page.reload();
+    await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
     await expect(page.getByText(/版本 2/)).toBeVisible();
     const previousReport = page.locator("details").filter({ hasText: "查看旧版本" });
     await previousReport.locator("summary").click();
@@ -117,6 +119,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(patientCurrent.first()).toContainText("自报未训练");
     await expect(patientCurrent.nth(1)).toContainText("当前版本 2");
     await page.reload();
+    await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
     await expect(patientCurrent.first()).toContainText("自报未训练");
     await expect(patientCurrent.nth(1)).toContainText("当前版本 2");
     await staffPage.reload();
