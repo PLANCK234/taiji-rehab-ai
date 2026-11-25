@@ -31,3 +31,7 @@ docker compose --env-file .env -f infra/compose.yaml -f infra/compose.teaching-p
 ## 备份范围
 
 PostgreSQL自动备份不包含视频。原ZIP、私有媒体目录及校验清单需另行保存到受保护存储设备；本任务不自动复制U盘。摄像头、动作识别、字幕/动作要点、医护选择发布和任务关联仍待接续。
+
+## 播放控件补充（2026-11-25，DEMO-V2-42）
+
+已加入播放速度、上一段/下一段、片段序号及原片时长；首末边界不循环，切片暂停且保持观看速度。整页刷新恢复原速。详细验证见[播放器易用性](../testing/DEMO-V2-42-PLAYER-CONTROLS.md)。

@@ -5,4 +5,9 @@
 .list button:hover { background: #e2eee1; }
 .list button[aria-pressed="true"] { background: #286c51; color: white; }
 .list small { color: inherit; font-weight: 400; }
+.information { color: #54675c; font-size: .9rem; }
+.controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.controls label { display: grid; gap: 6px; flex: 1 1 130px; }
+.navigation { display: flex; justify-content: space-between; gap: 12px; margin: 16px 0; }
+.navigation button { flex: 1; padding: 12px 8px; color: #286c51; background: #fffefa; border-color: #b9cbbd; }
 @media (max-width: 600px) { .layout { grid-template-columns: minmax(0, 1fr); } .list { max-height: 260px; } .video { max-height: 430px; } }

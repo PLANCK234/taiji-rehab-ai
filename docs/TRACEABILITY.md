@@ -196,3 +196,7 @@ DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/ho
 ## DEMO-V2-41 / AT-PAT-07
 
 用户选择独立完善反馈错误与重试 → PRD/AT-PAT-07 → report-form.tsx、postIntake可选signal → report-form/intake单测、增强patient.real.ts真实丢失成功响应场景 → [测试证据](testing/DEMO-V2-41-FEEDBACK-RETRY.md)。既有更正追加、授权及未知语义不变。
+
+## DEMO-V2-42 / AT-PAT-08
+
+用户选择教学播放器易用性 → PRD/AT-PAT-08 → teaching-player.tsx及模块样式 → teaching-player.test.tsx新增4项、扩展teaching.preview.ts → [验证记录](testing/DEMO-V2-42-PLAYER-CONTROLS.md)。媒体访问、权限和反馈接口不变。
