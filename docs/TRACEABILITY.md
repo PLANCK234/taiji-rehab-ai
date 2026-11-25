@@ -192,3 +192,7 @@ DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/ho
 ## DEMO-V2-40 / AT-PAT-06
 
 用户确认本机摄像头准备 → PRD及AT-PAT-06 → `camera-preview.tsx`、`use-local-camera.ts`及journey卸载边界 → 10项新增单元/组件测试、`camera.preview.ts`的2项fake-camera浏览器专项、18项原流程回归 → [验证及实机缺口](testing/DEMO-V2-40-CAMERA-PREVIEW.md)。不改变真实影像或临床批准。
+
+## DEMO-V2-41 / AT-PAT-07
+
+用户选择独立完善反馈错误与重试 → PRD/AT-PAT-07 → report-form.tsx、postIntake可选signal → report-form/intake单测、增强patient.real.ts真实丢失成功响应场景 → [测试证据](testing/DEMO-V2-41-FEEDBACK-RETRY.md)。既有更正追加、授权及未知语义不变。

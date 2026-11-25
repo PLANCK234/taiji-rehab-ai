@@ -64,13 +64,37 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(page.getByText("视频待添加")).toBeVisible();
     await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
     await expect(page.getByText("尚未填写训练或不适记录；训练与不适状态均未知。")).toBeVisible();
+    const submissionKeys: string[] = [];
+    await page.route("**/api/v1/patient/reports", async (route) => {
+      if (route.request().method() !== "POST") { await route.continue(); return; }
+      submissionKeys.push(route.request().headers()["idempotency-key"]);
+      if (submissionKeys.length === 1) {
+        // The database commits, but its successful response is lost before the UI receives it.
+        const saved = await route.fetch();
+        expect(saved.status()).toBe(201);
+        await route.fulfill({ status: 503, contentType: "application/json", body: '{}' });
+      } else await route.continue();
+    });
+    await page.getByRole("button", { name: "保存记录", exact: true }).click();
+    await expect(page.getByLabel("发生时间（北京时间）")).toBeFocused();
+    await expect(page.getByText("请选择有效的发生日期和时间（北京时间）。", { exact: true })).toBeVisible();
+    expect(submissionKeys).toHaveLength(0);
     await page.getByLabel("发生时间（北京时间）").fill("2026-11-05T10:00");
     await page.getByLabel("实际训练情况").selectOption("performed");
     await page.getByLabel("实际时长（分钟，可留空表示未知）").fill("12");
     await page.getByLabel("不适情况").selectOption("reported");
     await page.getByLabel("不适描述").fill("合成演示不适描述");
     await page.getByRole("button", { name: "保存记录" }).click();
+    await expect(page.getByRole("button", { name: "重试保存", exact: true })).toBeVisible();
+    await expect(page.getByLabel("不适描述")).toHaveValue("合成演示不适描述");
+    await expect(page.getByText(/合成记录已保存/)).toHaveCount(0);
+    expect(submissionKeys).toHaveLength(1);
+    await page.getByRole("button", { name: "重试保存", exact: true }).click();
     await expect(page.getByText(/合成记录已保存/)).toBeVisible();
+    expect(submissionKeys).toHaveLength(2);
+    expect(submissionKeys[1]).toBe(submissionKeys[0]);
+    expect((await (await page.request.get("/api/v1/patient/reports")).json()).length).toBe(1);
+    await page.unroute("**/api/v1/patient/reports");
     await staffPage.reload();
     await expect(staffPage.getByText(/合成演示不适描述/)).toBeVisible();
     const staffReports = staffPage.locator('section[aria-labelledby="patient-reports-heading"]');
