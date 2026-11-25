@@ -137,3 +137,7 @@ REAL-01C1 Demo 合成子集：GET/POST `/api/v1/participants/{id}/manual-observa
 ## DEMO-V2-39 本机试播媒体（Next.js路由）
 
 `GET /api/local-teaching/{file}`：仅显式开启的本机试播；`file` 必须是清单内 `teaching-NN.mp4` 或 `.jpg`。每次验证患者会话和当前本人绑定（后台Demo边界仍生效），不检查正式发布，因为这是独立的本机开发素材试播，不得作为正式发布接口使用。默认关闭404、未登录401、非患者/绑定失效403、服务不可用503、文件或路径不可用404、无效字节区间416。支持200/206与Content-Range，private/no-store，防止目录穿越与越界符号链接；无上传和写入接口。
+
+## DEMO-V2-40 本机摄像头准备
+
+不增加后端API、媒体上传或数据字段。浏览器仅在用户点击后调用getUserMedia({audio:false,video:...})，流停留在video.srcObject和组件内存，不进入训练/反馈请求、日志或持久化。本人页面原服务端授权不变。切步/页面退出/标签隐藏停止所有轨道。后续训练/C组复用前仍需约定流所有权与任务/会话标识，不能将预览状态当成训练完成。

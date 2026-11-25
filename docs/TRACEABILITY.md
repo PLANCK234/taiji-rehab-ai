@@ -188,3 +188,7 @@ DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/ho
 ## DEMO-V2-39 / AT-PAT-05
 
 用户提供团队自录教学素材 → [范围与实测](product/LOCAL_TEACHING_PREVIEW.md) → `teaching-player.tsx`、`local-teaching*.ts`、`api/local-teaching/[file]/route.ts`、可选Compose覆盖配置 → 本机私有源/副本清单（不提交） → 79项前端测试、`teaching.preview.ts` 本机专项通过。不改变正式合成视频发布契约或真实患者准入。
+
+## DEMO-V2-40 / AT-PAT-06
+
+用户确认本机摄像头准备 → PRD及AT-PAT-06 → `camera-preview.tsx`、`use-local-camera.ts`及journey卸载边界 → 10项新增单元/组件测试、`camera.preview.ts`的2项fake-camera浏览器专项、18项原流程回归 → [验证及实机缺口](testing/DEMO-V2-40-CAMERA-PREVIEW.md)。不改变真实影像或临床批准。

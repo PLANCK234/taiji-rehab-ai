@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import styles from "./journey.module.css";
 import TeachingPlayer from "./teaching-player";
 import type { LocalTeachingVideo } from "./local-teaching";
+import CameraPreview from "./camera-preview";
 
 const steps = [
   { name: "学习", detail: "了解内容", title: "学习 · 训练计划与视频" },
@@ -55,11 +56,7 @@ export default function PatientJourney({ learning, feedback, localVideos = [] }:
           <li>取景时让全身进入画面，避免遮挡。</li>
           <li>可以穿鞋，无需为了演示脱鞋。</li>
         </ul>
-        <div className={styles.placeholder}>
-          <strong>摄像头预览待接入</strong>
-          <p>当前不会打开摄像头。后续将在这里显示预览、权限提示和重试入口。</p>
-          <button type="button" disabled>摄像头尚未接入</button>
-        </div>
+        {current === 1 ? <CameraPreview /> : null}
       </section> : index === 2 ? <section>
         <h3>训练尚未开始</h3>
         <p>训练任务和操作功能待接入，当前不能开始训练。姿态识别算法尚未接入。</p>

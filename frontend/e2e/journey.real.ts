@@ -17,7 +17,8 @@ test("patient four-step shell keeps drafts and never starts training on desktop 
     await expect(page.getByRole("button", { name: "上一步", exact: true })).toBeDisabled();
     await page.getByRole("button", { name: "查看准备 →", exact: true }).click();
     await expect(page.getByRole("heading", { name: "准备 · 摄像头与环境" })).toBeFocused();
-    await expect(page.getByRole("button", { name: "摄像头尚未接入" })).toBeDisabled();
+    await expect(page.getByText("摄像头尚未打开", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "关闭摄像头", exact: true })).toBeDisabled();
     await page.getByRole("button", { name: "查看训练 →", exact: true }).click();
     await expect(page.getByRole("button", { name: "开始训练（待接入）" })).toBeDisabled();
     await page.getByRole("button", { name: "查看反馈 →", exact: true }).click();

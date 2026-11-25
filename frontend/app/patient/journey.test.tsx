@@ -44,10 +44,11 @@ it("keeps unsaved feedback when browsing other steps, without writing a record",
   expect(postIntake).not.toHaveBeenCalled();
 });
 
-it("keeps camera and training unavailable rather than fabricating completion", () => {
+it("requires user action to open the camera and keeps training unavailable", () => {
   setup();
   fireEvent.click(screen.getByRole("button", { name: "2. 准备" }));
-  expect((screen.getByRole("button", { name: "摄像头尚未接入" }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByText("摄像头尚未打开")).toBeTruthy();
+  expect((screen.getByRole("button", { name: "关闭摄像头" }) as HTMLButtonElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "查看训练 →" }));
   expect((screen.getByRole("button", { name: "开始训练（待接入）" }) as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByRole("heading", { name: "训练尚未开始" })).toBeTruthy();
