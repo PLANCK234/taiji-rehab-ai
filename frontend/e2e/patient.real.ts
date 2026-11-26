@@ -16,6 +16,8 @@ async function login(page: Page, email: string) {
 
 test("synthetic patient sees only own portal and loses access after binding revocation", async ({ page, browser }) => {
   await login(page, "demo-patient@example.org");
+  // This regression deliberately reloads an unsaved new-report draft after correcting history.
+  page.on("dialog", async (dialog) => { expect(dialog.type()).toBe("beforeunload"); await dialog.accept(); });
   await expect(page.getByRole("heading", { name: "我的康复空间" })).toBeVisible();
   await expect(page.getByText("当前账号：demo-patient@example.org（患者）")).toBeVisible();
   await expect(page.getByText("我的演示编号：SYN-001")).toBeVisible();
@@ -99,10 +101,11 @@ test("synthetic patient sees only own portal and loses access after binding revo
       .toHaveText(["01 起势", "10 云手"]);
     await expect(page.getByText("视频待添加")).toBeVisible();
     await expect(page.getByText("当前卡片暂无可播放视频。")).toBeVisible();
-    const plan = page.getByRole("region", { name: "训练计划与视频" });
+    const plan = page.getByRole("region", { name: "训练计划与视频", exact: true });
     await expect(plan).toBeVisible();
     await expect(plan.getByText(previewMessage, { exact: true })).toBeVisible();
     await expect(plan.locator("video")).toHaveCount(0);
+    await page.getByRole("button", { name: "3. 训练", exact: true }).click();
     await expect(camera).toBeVisible();
     const preview = camera.getByRole("button", { name: "开启摄像头预览" });
     await expect(preview).toBeDisabled();
@@ -147,8 +150,8 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await camera.getByRole("button", { name: "继续演示任务" }).click();
     await expect(camera.getByRole("status")).toContainText("暂未识别到人体");
     await camera.getByRole("button", { name: "结束演示任务并填写记录" }).click();
-    await expect(page.getByRole("heading", { name: "训练与不适记录" })).toBeFocused();
-    await expect(camera.getByRole("status")).toHaveText("演示任务已结束，摄像头已停止。");
+    await expect(page.getByRole("heading", { name: "反馈 · 训练与不适记录" })).toBeFocused();
+    await expect(camera).toHaveCount(0);
     expect(await track.evaluate((item) => item.readyState)).toBe("ended");
     await track.dispose();
     await expect(page.getByLabel("实际训练情况")).toHaveValue("unknown");
@@ -157,13 +160,38 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(sharePose).not.toBeChecked();
     await sharePose.check();
     await expect(page.getByText("尚未填写训练或不适记录；训练与不适状态均未知。")).toBeVisible();
+    const submissionKeys: string[] = [];
+    await page.route("**/api/v1/patient/reports", async (route) => {
+      if (route.request().method() !== "POST") { await route.continue(); return; }
+      submissionKeys.push(route.request().headers()["idempotency-key"]);
+      if (submissionKeys.length === 1) {
+        // The database commits, but its successful response is lost before the UI receives it.
+        const saved = await route.fetch();
+        expect(saved.status()).toBe(201);
+        await route.fulfill({ status: 503, contentType: "application/json", body: '{}' });
+      } else await route.continue();
+    });
+    await page.getByRole("button", { name: "保存记录", exact: true }).click();
+    await expect(page.getByLabel("发生时间（北京时间）")).toBeFocused();
+    await expect(page.getByText("请选择有效的发生日期和时间（北京时间）。", { exact: true })).toBeVisible();
+    expect(submissionKeys).toHaveLength(0);
     await page.getByLabel("发生时间（北京时间）").fill("2026-11-05T10:00");
     await page.getByLabel("实际训练情况").selectOption("performed");
     await page.getByLabel("实际时长（分钟，可留空表示未知）").fill("12");
     await page.getByLabel("不适情况").selectOption("reported");
     await page.getByLabel("不适描述").fill("合成演示不适描述");
     await page.getByRole("button", { name: "保存记录" }).click();
+    await expect(page.getByRole("button", { name: "重试保存", exact: true })).toBeVisible();
+    await expect(page.getByLabel("不适描述")).toHaveValue("合成演示不适描述");
+    await expect(page.getByText(/合成记录已保存/)).toHaveCount(0);
+    expect(submissionKeys).toHaveLength(1);
+    await page.getByRole("button", { name: "重试保存", exact: true }).click();
     await expect(page.getByText(/合成记录已保存/)).toBeVisible();
+    await expect(page.getByText(/有未保存的反馈内容/)).toHaveCount(0);
+    expect(submissionKeys).toHaveLength(2);
+    expect(submissionKeys[1]).toBe(submissionKeys[0]);
+    expect((await (await page.request.get("/api/v1/patient/reports")).json()).length).toBe(1);
+    await page.unroute("**/api/v1/patient/reports");
     await expect(page.getByText("当前版本 1", { exact: true }).locator("..")).toBeFocused();
     await staffPage.reload();
     await shortcuts.getByRole("link", { name: "查看患者自报" }).click();
@@ -216,8 +244,11 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await page.getByLabel("更正原因（以 SYN- 开头）").fill("SYN-SELF-CORRECTION");
     await page.getByRole("button", { name: "保存更正" }).click();
     await expect(page.getByText(/版本 2/)).toBeVisible();
+    // Saving this correction must not discard the separate new-report draft.
+    await expect(page.getByText(/有未保存的反馈内容/)).toBeVisible();
     await expect(page.getByText("当前版本 2", { exact: true }).locator("..")).toBeFocused();
     await page.reload();
+    await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
     await expect(page.getByText(/版本 2/)).toBeVisible();
     const previousReport = page.locator("details").filter({ hasText: "查看旧版本" });
     await previousReport.locator("summary").click();
@@ -257,6 +288,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await expect(patientCurrent.first().locator(":scope > p")).toBeFocused();
     await expect(patientCurrent.nth(1)).toContainText("当前版本 2");
     await page.reload();
+    await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
     await expect(patientCurrent.first()).toContainText("自报未训练");
     await expect(patientCurrent.nth(1)).toContainText("当前版本 2");
     await staffPage.reload();
@@ -289,23 +321,26 @@ test("synthetic patient sees only own portal and loses access after binding revo
     expect(csv).not.toContain("合成演示不适描述");
     expect(csv).not.toContain("SYN-SELF-CORRECTION");
     expect(csv).not.toContain("SYN-已核对原始计数");
+    await page.getByRole("button", { name: "3. 训练", exact: true }).click();
     await mockCamera(true);
     await camera.getByRole("checkbox").check();
     await preview.click();
     await expect(camera.getByRole("status")).toContainText("摄像头权限被拒绝");
     const skipCamera = camera.getByRole("button", { name: "跳过摄像头并填写记录" });
     await skipCamera.click();
-    await expect(page.getByRole("heading", { name: "训练与不适记录" })).toBeFocused();
+    await expect(page.getByRole("heading", { name: "反馈 · 训练与不适记录" })).toBeFocused();
 
     const modelAsset = "**/pose-assets/pose_landmarker_full.task";
     await page.route(modelAsset, (route) => route.abort());
+    await page.getByRole("button", { name: "3. 训练", exact: true }).click();
+    await camera.getByRole("checkbox").check();
     await preview.click();
     await expect(camera.getByRole("status")).toContainText("摄像头预览已开启");
     await camera.getByRole("button", { name: "开始演示任务" }).click();
     await expect(camera.getByRole("status")).toContainText("无法加载识别模型", { timeout: 15_000 });
     await page.unroute(modelAsset);
     await skipCamera.click();
-    await expect(page.getByRole("heading", { name: "训练与不适记录" })).toBeFocused();
+    await expect(page.getByRole("heading", { name: "反馈 · 训练与不适记录" })).toBeFocused();
     await page.getByLabel("将本次反馈关联到演示任务版本 1").check();
     await expect(sharePose).toHaveCount(0);
     await page.getByLabel("发生时间（北京时间）").fill("2026-11-05T12:00");
@@ -320,11 +355,8 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await page.getByLabel("将本次反馈关联到演示任务版本 1").check();
     await page.getByLabel("发生时间（北京时间）").fill("2026-11-05T12:00");
     await page.getByRole("button", { name: "保存记录" }).click();
-    await expect(page.getByRole("status", { name: "" }).filter({
-      hasText: "演示任务或记录状态已变化，请刷新后重试。",
-    })).toBeVisible();
+    await expect(page.locator('section[aria-labelledby="patient-report-heading"]').getByRole("alert")).toContainText("记录版本或提交状态已变化");
     await page.reload();
-    await expect(patientCurrent).toHaveCount(3);
     await expect(page.getByText("目前没有经医护确认并发布给此账号的计划或视频。")).toBeVisible();
     await expect(camera).toHaveCount(0);
     await staffPage.goto(`/participants/${id}?feedbackVersion=2#patient-reports-heading`);

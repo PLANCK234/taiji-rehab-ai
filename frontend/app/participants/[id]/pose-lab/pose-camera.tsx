@@ -15,10 +15,11 @@ const framingMessages = {
 };
 
 export default function PoseCamera({
-  allowSummaryExport = true, nextStepHeadingId, taskVersion, onTaskSummary,
+  allowSummaryExport = true, nextStepHeadingId, taskVersion, onTaskSummary, onNextStep,
 }: {
   allowSummaryExport?: boolean;
   nextStepHeadingId?: string;
+  onNextStep?: () => void;
   taskVersion?: number;
   onTaskSummary?: (summary: PatientPoseCounts | null) => void;
 }) {
@@ -39,7 +40,17 @@ export default function PoseCamera({
   const [summary, setSummary] = useState<LiveSummary | null>(null);
   const [portrait, setPortrait] = useState(false);
 
-  useEffect(() => () => close.current?.(), []);
+  useEffect(() => {
+    const stop = () => close.current?.("摄像头已停止。");
+    const hidden = () => { if (document.hidden) stop(); };
+    document.addEventListener("visibilitychange", hidden);
+    window.addEventListener("pagehide", stop);
+    return () => {
+      document.removeEventListener("visibilitychange", hidden);
+      window.removeEventListener("pagehide", stop);
+      close.current?.();
+    };
+  }, []);
 
   async function start() {
     const preview = video.current;
@@ -235,12 +246,13 @@ export default function PoseCamera({
         URL.revokeObjectURL(url);
       }}>导出实时分析摘要</button>}
     </div>}
-    {nextStepHeadingId && <p>
+    {(nextStepHeadingId || onNextStep) && <p>
       <button type="button" onClick={() => {
         close.current?.(taskRunning
           ? "演示任务已结束，摄像头已停止。"
           : "摄像头已停止。", taskRunning);
-        document.getElementById(nextStepHeadingId)?.focus();
+        onNextStep?.();
+        if (nextStepHeadingId) document.getElementById(nextStepHeadingId)?.focus();
       }}>
         {taskRunning
           ? "结束演示任务并填写记录"

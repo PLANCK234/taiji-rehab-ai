@@ -101,3 +101,7 @@ uv run uvicorn app.main:app --reload
 ## macOS 本地 Demo 自动备份
 
 可用 `python3 scripts/demo_backup.py` 手动备份并隔离恢复验证，或用 `python3 scripts/demo_backup.py --install-macos` 启用当前用户后台任务：首次启用即备份，之后每24小时，失败5分钟重试，不自动删除旧备份。电脑、用户会话、Docker及项目需可用。仅本地合成 Demo，备份在仓库外，文件权限不是加密；详见 [备份与停止方法](docs/operations/DEMO_BACKUP.md)。Windows自动安装与真实数据不在本次范围。
+
+## 可选：团队教学视频本机试播
+
+用户提供的自录教学片可通过默认关闭的 [本机试播配置](docs/product/LOCAL_TEACHING_PREVIEW.md) 在患者学习页预览。素材须在仓库外只读挂载，不进入Git或数据库；这不是医护审核或真实患者发布流程。数据库备份不包含录像。

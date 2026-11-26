@@ -112,6 +112,7 @@ export async function postIntake<T>(
   key: string,
   cookieHeader: string,
   fetcher: typeof fetch = fetch,
+  signal?: AbortSignal,
 ): Promise<{ status: number; value: T | null }> {
   const csrf = csrfFromCookies(cookieHeader);
   if (!csrf) return { status: 403, value: null };
@@ -125,6 +126,7 @@ export async function postIntake<T>(
         "Idempotency-Key": key,
       },
       body: JSON.stringify(body),
+      ...(signal ? { signal } : {}),
     });
     return { status: response.status, value: response.ok ? ((await response.json()) as T) : null };
   } catch {

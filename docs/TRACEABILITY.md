@@ -235,3 +235,38 @@ DEMO-V2-41 → AT-PAT-03：staff-patient-reports.test.tsx 验证无效/不可读
 
 DEMO-V2-41 上线烟测：本机验证 SYN-001 版本 5 可见筛选、原摘要和复核表单，无效版本和重复参数显示提示，普通档案页可查看全部反馈。患者摄像头和角色隔离检查通过。公开登录页与后端 ready 均返回 200。
 | ENG-05 / AT-BACKUP-01 / AT-13 synthetic subset | `scripts/demo_backup.py`; [ADR-0024](decisions/0024-local-demo-backup.md) | [12 unit tests + real restore and two scheduled cycles](testing/ENG-05-BACKUP.md) | Demo ops | local verified; PR review pending; no Research approval |
+
+## DEMO-V2-44 / AT-PAT-04 患者四步框架
+
+用户确认的 B 组首个小任务 → [产品行为](product/PRD.md) / [验收](product/ACCEPTANCE.md) → `frontend/app/patient/journey.tsx`、`journey.module.css`、`page.tsx` → `journey.test.tsx`、`frontend/e2e/journey.real.ts` 和原患者浏览器回归 → [测试证据](testing/DEMO-V2-38-PATIENT-JOURNEY.md)。本任务只完成框架，不等于分工文档 B-01/B-02 整体完成。
+
+## DEMO-V2-45 / AT-PAT-05
+
+用户提供团队自录教学素材 → [范围与实测](product/LOCAL_TEACHING_PREVIEW.md) → `teaching-player.tsx`、`local-teaching*.ts`、`api/local-teaching/[file]/route.ts`、可选Compose覆盖配置 → 本机私有源/副本清单（不提交） → 79项前端测试、`teaching.preview.ts` 本机专项通过。不改变正式合成视频发布契约或真实患者准入。
+
+## DEMO-V2-46 / AT-PAT-06
+
+用户确认本机摄像头准备 → PRD及AT-PAT-06 → `camera-preview.tsx`、`use-local-camera.ts`及journey卸载边界 → 10项新增单元/组件测试、`camera.preview.ts`的2项fake-camera浏览器专项、18项原流程回归 → [验证及实机缺口](testing/DEMO-V2-40-CAMERA-PREVIEW.md)。不改变真实影像或临床批准。
+
+## DEMO-V2-47 / AT-PAT-07
+
+用户选择独立完善反馈错误与重试 → PRD/AT-PAT-07 → report-form.tsx、postIntake可选signal → report-form/intake单测、增强patient.real.ts真实丢失成功响应场景 → [测试证据](testing/DEMO-V2-41-FEEDBACK-RETRY.md)。既有更正追加、授权及未知语义不变。
+
+## DEMO-V2-42 / AT-PAT-08
+
+用户选择教学播放器易用性 → PRD/AT-PAT-08 → teaching-player.tsx及模块样式 → teaching-player.test.tsx新增4项、扩展teaching.preview.ts → [验证记录](testing/DEMO-V2-42-PLAYER-CONTROLS.md)。媒体访问、权限和反馈接口不变。
+
+## DEMO-V2-43 / AT-PAT-09
+
+用户选择离开提醒 → PRD/AT-PAT-09 → feedback-leave-guard.tsx、report-form.tsx、患者页Provider和LogoutButton可选回调 → 5项guard组件测试、leave-guard.real.ts及原journey/patient回归 → [实测与限制](testing/DEMO-V2-43-UNSAVED-FEEDBACK.md)。不改变数据库或数据批准边界。
+
+### DEMO-V2-43 / AT-PAT-09：PR #9 审核回归（2026-11-26）
+
+[学长意见](https://github.com/PLANCK234/taiji-rehab-ai/pull/9#issuecomment-7189588437) → feedback-leave-guard.test.tsx等待具体通知和导航状态 → patient.real.ts验证成功清除/其他草稿仍保留 → [本地复测与远端验证边界](testing/DEMO-V2-43-UNSAVED-FEEDBACK.md)。
+
+## 2026-11-26 DEMO-V2-48 PR #9 主分支整合
+
+- 目标：AT-PAT-02/03 与 AT-PAT-04～09 同时成立，保留团队发布/摘要/复核和个人前端保护。
+- 实现：患者 `task-feedback.tsx` / `journey.tsx` / `report-form.tsx`，复用 `pose-camera.tsx`。
+- 测试：`task-feedback.test.tsx`、`report-form.test.tsx`、`feedback-leave-guard.test.tsx` 与实际 `e2e/patient.real.ts`；[合并证据](testing/PR9-MAIN-INTEGRATION.md)。
+- 原个人 DEMO-V2-38/39/40/41 改记44/45/46/47；证据文件名保留。团队38～41保持原义。
