@@ -97,3 +97,7 @@ uv run uvicorn app.main:app --reload
 - 输入依据：用户提供的 PRD V0.9、剪枝版 PRD V1.1、技术实现路径 V1.1（2026-10-30）。
 - Codex 官方说明：https://learn.chatgpt.com/docs/agent-configuration/agents-md
 - 本仓库所有新增工程约定均是**建议方案**，不是医院已批准的研究协议。
+
+## macOS 本地 Demo 自动备份
+
+可用 `python3 scripts/demo_backup.py` 手动备份并隔离恢复验证，或用 `python3 scripts/demo_backup.py --install-macos` 启用当前用户后台任务：首次启用即备份，之后每24小时，失败5分钟重试，不自动删除旧备份。电脑、用户会话、Docker及项目需可用。仅本地合成 Demo，备份在仓库外，文件权限不是加密；详见 [备份与停止方法](docs/operations/DEMO_BACKUP.md)。Windows自动安装与真实数据不在本次范围。

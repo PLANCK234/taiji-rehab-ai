@@ -234,3 +234,4 @@ DEMO-V2-40 上线烟测：本机工作人员可打开 SYN-001 版本 5 的筛选
 DEMO-V2-41 → AT-PAT-03：staff-patient-reports.test.tsx 验证无效/不可读状态、重读和返回入口，无法核对指定版时隐藏反馈与筛选。patient.real.ts 验证撤回事件编号、重复参数、追溯原发布版本和主动切回全部记录。
 
 DEMO-V2-41 上线烟测：本机验证 SYN-001 版本 5 可见筛选、原摘要和复核表单，无效版本和重复参数显示提示，普通档案页可查看全部反馈。患者摄像头和角色隔离检查通过。公开登录页与后端 ready 均返回 200。
+| ENG-05 / AT-BACKUP-01 / AT-13 synthetic subset | `scripts/demo_backup.py`; [ADR-0024](decisions/0024-local-demo-backup.md) | [12 unit tests + real restore and two scheduled cycles](testing/ENG-05-BACKUP.md) | Demo ops | local verified; PR review pending; no Research approval |
