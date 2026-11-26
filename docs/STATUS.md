@@ -1,5 +1,9 @@
 # 实施状态
 
+## 2026-11-26 DEMO-V2-16 Next补丁与回归
+
+从`afd29c4`更新Next/eslint-config-next **16.4.3→固定16.4.5**及其正常依赖锁。没有改变React/TypeScript/姿态模型、应用逻辑、安全开关、数据结构或生产配置。全量与生产依赖audit的info/low/moderate/high/critical均 **0**（升级前8项moderate）；lint/typecheck/**25 tests**通过，Next16.4.5生产build一次通过，旧版本安全提醒不再中断。真实Worker模型→Next→FastAPI→PostgreSQL及原Demo/训练最终 **9 passed (40.2s)**、runner退出0，证据`exports/pose-browser-2692906a8a/browser/`；测试服务/容器已停止，原共享卷未动。后端源码未变，59/6skip与独立PostgreSQL7的证据沿用任务15，不冒充本任务重跑。命令/依据/审计文件见[依赖验证](testing/DEPENDENCY_PATCH_VALIDATION.md)。
+
 ## 2026-11-26 DEMO-V2-15 信号与采集完善
 
 从干净`f5b58d8`接续，已实现`pose-geometry-v2`：保留原始角度和v1指标，分段中位数平滑、高频残差MAD噪声代理、原始/平滑曲线与骨架时刻联动。低幅度不截断为零，缺失/时间缺口不插值。文件改为固定200ms媒体时刻采样，每段重建跟踪图并用媒体时钟推理；保存响应丢失后同键同数据重试，已提交但详情读取失败可从历史重开。列表只读摘要，不加载原关键点列、不返回逐帧series。

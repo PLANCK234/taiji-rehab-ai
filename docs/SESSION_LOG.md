@@ -170,3 +170,9 @@
 - 已知轨迹静态RMS0.771072°→0.481609°（37.54%）；4°慢变RMS0.086615°、范围3.42°；两周期8秒/周期的4°峰峰值RMS0.091788°、范围3.96°。只证明数值轨迹效果，不代表老年人群或视频精度。ADR-0017记录滤波损失短峰、曲率/漂移与噪声代理限制。
 - Ruff、后端59/6skip；独立PostgreSQL迁移/check/升降升及7场景，含真实旧快照升级、v2回退拒绝；前端lint/typecheck/25 tests/build；最终实际模型浏览器9通过(39.6s)，runner退出0。覆盖故意250ms慢分发、服务器提交成功后响应丢失、重试后详情503、历史恢复/提示清除、窄屏、旧Demo/训练。证据exports/pose-browser-34c0eb4513/browser/，已目视桌面/窄屏图表，修复字体缩放和关节换行。
 - 全部测试数据库为独立tmpfs，原共享卷不操作。Next旧版本构建安全提醒曾中断，按提示重试可继续；只读audit报告8项moderate，尚未改依赖。同步产品/API/数据/安全/验收/测试/状态/追踪/交接。任务15完成，下一仍为11实机/多场景，Q-14/15评分/阶段依赖不变。本地提交见git log，无推送/合并。
+
+## 2026-11-26 · DEMO-V2-16 Next修复补丁
+
+- 任务15先提交为`afd29c4`。复核npm audit与Next官方公告，7项Next和1项工具链moderate；固定Next/eslint-config-next16.4.5，重解析其依赖锁，无强制overrides/安全开关改动。React/TypeScript/姿态SDK模型与后端不变。
+- 全量/生产audit均0，原JSON在exports/pose-audit-{before,after,prod-after}.json；lint/typecheck/25 tests/build通过，补丁构建一次成功。真实模型→数据库→故障恢复/旧Demo训练9通过(40.2s)，runner退出0，证据exports/pose-browser-2692906a8a/browser/。不是临床精度验收。
+- 仅使用独立测试库，服务/容器已停止，无共享卷操作或生产发布。后端59/6skip与PostgreSQL7沿用15源码相同的证据，不宣称重跑。同步验证文档/任务/状态/追踪/交接；下一任务仍11实体机/多场景与Q-14评分表。本地补丁提交见git log，无推送/合并。

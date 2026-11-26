@@ -19,6 +19,7 @@
 | DEMO-V2-13 | 人工审核/专家确认与计划关联 | IN_PROGRESS | pose_reviews、审核页、未来计划引用 | 已实现独立观察复核/原因/历史/并发拒绝；逐项量表修改、阶段/计划依12与Q-15，未完成 |
 | DEMO-V2-14 | 数据库/手机全流程与专家标注验证 | IN_PROGRESS | pose真实模型E2E、离线验证、文档 | 合成模型→PostgreSQL→复核→刷新与旧Demo/训练回归通过；实体机与专家标注精度未验，不能宣称临床准确率 |
 | DEMO-V2-15 | 信号抖动/慢小幅、固定文件采样、曲线与幂等重试 | DONE | pose v2、0009、采集/图表、回归与契约 | 静态数值RMS降低37.54%、慢变/两周期保留；59/6skip、PostgreSQL7、前端25、浏览器9通过；含详情故障恢复，见STATUS |
+| DEMO-V2-16 | Next修复补丁与识别链路回归 | DONE | frontend/package.json、pnpm锁、交接/验证 | 固定16.4.5；lint/typecheck/25测试/build/真实模型浏览器9通过；全量/生产audit均0；见STATUS |
 
 不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。当前分支 `feat/real-01f0-coded-export`，最新检查点以 Git 日志为准。
 

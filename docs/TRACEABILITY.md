@@ -1,5 +1,11 @@
 # Requirements traceability
 
+## 2026-11-26 DEMO-V2-16 依赖补丁追踪
+
+| 范围 | 实现 | 证据 |
+|---|---|---|
+| 构建/识别链路回归 | frontend/package.json及pnpm锁的Next/eslint-config-next16.4.5 | [验证记录](testing/DEPENDENCY_PATCH_VALIDATION.md)：audit全量/生产均0，lint/typecheck/25 tests/build通过；真实Worker模型/数据库/旧Demo/训练9通过(40.2s)，exports/pose-browser-2692906a8a/browser/ |
+
 ## 2026-11-26 DEMO-V2-15 信号与采集完善
 
 | 验收 | 实现 | 证据/限制 |
