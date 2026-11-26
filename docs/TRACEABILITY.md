@@ -204,3 +204,7 @@ DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/ho
 ## DEMO-V2-43 / AT-PAT-09
 
 用户选择离开提醒 → PRD/AT-PAT-09 → feedback-leave-guard.tsx、report-form.tsx、患者页Provider和LogoutButton可选回调 → 5项guard组件测试、leave-guard.real.ts及原journey/patient回归 → [实测与限制](testing/DEMO-V2-43-UNSAVED-FEEDBACK.md)。不改变数据库或数据批准边界。
+
+### DEMO-V2-43 / AT-PAT-09：PR #9 审核回归（2026-11-26）
+
+[学长意见](https://github.com/PLANCK234/taiji-rehab-ai/pull/9#issuecomment-7189588437) → feedback-leave-guard.test.tsx等待具体通知和导航状态 → patient.real.ts验证成功清除/其他草稿仍保留 → [本地复测与远端验证边界](testing/DEMO-V2-43-UNSAVED-FEEDBACK.md)。

@@ -93,6 +93,7 @@ test("synthetic patient sees only own portal and loses access after binding revo
     expect(submissionKeys).toHaveLength(1);
     await page.getByRole("button", { name: "重试保存", exact: true }).click();
     await expect(page.getByText(/合成记录已保存/)).toBeVisible();
+    await expect(page.getByText(/有未保存的反馈内容/)).toHaveCount(0);
     expect(submissionKeys).toHaveLength(2);
     expect(submissionKeys[1]).toBe(submissionKeys[0]);
     expect((await (await page.request.get("/api/v1/patient/reports")).json()).length).toBe(1);
@@ -118,6 +119,8 @@ test("synthetic patient sees only own portal and loses access after binding revo
     await page.getByLabel("更正原因（以 SYN- 开头）").fill("SYN-SELF-CORRECTION");
     await page.getByRole("button", { name: "保存更正" }).click();
     await expect(page.getByText(/版本 2/)).toBeVisible();
+    // Saving this correction must not discard the separate new-report draft.
+    await expect(page.getByText(/有未保存的反馈内容/)).toBeVisible();
     await page.reload();
     await page.getByRole("button", { name: "4. 反馈", exact: true }).click();
     await expect(page.getByText(/版本 2/)).toBeVisible();

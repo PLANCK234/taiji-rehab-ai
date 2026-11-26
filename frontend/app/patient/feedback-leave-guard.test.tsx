@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { FeedbackLeaveGuard, PatientLogoutButton, UnsavedFeedbackNotice } from "./feedback-leave-guard";
 import PatientReportForm from "./report-form";
@@ -31,8 +31,14 @@ it("keeps warnings after a failed save and clears them after confirmed success",
   vi.mocked(postIntake).mockResolvedValueOnce({ status: 503, value: null }).mockResolvedValueOnce({ status: 201, value: row });
   setup(); fill(); fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
   await screen.findByRole("button", { name: "重试保存" }); expect(preventsUnload()).toBe(true);
+  expect(screen.getByText(/有未保存的反馈内容/)).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "重试保存" })); await screen.findByText("当前版本 1");
-  expect(preventsUnload()).toBe(false); expect(screen.queryByText(/有未保存的反馈内容/)).toBeNull();
+  // The report can render before the effect updates the provider's notice.
+  // Wait for both the navigation guard and this specific notice, not every status message.
+  await waitFor(() => {
+    expect(preventsUnload()).toBe(false);
+    expect(screen.queryByText(/有未保存的反馈内容/)).toBeNull();
+  });
 });
 
 it("does not warn on untouched correction, but confirms before discarding a changed correction", () => {
@@ -55,7 +61,10 @@ it("continues protecting an unsaved new-report draft after a correction is saved
   setup([row]); fill(); fireEvent.click(screen.getByRole("button", { name: "更正" }));
   fireEvent.change(screen.getByLabelText(/更正原因/), { target: { value: "SYN-更正" } });
   fireEvent.click(screen.getByRole("button", { name: "保存更正" })); await screen.findByText("当前版本 2");
-  expect(preventsUnload()).toBe(true);
+  await waitFor(() => {
+    expect(preventsUnload()).toBe(true);
+    expect(screen.getByText(/有未保存的反馈内容/)).toBeTruthy();
+  });
   expect((screen.getByLabelText("发生时间（北京时间）") as HTMLInputElement).value).toBe("2026-11-25T10:00");
 });
 
