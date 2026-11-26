@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { demoError, writeDemo } from "../../../workspace/demo";
+import { demoError } from "../../../workspace/demo";
 import { connections, jointNames, savePose } from "../../../workspace/pose";
-import type { Point, PoseDetail, PoseFrame, PoseInput, PoseReview, PoseSummary } from "../../../workspace/pose";
+import type { Point, PoseDetail, PoseFrame, PoseInput, PoseSummary } from "../../../workspace/pose";
 import { fileDurationMs, MAX_CAPTURE_FRAMES, MAX_CAPTURE_MS, sampleTimes, seekFrame } from "../../../workspace/pose-capture";
 import MotionEvidence from "./motion-evidence";
+import PoseReviewPanel from "./pose-review-panel";
 
 type Reply = { id: number; ready?: boolean; error?: string; landmarks?: Point[]; pose_count?: number };
 
@@ -25,8 +26,7 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
   const [loaded, setLoaded] = useState(false), [running, setRunning] = useState(false);
   const [support, setSupport] = useState<PoseInput["support"]>("unknown");
   const [history, setHistory] = useState(initialHistory), [report, setReport] = useState<PoseDetail | null>(null);
-  const [cursor, setCursor] = useState(0), [reason, setReason] = useState("");
-  const [decision, setDecision] = useState("accepted_observations");
+  const [cursor, setCursor] = useState(0);
 
   useEffect(() => {
     alive.current = true;
@@ -232,18 +232,6 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
     } finally { setBusy(false); }
   }
 
-  async function review() {
-    if (!report) return;
-    setBusy(true);
-    try {
-      const result = await writeDemo<PoseReview>(`/pose-analyses/${report.id}/reviews`, {
-        expected_revision: report.reviews.at(-1)?.revision_no ?? 0, decision, reason,
-      }, document.cookie);
-      if (!result.value) throw new Error(demoError(result.status));
-      await openReport(report.id); setReason(""); setStatus("人工复核已追加保存，AI原始结果保留。");
-    } catch (error) { setStatus(String(error)); } finally { setBusy(false); }
-  }
-
   const frame = report?.input_data.frames[cursor];
   return <>
     <section>
@@ -275,7 +263,7 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
     {report && <section>
       <h2>2. AI 初评报告</h2>
       <p>{report.result.status === "measured" ? "已取得可评估指标" : "无法评估，请重新取景或交人工评估"} · 采样 {report.result.sampled_frames} 帧 · 单人识别 {report.result.single_pose_frames} 帧 · {report.result.duration_seconds.toFixed(2)} 秒</p>
-      <p>算法：{report.algorithm_version} · {report.reviews.length === 0 ? "待人工审核" : report.reviews.at(-1)?.decision === "accepted_observations" ? "观察指标已复核" : report.reviews.at(-1)?.decision === "needs_retake" ? "复核要求重录" : "复核已拒绝"}</p>
+      <p>算法：{report.algorithm_version} · {report.reviews.length === 0 ? "待人工审核" : report.reviews.at(-1)?.decision === "accepted_observations" ? "观察指标已复核" : report.reviews.at(-1)?.decision === "modified_observations" ? "观察指标已修正复核" : report.reviews.at(-1)?.decision === "needs_retake" ? "复核要求重录" : "复核已拒绝"}</p>
       <table className="pose-metrics"><thead><tr><th>关节</th><th>角度中位数</th><th>活动幅度P5–P95</th><th>可见帧比例</th></tr></thead>
         <tbody>{Object.entries(report.result.metrics).map(([key, m]) => <tr key={key}>
           <th>{jointNames[key]}</th><td>{m.median_deg === null ? "不可评估" : `${m.median_deg}°`}</td>
@@ -290,12 +278,9 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
           {connections.map(([a, b]) => frame.landmarks[a]?.visibility >= .5 && frame.landmarks[b]?.visibility >= .5
             ? <line key={`${a}-${b}`} x1={frame.landmarks[a].x * report.input_data.width} y1={frame.landmarks[a].y * report.input_data.height} x2={frame.landmarks[b].x * report.input_data.width} y2={frame.landmarks[b].y * report.input_data.height} stroke="#b4ffdf" strokeWidth={5} /> : null)}
         </svg></>}
-      <h3>工作人员复核</h3>
-      {report.reviews.length ? <ul>{report.reviews.map(r => <li key={r.id}>版本{r.revision_no} · {r.decision === "accepted_observations" ? "确认观察指标" : r.decision === "needs_retake" ? "要求重录" : "拒绝"} · {r.reason}</li>)}</ul> : <p>尚未人工复核。</p>}
-      {canReview && <><label>复核结论<select value={decision} disabled={busy} onChange={e => setDecision(e.target.value)}>
-        <option value="accepted_observations">确认观察指标（不代表临床处方）</option><option value="needs_retake">要求重新采集</option><option value="rejected">拒绝本次结果</option>
-      </select></label><label>复核说明<textarea maxLength={1000} value={reason} disabled={busy} onChange={e => setReason(e.target.value)} /></label>
-        <button type="button" disabled={busy || !reason.trim()} onClick={() => void review()}>保存人工复核</button></>}
+      <PoseReviewPanel key={`${report.id}:${report.reviews.at(-1)?.revision_no ?? 0}`}
+        report={report} canReview={canReview} busy={busy} onBusy={setBusy}
+        onStatus={setStatus} onReload={() => openReport(report.id)} />
     </section>}
     <section><h2>3. 已保存的评估</h2>
       {history === null ? <p>历史读取失败，请确认后端已完成数据库迁移。</p> : history.length === 0 ? <p>暂无视频评估记录。</p>

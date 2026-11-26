@@ -15,6 +15,7 @@ from app.intake import reserve_write
 from app.intake_api import READ_ROLES, WRITE_ROLES, idempotency_header
 from app.models import PoseAnalysis, PoseReview
 from app.pose_analysis import ALGORITHM_VERSION, analyze_pose
+from app.pose_review import human_confirmation
 from app.pose_schemas import (
     PoseAnalysisView,
     PoseDetail,
@@ -106,6 +107,7 @@ def get_analysis(
     result = PoseDetail(
         **PoseAnalysisView.model_validate(row).model_dump(), input_data=row.input_data,
         reviews=[PoseReviewView.model_validate(r) for r in reviews],
+        human_confirmation=human_confirmation(row.result, reviews),
     )
     audit(db, "read", "pose_analysis", "allowed", auth.user.id, analysis_id)
     db.commit()
@@ -121,6 +123,8 @@ def review_analysis(
     require_csrf(request, auth, db, "review", "pose_analysis", analysis_id)
     row = scoped(db, auth, analysis_id, write=True)
     if auth.user.role not in {"clinician", "clinical_approver"}:
+        audit(db, "review", "pose_analysis", "denied", auth.user.id, analysis_id)
+        db.commit()
         raise HTTPException(403, "clinical review role required")
     require_demo_consent(db, row.participant_id)
     record_id, fresh = reserve_write(db, auth.user.id, f"pose_review:{analysis_id}", key, payload)
@@ -136,6 +140,7 @@ def review_analysis(
     review = PoseReview(
         id=record_id, analysis_id=analysis_id, revision_no=previous + 1,
         decision=payload.decision, reason=payload.reason, recorded_by=auth.user.id,
+        corrections=[item.model_dump(mode="json") for item in payload.corrections],
     )
     db.add(review)
     audit(db, "review", "pose_analysis", "allowed", auth.user.id, analysis_id)

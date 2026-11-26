@@ -2,6 +2,8 @@
 
 import os
 import uuid
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 
 import pytest
 from fastapi.testclient import TestClient
@@ -81,10 +83,47 @@ def test_pose_commits_and_reloads_in_postgres():
         detail = client.get(f"/api/v1/pose-analyses/{analysis_id}").json()
         assert detail["result"]["metrics"]["left_elbow"]["median_deg"] == 92
         assert detail["reviews"][0]["revision_no"] == 1
+        assert detail["reviews"][0]["corrections"] == []
+        assert detail["human_confirmation"]["metrics"]["left_elbow"]["median_deg"] == 92
         assert detail["algorithm_version"] == "pose-geometry-v2"
         assert detail["result"]["series"][0]["smoothed_angles"]["left_elbow"] is not None
         legacy_detail = client.get(f"/api/v1/pose-analyses/{legacy_id}").json()
         assert legacy_detail["algorithm_version"] == "pose-geometry-v1"
         assert legacy_detail["result"] == original
+        csrf = client.cookies["taiji_csrf"]
+        modified = client.post(f"/api/v1/pose-analyses/{analysis_id}/reviews", headers={
+            "X-CSRF-Token": csrf, "Idempotency-Key": str(uuid.uuid4()),
+        }, json={
+            "expected_revision": 1, "decision": "modified_observations", "reason": "逐项核对",
+            "corrections": [{"joint": "left_elbow", "metric": "median_deg", "validity": "valid",
+                             "value": 0, "reason": "合成零值修正"}],
+        })
+        assert modified.status_code == 201, modified.text
+    with TestClient(app) as client:
+        client.post("/api/v1/auth/login", json={"email": email, "password": password})
+        detail = client.get(f"/api/v1/pose-analyses/{analysis_id}").json()
+        assert detail["result"]["metrics"]["left_elbow"]["median_deg"] == 92
+        assert detail["human_confirmation"]["metrics"]["left_elbow"]["median_deg"] == 0
+        assert len(detail["reviews"]) == 2
+    # Two independent authenticated sessions submit the same expected revision
+    # concurrently. PostgreSQL row locks must permit exactly one new snapshot.
+    with TestClient(app) as tab_a, TestClient(app) as tab_b:
+        for tab in (tab_a, tab_b):
+            response = tab.post("/api/v1/auth/login", json={"email": email, "password": password})
+            assert response.status_code == 200
+        barrier = Barrier(2)
+
+        def submit(tab):
+            barrier.wait(timeout=10)
+            return tab.post(f"/api/v1/pose-analyses/{analysis_id}/reviews", headers={
+                "X-CSRF-Token": tab.cookies["taiji_csrf"], "Idempotency-Key": str(uuid.uuid4()),
+            }, json={"expected_revision": 2, "decision": "needs_retake", "reason": "并发复核"})
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            statuses = sorted(response.status_code for response in pool.map(submit, (tab_a, tab_b)))
+        assert statuses == [201, 409]
+        current = tab_a.get(f"/api/v1/pose-analyses/{analysis_id}").json()
+        assert len(current["reviews"]) == 3 and current["human_confirmation"] is None
+        assert current["reviews"][1]["corrections"][0]["value"] == 0
     engine.dispose()
     get_engine.cache_clear()

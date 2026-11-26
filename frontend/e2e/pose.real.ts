@@ -56,10 +56,41 @@ test("real pose model yields landmarks, persists evidence, and retains review af
   await page.getByLabel("复核说明").fill("合成样例：已核对骨架与观察指标，不作为临床评分。");
   await page.getByRole("button", { name: "保存人工复核" }).click();
   await expect(page.getByText(/版本1 · 确认观察指标/)).toBeVisible();
+  await page.getByLabel("复核结论").selectOption("modified_observations");
+  await page.getByRole("button", { name: "添加指标修正" }).click();
+  await page.getByLabel("修正1人工值（度）").fill("0");
+  await page.getByLabel("修正1理由").fill("合成逐项修正：保留真实零值");
+  await page.getByRole("button", { name: "添加指标修正" }).click();
+  await page.getByLabel("修正2指标").selectOption("range_p05_p95_deg");
+  await page.getByLabel("修正2观测状态").selectOption("missing");
+  await page.getByLabel("修正2理由").fill("合成遮挡：幅度无法判断");
+  await page.getByLabel("复核说明").fill("复核角度与幅度，AI原值保留");
+  await page.getByRole("button", { name: "保存人工复核" }).click();
+  await expect(page.getByRole("heading", { name: "当前人工确认结果 · 版本2" })).toBeVisible();
+  await expect(page.getByText(/左肘 · 角度中位数：AI .* → 人工复核 0°/)).toBeVisible();
+  await expect(page.getByText(/左肘 · 活动幅度P5–P95：AI .* → 人工复核 未知/)).toBeVisible();
+  const corrected = await (await page.request.get(`/api/v1/pose-analyses/${summary.id}`)).json();
+  expect(corrected.result).toEqual(summary.result);
+  expect(corrected.human_confirmation.metrics.left_elbow).toEqual({ median_deg: 0, range_p05_p95_deg: null });
   await page.screenshot({ path: `${process.env.E2E_OUTPUT_DIR}/pose-report.png`, fullPage: true });
   await page.reload();
   await page.getByRole("button", { name: /有测量指标/ }).click();
   await expect(page.getByText(/版本1 · 确认观察指标/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "当前人工确认结果 · 版本2" })).toBeVisible();
+  await expect(page.getByLabel("修正1人工值（度）")).toHaveValue("0");
+  const csrf = (await page.context().cookies()).find(cookie => cookie.name === "taiji_csrf")!.value;
+  const otherWindow = await page.request.post(`/api/v1/pose-analyses/${summary.id}/reviews`, {
+    headers: { "X-CSRF-Token": csrf, "Idempotency-Key": crypto.randomUUID() },
+    data: { expected_revision: 2, decision: "needs_retake", reason: "另一页面要求重新取景" },
+  });
+  expect(otherWindow.status()).toBe(201);
+  await page.getByLabel("复核说明").fill("旧页面尝试提交，不能覆盖新复核");
+  await page.getByRole("button", { name: "保存人工复核" }).click();
+  await expect(page.getByRole("status").first()).toContainText("复核记录已更新");
+  await page.getByRole("button", { name: "刷新复核记录" }).click();
+  await expect(page.getByText("当前没有已确认的观察结果。")).toBeVisible();
+  await expect(page.getByText(/版本3 · 要求重录/)).toBeVisible();
+  await expect(page.getByText(/版本2 · 修正后确认观察指标/)).toBeVisible();
   expect(errors).toEqual([]);
   await test.info().attach("pose-summary", { body: JSON.stringify(summary, null, 2), contentType: "application/json" });
 });
@@ -138,7 +169,7 @@ test("blank video produces unknown metrics and cannot be accepted as measured", 
   await expect(page.getByRole("cell", { name: "不可评估", exact: true })).toHaveCount(12);
   await page.getByLabel("复核说明").fill("空画面不能确认有效指标");
   await page.getByRole("button", { name: "保存人工复核" }).click();
-  await expect(page.getByRole("status").first()).toContainText("请完成有效评估");
+  await expect(page.getByRole("status").first()).toContainText("不可评估的AI结果不能直接确认");
 });
 
 test("model loading failure and camera permission denial remain actionable", async ({ page }) => {

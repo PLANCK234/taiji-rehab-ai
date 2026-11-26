@@ -21,9 +21,25 @@ export type PoseResult = {
 };
 export type PoseSummary = { id: string; participant_id: string; algorithm_version: string;
   input_sha256: string; created_at: string; result: PoseResult };
-export type PoseReview = { id: string; revision_no: number; decision: string; reason: string;
-  recorded_by: string; recorded_at: string };
-export type PoseDetail = PoseSummary & { input_data: PoseInput; reviews: PoseReview[] };
+export type PoseJoint = "left_elbow" | "right_elbow" | "left_shoulder" | "right_shoulder" | "left_knee" | "right_knee";
+export type ReviewMetric = "median_deg" | "range_p05_p95_deg";
+export type PoseCorrection = { joint: PoseJoint; metric: ReviewMetric;
+  validity: "valid" | "missing"; value: number | null; reason: string };
+export type ReviewDecision = "accepted_observations" | "modified_observations" | "needs_retake" | "rejected";
+export type PoseReview = { id: string; revision_no: number; decision: ReviewDecision; reason: string;
+  recorded_by: string; recorded_at: string; corrections: PoseCorrection[] };
+export type PoseHumanConfirmation = { evidence_type: "HUMAN_CONFIRMATION"; review_id: string;
+  revision_no: number; decision: "accepted_observations" | "modified_observations";
+  metrics: Record<string, Record<ReviewMetric, number | null>> };
+export type PoseDetail = PoseSummary & { input_data: PoseInput; reviews: PoseReview[];
+  human_confirmation: PoseHumanConfirmation | null };
+export const reviewMetricNames: Record<ReviewMetric, string> = {
+  median_deg: "角度中位数", range_p05_p95_deg: "活动幅度P5–P95",
+};
+export const reviewDecisionNames: Record<ReviewDecision, string> = {
+  accepted_observations: "确认观察指标", modified_observations: "修正后确认观察指标",
+  needs_retake: "要求重录", rejected: "拒绝",
+};
 export const jointNames: Record<string, string> = {
   left_elbow: "左肘", right_elbow: "右肘", left_shoulder: "左肩",
   right_shoulder: "右肩", left_knee: "左膝", right_knee: "右膝",

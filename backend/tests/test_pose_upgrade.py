@@ -12,7 +12,7 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session
 
 from app.db import get_engine
-from app.models import Participant, PoseAnalysis, Study, User
+from app.models import Participant, PoseAnalysis, PoseReview, Study, User
 from app.pose_analysis import analyze_pose, analyze_pose_v1
 from app.pose_schemas import PoseInput
 from tests.test_pose_analysis import input_payload
@@ -67,6 +67,13 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
             db.add(row)
             db.flush()
             record_id, participant_id, user_id = row.id, participant.id, user.id
+            legacy_review_id = uuid.uuid4()
+            db.execute(text(
+                "INSERT INTO pose_reviews "
+                "(id, analysis_id, revision_no, decision, reason, recorded_by, recorded_at) "
+                "VALUES (:id, :analysis_id, 1, 'accepted_observations', "
+                "'原始合成复核', :user_id, CURRENT_TIMESTAMP)"
+            ), {"id": legacy_review_id, "analysis_id": record_id, "user_id": user_id})
             db.commit()
         upgraded = migrate("upgrade", "head")
         assert upgraded.returncode == 0, upgraded.stderr
@@ -74,6 +81,8 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
             row = db.get(PoseAnalysis, record_id)
             assert row.result == old_result and row.input_sha256 == "c" * 64
             assert row.algorithm_version == "pose-geometry-v1"
+            old_review = db.get(PoseReview, legacy_review_id)
+            assert old_review.reason == "原始合成复核" and old_review.corrections == []
             db.add(PoseAnalysis(
                 participant_id=participant_id, input_data=payload.model_dump(mode="json"),
                 input_sha256="d" * 64, result=analyze_pose(payload),
@@ -85,8 +94,25 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
         assert "v2 evidence exists" in rollback.stderr
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-                "0009_pose_geometry_v2"
+                "0010_pose_review_corrections"
             )
             assert connection.scalar(text("SELECT count(*) FROM pose_analyses")) == 2
+        with Session(engine) as db:
+            db.add(PoseReview(
+                analysis_id=record_id, revision_no=2, decision="modified_observations",
+                reason="合成逐项复核", recorded_by=user_id, corrections=[{
+                    "joint": "left_elbow", "metric": "median_deg", "validity": "valid",
+                    "value": 0, "reason": "保留人工观察零值",
+                }],
+            ))
+            db.commit()
+        structured_rollback = migrate("downgrade", "0009_pose_geometry_v2")
+        assert structured_rollback.returncode != 0
+        assert "structured review evidence exists" in structured_rollback.stderr
+        with engine.connect() as connection:
+            assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
+                "0010_pose_review_corrections"
+            )
+            assert connection.scalar(text("SELECT count(*) FROM pose_reviews")) == 2
     finally:
         engine.dispose()

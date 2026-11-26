@@ -11,7 +11,7 @@ function oldReport(): PoseDetail {
     observed_seconds: .4, reason: null };
   return {
     id: "test", participant_id: "test", algorithm_version: "pose-geometry-v1", input_sha256: "old",
-    created_at: "2026-11-26T00:00:00Z", reviews: [],
+    created_at: "2026-11-26T00:00:00Z", reviews: [], human_confirmation: null,
     input_data: { source: "synthetic_video", model_version: "mediapipe-pose-lite-float16-v1",
       model_sha256: "old", width: 640, height: 480, support: "seated",
       frames: [0, 200, 400].map(timestamp_ms => ({ timestamp_ms, landmarks: [], pose_count: 0 })) },

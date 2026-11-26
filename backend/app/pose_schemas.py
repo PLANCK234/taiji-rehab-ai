@@ -48,11 +48,44 @@ class PoseInput(BaseModel):
         return self
 
 
+PoseJoint = Literal[
+    "left_elbow", "right_elbow", "left_shoulder", "right_shoulder", "left_knee", "right_knee",
+]
+PoseMetric = Literal["median_deg", "range_p05_p95_deg"]
+
+
+class PoseMetricCorrection(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, allow_inf_nan=False)
+    joint: PoseJoint
+    metric: PoseMetric
+    validity: Literal["valid", "missing"]
+    value: float | None = Field(strict=True, ge=0, le=180)
+    reason: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def value_state(self):
+        if (self.validity == "valid") != (self.value is not None):
+            raise ValueError("valid needs a value; missing needs null")
+        return self
+
+
 class PoseReviewInput(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     expected_revision: int = Field(ge=0)
-    decision: Literal["accepted_observations", "needs_retake", "rejected"]
+    decision: Literal[
+        "accepted_observations", "modified_observations", "needs_retake", "rejected",
+    ]
     reason: str = Field(min_length=1, max_length=1000)
+    corrections: list[PoseMetricCorrection] = Field(default_factory=list, max_length=12)
+
+    @model_validator(mode="after")
+    def correction_snapshot(self):
+        if (self.decision == "modified_observations") != bool(self.corrections):
+            raise ValueError("only modified reviews require nonempty corrections")
+        keys = [(row.joint, row.metric) for row in self.corrections]
+        if len(set(keys)) != len(keys):
+            raise ValueError("a metric can only be corrected once in a review")
+        return self
 
 
 class PoseReviewView(BaseModel):
@@ -63,6 +96,15 @@ class PoseReviewView(BaseModel):
     reason: str
     recorded_by: uuid.UUID
     recorded_at: datetime
+    corrections: list[PoseMetricCorrection]
+
+
+class PoseHumanConfirmation(BaseModel):
+    evidence_type: Literal["HUMAN_CONFIRMATION"] = "HUMAN_CONFIRMATION"
+    review_id: uuid.UUID
+    revision_no: int
+    decision: Literal["accepted_observations", "modified_observations"]
+    metrics: dict[str, dict[str, float | None]]
 
 
 class PoseAnalysisView(BaseModel):
@@ -78,3 +120,4 @@ class PoseAnalysisView(BaseModel):
 class PoseDetail(PoseAnalysisView):
     input_data: PoseInput
     reviews: list[PoseReviewView]
+    human_confirmation: PoseHumanConfirmation | None

@@ -3,7 +3,16 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
 
@@ -39,8 +48,14 @@ class PoseReview(Base):
         UniqueConstraint("analysis_id", "revision_no"),
         CheckConstraint("revision_no > 0", name="ck_pose_review_revision"),
         CheckConstraint(
-            "decision IN ('accepted_observations','needs_retake','rejected')",
+            "decision IN ('accepted_observations','modified_observations',"
+            "'needs_retake','rejected')",
             name="ck_pose_review_decision",
+        ),
+        CheckConstraint(
+            "(decision = 'modified_observations' AND json_array_length(corrections) > 0) OR "
+            "(decision <> 'modified_observations' AND json_array_length(corrections) = 0)",
+            name="ck_pose_review_corrections",
         ),
     )
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -48,6 +63,9 @@ class PoseReview(Base):
     revision_no: Mapped[int] = mapped_column(nullable=False)
     decision: Mapped[str] = mapped_column(String(32), nullable=False)
     reason: Mapped[str] = mapped_column(String(1000), nullable=False)
+    corrections: Mapped[list] = mapped_column(
+        JSON, nullable=False, default=list, server_default=text("'[]'"),
+    )
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
