@@ -6,6 +6,8 @@
 |---|---|---|
 | 1 | [PRD](product/PRD.md) / [范围](product/SCOPE.md) | 用户、关键流程、做与不做 |
 | Demo | [DEMO-V2 用户流程](product/DEMO_USER_FLOW.md) | 独立合成演示七步闭环与边界 |
+| AI 下一阶段 | [AI视频辅助评估方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md) | 手机视频、人体骨架、AI初评、人工审核与开发拆分（提案） |
+| AI 已实现验证 | [姿态验证目标](testing/AI_POSE_VALIDATION.md) | 真实模型→关节指标→PostgreSQL→人工观察复核；合成样例，不含临床评分效度 |
 | 2 | [验收矩阵](product/ACCEPTANCE.md) / [需求追踪](TRACEABILITY.md) | 可交付标准 |
 | 3 | [系统设计](architecture/SYSTEM_DESIGN.md) / [数据流](architecture/DATA_FLOW.md) | 模块边界 |
 | 4 | [数据模型](data/DATA_MODEL.md) / [字典](data/DATA_DICTIONARY.md) | 结构与完整性 |

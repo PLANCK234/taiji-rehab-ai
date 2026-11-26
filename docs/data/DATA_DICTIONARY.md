@@ -63,3 +63,8 @@ For every measurement save `source`, `performed_at`, `recorded_at`, `validity`, 
 ## DEMO-V2 专用字段
 
 `demo_participant_profiles.age/sex/needs_assistance/note` 为可选虚构展示资料，`null` 为未知；不映射真实身份。`demo_grade_results.functional_grade` 为 `I|II|III|IV|UNASSESSED`，`demo_training_mode` 独立且 IV/UNASSESSED 为空；`rule_version=demo-rule-v1`、`evidence.marker=DEMO_RULE` 及 `assessment_revision_id` 记录依据。`demo_actions.marker=DEMO_ONLY`，不含临床剂量；`demo_runs.status` 为 in_progress/paused/awaiting_feedback/completed/stopped，`current_index` 为浏览进度，`completed_action_ids` 为实际完成动作的可空独立记录，`training_session_id` 关联原有观察。计划动作或浏览进度不得充当实际完成动作。`actual_minutes` 和 RPE 未记录均为 null，绝不默认为 0。
+# 视频姿态数据增补（2026-11-26）
+
+`pose_analyses.input_data`保存合成来源、固定模型版本/SHA-256、视频宽高、姿势/辅助方式和0起单调时间戳的33点序列；空序列为无人体/多人。坐标是模型估计，`visibility`是点可见性，不是临床置信概率。`result.metrics`的median_deg与range_p05_p95_deg为图像平面角度（度），coverage为有效帧/全部采样帧，observed_seconds不跨缺帧或>1秒间隔。少于3帧可用值为null，静态抖动可能产生非零范围；不解释为正常值/疾病程度。
+
+`pose_reviews.decision`为accepted_observations/needs_retake/rejected，reason必填，revision_no递增；接受观察不等于量表确认或处方发布。原人工assessment_revisions与DEMO_RULE分级含义保持原样。详见[API](../api/API_CONTRACT.md)、[ADR-0016](../decisions/0016-local-pose-geometry-evidence.md)。

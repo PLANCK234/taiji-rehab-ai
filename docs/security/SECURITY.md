@@ -51,3 +51,6 @@
 
 ## Deployment gate (must sign off)
 Approved protocol/ethics, purpose and consent language, legal retention, data-controller and hosting jurisdiction, access roster, incident response ownership, image policy, backup/restore test, dependency and vulnerability review. Product claims and potential medical-device status require institutional/regulatory review; this document does not certify compliance.
+# 合成视频识别增补（2026-11-26）
+
+新入口`/participants/{id}/ai-assessment`仅合成测试；与旧pose-demo的无采集SVG边界分开。摄像/文件解码及模型推理在浏览器本机，Worker按需加载本站固定版本资源。网络仅提交受控大小的关键点结构，不提交原视频；无远程推理API。退出/停止释放媒体轨道，卸载清理Worker与对象URL。关键点、指标与审核依然属于受保护对象数据，每条读写/复核走服务端RBAC和参与者范围、写操作CSRF/幂等/模拟同意，保留审计。客户端声明source与hash不是素材真实性或真实患者同意的证明；真实患者准入没有因此开放。手机安全上下文/实体机权限仍待验证。

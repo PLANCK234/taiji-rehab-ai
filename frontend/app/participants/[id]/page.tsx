@@ -45,6 +45,7 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <Link href="/workspace">← 返回工作台</Link>
       <div className="eyebrow">合成数据编号对象</div>
       <h1>{participant.study_code}</h1>
+      <Link className="button-link" href={`/participants/${id}/ai-assessment`}>AI视频动作评估</Link>
       <p>此页面仅用于开发演示，不代表真实建档或研究入组。</p>
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
       <section aria-labelledby="consent-heading">

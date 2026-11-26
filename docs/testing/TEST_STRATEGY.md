@@ -1,5 +1,7 @@
 # Test strategy / quality gates
 
+AI姿态实施增加[可验证目标](AI_POSE_VALIDATION.md)。后端`test_pose_analysis.py`覆盖已知角/慢小幅/坐位/宽高比/镜像/遮挡与时间；`test_pose_api.py`覆盖权限/幂等/保留AI原值/复核版本；`test_pose_postgres.py`进入独立迁移runner。`scripts/run_pose_browser.py`使用本机服务与tmpfs PostgreSQL执行真实Worker模型推理、合成静态视频、空画面、模型加载/摄像拒绝、持久化及旧Demo/训练回归；不是mock模型，也不是实体手机验证。
+
 ## Layers
 
 REAL-01D0 verification uses `backend/tests/test_training_observations.py` for feedback state/correction, idempotency, zero vs null, independent event and roles; `test_training_postgres.py` for committed rows after a new API session; `scripts/run_eng04_integration.py` for disposable PostgreSQL upgrade/check/downgrade/upgrade; and `frontend/e2e/training.real.ts` via `scripts/run_eng04b_browser.py` for real Chromium→Next→FastAPI→PostgreSQL persistence and scope. Browser test artifacts stay under ignored `exports/`. These cover D0 observation only, not protocol-bound training, clinical event disposition, cycles or export.

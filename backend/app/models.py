@@ -14,6 +14,41 @@ def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class PoseAnalysis(Base):
+    __tablename__ = "pose_analyses"
+    __table_args__ = (
+        CheckConstraint("algorithm_version = 'pose-geometry-v1'", name="ck_pose_algorithm"),
+        Index("ix_pose_participant_created", "participant_id", "created_at"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("participants.id"))
+    input_data: Mapped[dict] = mapped_column(JSON, nullable=False)
+    input_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    algorithm_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    result: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class PoseReview(Base):
+    __tablename__ = "pose_reviews"
+    __table_args__ = (
+        UniqueConstraint("analysis_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_pose_review_revision"),
+        CheckConstraint(
+            "decision IN ('accepted_observations','needs_retake','rejected')",
+            name="ck_pose_review_decision",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    analysis_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("pose_analyses.id"))
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    decision: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason: Mapped[str] = mapped_column(String(1000), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class User(Base):
     __tablename__ = "users"
     __table_args__ = (

@@ -148,3 +148,18 @@
 
 - 从干净的 `037c60a` 检查实际路由、配置与本机账号。用户提供的 403/request_id 映射到 `login → check_origin`：容器 `APP_PUBLIC_URL=http://localhost:3000`，127 浏览器 Origin 在凭据校验前被拒；错误处理统一显示 FORBIDDEN。修复前用无效凭据复现 127→403、localhost→401、外部→403；3 个演示账号均启用。
 - 仅对已启用的合成本地/测试 Demo 的 HTTP 回环公开地址接受同端口别名。`require_csrf` 共用该检查；Research 准入、账号/限流、作用域和数据卷未改。修复后用实际账号经本机 Next→FastAPI 登录：127/localhost→200，外部→403。后端 Ruff、pytest 43 passed/4 skipped；临时 PostgreSQL/Next/Chromium 8 passed。仅重建本机 backend，无数据库迁移或数据重置。下个 Task ID 仍为 `REAL-01E0`。
+
+## 2026-11-26 · DEMO-V2-09 AI视频评估方案
+
+- 用户要求先全局看项目并写AI评估思路。从干净工作区、分支 `feat/real-01f0-coded-export` / `80993bf` 核查产品/验收/路线/交接/量表/架构/研究文档和实际人工评估、Demo规则、姿态SVG页面；未找到原量表附件或太极逐项评分表。
+- 新增AI方案与ADR-0015，规划手机采集、关键点模型、骨架回放、可解释指标、AI候选、工作人员/专家审核和阶段/计划关联；太极动作表现与量表分开。查阅MediaPipe官方Web文档核对关键点/视频能力，未安装或执行模型。
+- 同步PRD范围说明、索引、验收、任务09–14、路线、Q-14/15、状态与追踪/交接。业务代码、配置、数据库、模型与摄像未变更；既有任务状态保留。
+- 系统python不在PATH；改用 `backend/.venv/Scripts/python.exe scripts/check_handoff.py`，通过（49 task IDs、local links OK）；`git diff --check`通过。未执行业务/模型/手机测试。文档未提交，未推送或合并；下一任务 `DEMO-V2-10`，旧 `REAL-01E0` 保留。
+
+## 2026-11-26 · DEMO-V2-10/11 实际识别实施与验证
+
+- 用户要求直接设可验证目标并实现。新增pose输入/几何服务/API、0008两表、原始输入/版本/哈希/指标及独立追加观察复核；前端AI新入口、固定SDK/模型、classic Worker真实推理、合成视频/测试摄像、骨架、报告/证据与历史。原人工量表和旧SVG页保持原语义；未做临床评分、阶段或剂量。
+- 内置imagegen生成虚构年长人物图用于固定测试视频，已检查全身画面；素材保存于frontend/public/pose-fixtures/，完整提示与来源见AI_POSE_VALIDATION。仅合成素材，没有真人患者。几何单测覆盖慢速4°变化/坐位/镜像/宽高比/遮挡，视频静态抖动则明确记录为限制。
+- 执行后端Ruff/52 passed/5 opt-in skipped、独立PostgreSQL升降升/check与6 API、前端lint/typecheck/21 tests/build。最终真实Chrome模型→PostgreSQL→观察复核→刷新与旧Demo/训练 **8 passed (37.6s)**，runner退出0；exports/pose-browser-23fa682926/browser/有截图/last-run；包括空画面/缺模型/摄像拒绝/合成摄像流停止释放。
+- 保留失败：跨平台node_modules配置不匹配后备份到忽略exports目录再重装；Worker SDK.cjs MIME错误改.js；浏览器夹具需明确追加模拟同意（否则正确403）；本机Chrome替代未完成下载的Playwright浏览器；一次测试7通过后打印中文绝对路径退出1，已修复并最终退出0。Next构建安全提醒曾中断，重试可继续，未做依赖升级或关闭安全开关。
+- 所有迁移/种子仅在独立临时数据库；原共享卷未迁移/删除，测试容器与服务已停止。同步API/数据/产品/验收/ADR-0016及台账、状态、追踪、交接。任务10 DONE，11/13/14只完成所记子范围；下一任务11剩余实机与多场景验证，评分表依Q-14。检查点提交以本轮git log为准，无推送/合并。

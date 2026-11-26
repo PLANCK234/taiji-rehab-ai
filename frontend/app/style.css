@@ -54,3 +54,6 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .trend-table th, .trend-table td { padding: 10px 8px; border-bottom: 1px solid #29292e; vertical-align: top; }
 .trend-table meter { width: 90px; max-width: 100%; }
 @media (max-width: 800px) { main { margin: 0 auto; padding: 20px; } .demo-layout, .filter-row { grid-template-columns: 1fr; } .action-grid { grid-template-columns: 1fr; } section { padding: 20px; } }
+/* Numeric pose evidence must remain readable on narrow capture screens. */
+.pose-metrics { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.pose-metrics th, .pose-metrics td { padding: .7rem .4rem; text-align: left; border-bottom: 1px solid #36363a; }

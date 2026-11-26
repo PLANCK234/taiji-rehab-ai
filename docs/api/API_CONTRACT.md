@@ -1,5 +1,17 @@
 # REST API contract (proposed /api/v1)
 
+## 2026-11-26 已实现的合成视频姿态分析
+
+| 路径 | 行为 |
+|---|---|
+| GET/POST `/api/v1/participants/{id}/pose-analyses` | 授权列表（最近50条）/幂等创建；POST仅clinician/research_assistant，需当前模拟同意、CSRF、Idempotency-Key |
+| GET `/api/v1/pose-analyses/{id}` | 授权详情：原关键点输入、服务器指标、输入SHA-256、算法/模型版本及人工复核历史 |
+| POST `/api/v1/pose-analyses/{id}/reviews` | clinician/clinical_approver追加观察复核；需同意、CSRF、幂等；expected_revision过期409；无指标不可accepted_observations |
+
+`PoseInput`仅接受`synthetic_video/synthetic_camera`，模型版本`mediapipe-pose-lite-float16-v1`及固定哈希；width/height、support、3–1800帧。每帧时间从0起严格递增、≤300000ms；landmarks恰33个或空，点包含有限x/y/z/visibility；pose_count为0/1/2，只有单人帧携带关键点，多人不选择第一个人。输入坐标域见OpenAPI；画面外/低可见点不计算角度。原视频不在请求中。
+
+`result`由服务端`pose-geometry-v1`计算，包含六关节角度中位数、P5–P95范围、有效覆盖/观察时间、逐帧角度及measured/not_assessable。角度为空不会转零。模型/算法版本、marker=DEMO_ONLY、evidence_type=MODEL_CANDIDATE保留；clinical_score与rehabilitation_stage为null。复核只确认观察指标，不发布分级或治疗建议。无修改/删除原分析接口；重跑使用新记录。详见[验证](../testing/AI_POSE_VALIDATION.md)。
+
 **Status**: Sprint 1 implements authentication, coded reads and synthetic intake; S2-01 adds synthetic manual SPPB total assessment entry, and ENG-02A adds a read-only trend projection. Other routes remain design proposals. `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503) are public. Implemented business routes are prefixed `/api/v1`; use JSON, UUIDs, server-side session/RBAC/study/participant scope. All require authentication except login. Error format is in [ERRORS.md](ERRORS.md).
 
 | Implemented path | Behavior |

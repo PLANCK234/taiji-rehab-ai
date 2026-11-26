@@ -1,5 +1,21 @@
 # 实施状态
 
+## 2026-11-26 DEMO-V2-10/11 真实姿态模型与证据闭环
+
+已实现新入口`/participants/{id}/ai-assessment`：合成视频/测试摄像、本机Worker内MediaPipe Pose Lite真实推理、33点连线、后端六关节角度/幅度/覆盖/时间指标、PostgreSQL原输入/结果/版本、临床角色追加观察复核及骨架证据刷新恢复。原视频不上传；不伪造SPPB/康复阶段/处方。`0008_pose_analyses`只增两张表，未迁移或删除原本机共享卷。
+
+已执行：后端Ruff与pytest **52 passed / 5 opt-in skipped**；`scripts/run_eng04_integration.py`独立tmpfs PostgreSQL迁移/check/降/升及新旧API **6 passed**；前端lint/typecheck/**21 tests**通过，Next生产构建通过。真实Chrome→Worker模型→Next→FastAPI→PostgreSQL→人工观察复核最终浏览器套件 **8 passed (37.6s)**、脚本退出0，证据`exports/pose-browser-23fa682926/browser/pose-report.png`和`.last-run.json`。合成静态视频曾25/25帧检出33关键点；空画面无分值、不可接受有效观察；摄像拒绝、模型缺失与旧Demo/训练回归通过。另用合成像素替代摄像硬件输入，实际模型推理、停止后轨道释放及保存报告通过；这不代表实体手机通过。
+
+验证目标/命令/素材来源与局限详见[AI姿态验证](testing/AI_POSE_VALIDATION.md)和[ADR-0016](decisions/0016-local-pose-geometry-evidence.md)。静态图视频仅证明模型和数据链路，静态角度仍有约0.69–3.28°抖动，不能推断真实微小动作精度或老年人群准确率；实体手机、连续太极、辅具/遮挡及专家标签待任务11/12/14。
+
+保留失败记录：系统python/pnpm入口缺失改用已有后端虚拟环境和npm exec pnpm；旧node_modules跨平台配置不匹配，备份至忽略目录`exports/frontend-node_modules-before-pose`后按锁文件重装。首次Worker SDK以.cjs提供导致MIME加载失败，已改.js。浏览器夹具未实际保存模拟同意时正确403，补明确追加同意；测试浏览器未安装时改用本机Chrome。一次套件7通过后仅打印中文绝对路径导致脚本退出1，改相对路径后复测脚本退出0。Next16.4.3构建报告已知安全漏洞并曾中断，按工具提示重试后可继续；依赖安全升级仍需独立处理，未关闭提醒或改安全开关。当前没有远端CI/生产发布。
+
+## 2026-11-26 DEMO-V2-09 AI视频评估方案
+
+已核查PRD/量表、路线/台账、架构/数据/研究接口、实际人工评估/Demo规则及姿态页面。姿态仅SVG，量表仅人工SPPB总分，无已接入视频模型。新增 [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md) 与 [ADR-0015](decisions/0015-ai-video-assessment-proposal.md)：手机采集、骨架、可解释指标、AI候选、人工复核/专家确认、阶段与计划关联。太极动作分与量表任务分开；Q-14/Q-15记录评分与阶段模板依赖。已核对MediaPipe官方Web文档；尚未安装或运行模型。
+
+本轮仅文档，AT-AI-DOC-01；`backend/.venv/Scripts/python.exe scripts/check_handoff.py`（49 task IDs / local links OK）与 `git diff --check` 通过。系统 `python` 不在PATH，改用已有后端虚拟环境执行。未执行业务/模型/手机测试，不修改运行配置、数据库或真实影像准入。下一任务 `DEMO-V2-10`；既有验收状态保持原记录。
+
 ## 2026-11-01 DEMO-V2-08 本地登录 Origin 修复
 
 用户报告 `POST /api/v1/auth/login` 403（request_id `0d0a3db4-183a-4e60-883b-1b912385ea79`）。实际容器为 `APP_PROFILE=demo`、`APP_ENV=local`、`ALLOW_SYNTHETIC_ONLY=true`、`APP_PUBLIC_URL=http://localhost:3000`；3 个演示账号均启用。`backend/app/api.py:check_origin` 在凭据/限流前把浏览器 `Origin=http://127.0.0.1:3000` 与单个公开地址精确比较并抛 403；统一错误映射把 `origin denied` 显示成 `FORBIDDEN / 没有访问权限`。修复仅在合成本地/测试 Demo 且配置为 HTTP 回环地址时允许同端口的 `localhost` 与 `127.0.0.1`，外部来源仍拒绝；`require_csrf`、账号校验、RBAC 和 Research 拒绝门禁未更改。

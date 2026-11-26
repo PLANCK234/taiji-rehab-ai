@@ -17,6 +17,10 @@
 | Q-11 | RCT allocation and blinded analyst workflow needed in MVP? | PI / statistician | out of scope pending decision |
 | Q-12 | Which observation quality/subjective response scales? | clinical team | categorical placeholders marked unvalidated |
 | Q-13 | External LLM used for literature only? Approved provider and documents? | security / PI | offline manual literature extraction |
+| Q-14 | 既有量表原表/SOP、首批太极任务与评分表、参考视频、维度锚点/权重及不可评估条件是什么？ | 临床评估负责人 / 项目负责人 | 几何指标与合成工程可先做；无配置不编造分数，不由太极视频补齐SPPB |
+| Q-15 | “康复阶段”是否区别于I–IV功能等级？阶段映射、动作/计划模板、专家审核角色是什么？ | 康复专家 / 项目负责人 | 阶段/计划字段和审核流程可先做；无定义显示待评，不自行确定治疗剂量 |
+
+2026-11-26：用户提出 AI 视频识别与先AI后人工评估的新方向，见 [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)。与旧 PRD 的“仅姿态壳”存在范围变化，本轮登记设计提案；未实施新的医学规则。Q-14/Q-15 不阻塞独立合成工程；Q-01/Q-10 仍用于决定真实患者影像接入，不能把将来专家背书记作已完成签核。
 
 **Decision closure template**: date; question ID; signed decision; authority; scope; rule/protocol version; evidence URL/file; impacted tests; effective date. No closed state without evidence.
 

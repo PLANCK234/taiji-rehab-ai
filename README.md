@@ -1,5 +1,7 @@
 # 太极拳康复分级评估与科研数据平台
 
+> **新增真实AI姿态识别（2026-11-26）**：编号对象详情→“AI视频动作评估”。可加载合成年长人物视频样例、选择合成视频或打开测试摄像；固定版本模型在浏览器Worker中提取33点并绘制骨架，后端计算肘/肩/膝角度和幅度，PostgreSQL保存报告/证据/人工观察复核。原视频不上传，当前不输出SPPB自动分数或康复阶段。启动前需增量迁移到`0008_pose_analyses`；已有卷先备份，勿重建。模型随前端构建下载并验哈希，本地开发先`pnpm --dir frontend prepare:pose`。验证与复现见[AI姿态验证](docs/testing/AI_POSE_VALIDATION.md)。
+
 > **DEMO-V2 当前可操作入口（2026-10-31）**：本机启动后打开 [http://127.0.0.1:3000/login](http://127.0.0.1:3000/login)，用 `.env` 中的 `DEMO_PASSWORD` 登录合成演示账号。研究人员可在工作台创建 `SYN-` 编号，明确勾选模拟同意并输入 SPPB=8 或 5，自动进入 II/III 级 `DEMO_ONLY` 方案；可搜索动作、开始/暂停/继续/结束训练、录入 RPE 并完成。所有结果由 FastAPI/PostgreSQL 持久化。详见 [七步流程](docs/product/DEMO_USER_FLOW.md)、[状态](docs/STATUS.md)。这不是已批准的临床分级或处方。
 
 > **REAL-01 工程目标（2026-10-31）**：逐步构建数据库持久化的医疗研究人员业务工作台。可先用合成数据开发真实业务字段与流程；真实患者数据接入须另行完成机构、伦理、同意、安全与部署批准。当前 Research 配置只是独立且关闭的准备环境，不能处理患者数据。详见 [REAL-01 台账](docs/TASKS.md)、[最新状态](docs/STATUS.md) 和 [ADR-0011](docs/decisions/0011-demo-research-profile-boundary.md)。
@@ -18,7 +20,7 @@ Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷
 医疗人员对研究对象建档、安全筛查、录入 SPPB 等客观评估，获取可解释的功能分级候选及太极训练适配建议并人工复核；每次训练后收集结构化反馈；周期末冻结数据并对照 V0 规则离线优化，审批通过的新版本才可发布。
 
 ## 不做什么
-不提供患者端、实时动作纠错、自动诊断、自动调整临床处方或在线自学习；姿态照片模块当前仅为明确标注“识别算法未接入”的演示能力。
+不提供患者端、实时治疗纠错、自动诊断、自动调整临床处方或在线自学习；旧姿态照片模块仍是SVG演示，新AI入口提供合成视频的真实关键点识别与观察指标。
 
 ## 技术方案
 | 层 | 选型 |
@@ -26,7 +28,7 @@ Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷
 | 前端 | Next.js、React、TypeScript |
 | 后端 | FastAPI、Pydantic、SQLAlchemy、Alembic |
 | 数据库 | PostgreSQL |
-| 分析 | `ml/` 的 ENG-03A 固定合成数据质量与对象级切分工具；模型训练及真实数据仍未接入 |
+| 分析 | 端侧预训练MediaPipe姿态识别、后端版本化几何指标；`ml/`含合成数据质量/对象级切分；自训练评分/阶段模型未实现 |
 | 部署 | Docker Compose 本地开发；生产 TLS/私有存储待审批 |
 
 ## 本地启动（合成数据）

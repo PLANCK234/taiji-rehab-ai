@@ -1,0 +1,128 @@
+import { expect, test, type Page } from "@playwright/test";
+
+async function createTask(page: Page, code: string) {
+  await page.goto("/login");
+  await page.getByLabel("邮箱").fill("demo-clinician-a@example.org");
+  await page.getByLabel("密码").fill(process.env.E2E_PASSWORD!);
+  await page.getByRole("button", { name: "登录", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "研究工作台" })).toBeVisible();
+  await page.getByLabel("合成编号").fill(code);
+  await page.getByLabel("明确记录模拟同意（仅合成数据）").check();
+  await page.getByRole("button", { name: "创建编号对象" }).click();
+  await expect(page).toHaveURL(/\/participants\/[^/]+$/);
+  await page.getByRole("button", { name: "追加同意记录" }).click();
+  await expect(page.getByText("当前记录：模拟同意已记录")).toBeVisible();
+  await page.getByRole("link", { name: "AI视频动作评估" }).click();
+  await expect(page.getByRole("heading", { name: "AI 视频动作评估" })).toBeVisible();
+}
+
+test("real pose model yields landmarks, persists evidence, and retains review after refresh", async ({ page }) => {
+  test.setTimeout(120_000);
+  const errors: string[] = [];
+  page.on("pageerror", e => errors.push(e.message));
+  await createTask(page, "SYN-POSE-BROWSER-001");
+  await page.getByLabel("任务姿势/辅助方式").selectOption("seated");
+  await page.getByRole("button", { name: "加载合成样例" }).click();
+  await expect(page.getByRole("button", { name: "开始AI识别并评估" })).toBeEnabled({ timeout: 15_000 });
+  const savedRequest = page.waitForResponse(r => r.url().includes("/pose-analyses") && r.request().method() === "POST", { timeout: 90_000 });
+  await page.getByRole("button", { name: "开始AI识别并评估" }).click();
+  const response = await savedRequest;
+  expect(response.status(), await response.text()).toBe(201);
+  const summary = await response.json();
+  expect(summary.result.single_pose_frames).toBeGreaterThanOrEqual(3);
+  expect(summary.result.single_pose_frames / summary.result.sampled_frames).toBeGreaterThanOrEqual(.9);
+  expect(summary.result.metrics.left_elbow.median_deg).not.toBeNull();
+  expect(summary.result.clinical_score).toBeNull();
+  await expect(page.getByRole("heading", { name: "2. AI 初评报告" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "已保存的骨架证据" })).toBeVisible();
+  const detail = await page.request.get(`/api/v1/pose-analyses/${summary.id}`);
+  const data = await detail.json();
+  expect(data.input_data.frames[0].landmarks).toHaveLength(33);
+  expect(data.input_data.support).toBe("seated");
+  await page.getByLabel("复核说明").fill("合成样例：已核对骨架与观察指标，不作为临床评分。");
+  await page.getByRole("button", { name: "保存人工复核" }).click();
+  await expect(page.getByText(/版本1 · 确认观察指标/)).toBeVisible();
+  await page.screenshot({ path: `${process.env.E2E_OUTPUT_DIR}/pose-report.png`, fullPage: true });
+  await page.reload();
+  await page.getByRole("button", { name: /有测量指标/ }).click();
+  await expect(page.getByText(/版本1 · 确认观察指标/)).toBeVisible();
+  expect(errors).toEqual([]);
+  await test.info().attach("pose-summary", { body: JSON.stringify(summary, null, 2), contentType: "application/json" });
+});
+
+test("blank video produces unknown metrics and cannot be accepted as measured", async ({ page }) => {
+  test.setTimeout(120_000);
+  await createTask(page, "SYN-POSE-BROWSER-002");
+  // Deliberately blank synthetic media, encoded by this browser and sent only to its own file input.
+  const bytes = await page.evaluate(async () => {
+    const canvas = document.createElement("canvas"); canvas.width = 640; canvas.height = 480;
+    const context = canvas.getContext("2d")!;
+    context.fillStyle = "#777"; context.fillRect(0, 0, 640, 480);
+    const media = canvas.captureStream(10), recorder = new MediaRecorder(media), chunks: Blob[] = [];
+    const done = new Promise<Blob>(resolve => {
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = () => resolve(new Blob(chunks, { type: recorder.mimeType }));
+    });
+    recorder.start();
+    for (let i = 0; i < 25; i++) {
+      context.fillRect(0, 0, 640, 480); await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    recorder.stop(); const blob = await done;
+    media.getTracks().forEach(t => t.stop());
+    return Array.from(new Uint8Array(await blob.arrayBuffer()));
+  });
+  await page.getByLabel("选择合成测试视频").setInputFiles({ name: "synthetic-blank.webm", mimeType: "video/webm", buffer: Buffer.from(bytes) });
+  await expect(page.getByRole("button", { name: "开始AI识别并评估" })).toBeEnabled();
+  await page.getByRole("button", { name: "开始AI识别并评估" }).click();
+  await expect(page.getByText("无法评估，请重新取景或交人工评估", { exact: false })).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByRole("cell", { name: "不可评估", exact: true })).toHaveCount(12);
+  await page.getByLabel("复核说明").fill("空画面不能确认有效指标");
+  await page.getByRole("button", { name: "保存人工复核" }).click();
+  await expect(page.getByRole("status").first()).toContainText("请完成有效评估");
+});
+
+test("model loading failure and camera permission denial remain actionable", async ({ page }) => {
+  await createTask(page, "SYN-POSE-BROWSER-003");
+  await page.evaluate(() => {
+    navigator.mediaDevices.getUserMedia = async () => { throw new DOMException("denied", "NotAllowedError"); };
+  });
+  await page.getByRole("button", { name: "打开测试摄像" }).click();
+  await expect(page.getByRole("status").first()).toContainText("无法打开摄像头");
+  await page.getByRole("button", { name: "加载合成样例" }).click();
+  await expect(page.getByRole("button", { name: "开始AI识别并评估" })).toBeEnabled({ timeout: 15_000 });
+  await page.route("**/pose-assets/manifest.json", route => route.fulfill({ status: 404 }));
+  await page.getByRole("button", { name: "开始AI识别并评估" }).click();
+  await expect(page.getByRole("status").first()).toContainText("本地模型资源缺失");
+  await expect(page.getByRole("heading", { name: "2. AI 初评报告" })).toHaveCount(0);
+});
+
+test("synthetic camera stream runs real model and stop releases capture before saving", async ({ page }) => {
+  test.setTimeout(90_000);
+  await createTask(page, "SYN-POSE-BROWSER-004");
+  // Replace only the hardware input with synthetic pixels; the Worker and inference stay real.
+  await page.evaluate(() => {
+    navigator.mediaDevices.getUserMedia = async () => {
+      const image = new Image(); image.src = "/pose-fixtures/synthetic-elderly.png"; await image.decode();
+      const canvas = document.createElement("canvas"); canvas.width = 600; canvas.height = 656;
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0, 600, 656);
+      const stream = canvas.captureStream(10);
+      const interval = setInterval(() => {
+        if (stream.getVideoTracks()[0].readyState === "ended") clearInterval(interval);
+        else context.drawImage(image, 0, 0, 600, 656);
+      }, 100);
+      return stream;
+    };
+  });
+  await page.getByRole("button", { name: "打开测试摄像" }).click();
+  await expect(page.getByRole("button", { name: "开始AI识别并评估" })).toBeEnabled();
+  await page.getByRole("button", { name: "开始AI识别并评估" }).click();
+  await expect(page.getByRole("status").first()).toContainText(/已识别33个关键点 · [5-9]\d*帧/, { timeout: 30_000 });
+  await page.getByRole("button", { name: "停止并分析" }).click();
+  await expect(page.getByRole("heading", { name: "2. AI 初评报告" })).toBeVisible();
+  const cameraStopped = await page.locator("video").evaluate(el => {
+    const stream = (el as HTMLVideoElement).srcObject as MediaStream;
+    return stream.getVideoTracks().every(track => track.readyState === "ended");
+  });
+  expect(cameraStopped).toBe(true);
+});

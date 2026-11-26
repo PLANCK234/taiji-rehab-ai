@@ -1,5 +1,21 @@
 # Requirements traceability
 
+## 2026-11-26 真实AI姿态实施追踪
+
+| 范围 | 实现 | 执行证据与未验范围 |
+|---|---|---|
+| DEMO-V2-10 / AT-AI-01 | `backend/app/pose_analysis.py`、`pose_schemas.py`、`pose_api.py`、`0008_pose_analyses`，原始输入/指标与独立复核表 | `test_pose_analysis.py`、`test_pose_api.py`、`test_pose_postgres.py`；后端52/5skipped、独立PostgreSQL升降升/check与6 API通过 |
+| DEMO-V2-11 / AT-AI-02子范围 | `frontend/workers/pose-worker.js`、固定SDK与模型锁、prepare-pose、新AI页面、合成素材 | `frontend/e2e/pose.real.ts`实际模型，`run_pose_browser.py`；`exports/pose-browser-23fa682926/browser/pose-report.png`与.last-run.json；最终8场景通过，含合成摄像流停止/释放；曾25/25采样帧单人检测；无实体手机或人群准确率证据 |
+| DEMO-V2-13/14子范围 / AT-AI-04/05 partial | 原AI结果不覆盖、观察复核独立修订、历史骨架回放 | 浏览器确认/刷新、API幂等/并发/越权、空画面拒绝有效确认及旧Demo/训练回归；逐项量表评分、最终阶段/计划及专家标注验证未实现 |
+
+完整预设目标、复现命令及限制见[验证](testing/AI_POSE_VALIDATION.md)，设计取舍见[ADR-0016](decisions/0016-local-pose-geometry-evidence.md)。
+
+## 2026-11-26 AI视频评估设计追踪
+
+| 范围 | 文档 | 证据与边界 |
+|---|---|---|
+| DEMO-V2-09 / AT-AI-DOC-01 | [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)、[ADR-0015](decisions/0015-ai-video-assessment-proposal.md)、[任务](TASKS.md)、[Q-14/15](OPEN_QUESTIONS.md) | 已读人工评估、Demo规则、姿态SVG代码并核对官方模型文档；handoff与diff检查通过。仅设计交付，不代表量表/真实识别或模型准确率验收。 |
+
 > 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](testing/S6-01-REMOTE-RECONCILIATION.md)。
 
 | Requirement | Design | Tests | Sprint | State |

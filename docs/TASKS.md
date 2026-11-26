@@ -6,6 +6,19 @@
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 
+### AI视频评估新增任务（2026-11-26）
+
+用户新增方向详见 [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)。以下任务不升级既有 S/REAL/ENG 完成状态。
+
+| Task ID | 目标 | 状态 | 最小修改范围 | 验收 / 证据 |
+|---|---|---|---|---|
+| DEMO-V2-09 | 全局核查与AI视频评估方案 | DONE | docs方案、ADR-0015、索引/路线/交接 | AT-AI-DOC-01；实际代码核查、交接与diff检查，见STATUS |
+| DEMO-V2-10 | 合成关键点输入、指标、数据库报告与模型适配协议 | DONE | pose_analysis/api/schemas、0008迁移、契约/测试 | AT-AI-01；后端52 passed/5 skipped，独立PostgreSQL迁移/check/升降升+6 API通过；版本化原输入/指标/复核 |
+| DEMO-V2-11 | 姿态模型推理、样例和手机采集 | IN_PROGRESS | AI新页、Worker、本地模型资源、样例、E2E | AT-AI-02合成视频真实推理/失败分支通过；25/25帧单人关键点；实体手机性能/真实多样化动作未验 |
+| DEMO-V2-12 | 指定动作、版本化候选评分 | NOT_STARTED | backend/、报告页、评分配置 | AT-AI-03；依10/11及Q-14评分表，无表先报指标 |
+| DEMO-V2-13 | 人工审核/专家确认与计划关联 | IN_PROGRESS | pose_reviews、审核页、未来计划引用 | 已实现独立观察复核/原因/历史/并发拒绝；逐项量表修改、阶段/计划依12与Q-15，未完成 |
+| DEMO-V2-14 | 数据库/手机全流程与专家标注验证 | IN_PROGRESS | pose真实模型E2E、离线验证、文档 | 合成模型→PostgreSQL→复核→刷新与旧Demo/训练回归通过；实体机与专家标注精度未验，不能宣称临床准确率 |
+
 不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。当前分支 `feat/real-01f0-coded-export`，最新检查点以 Git 日志为准。
 
 | Task ID | 目标 | 状态 | 最小修改范围 | 验收 / 实测证据 |
