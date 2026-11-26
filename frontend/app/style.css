@@ -57,3 +57,5 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 /* Numeric pose evidence must remain readable on narrow capture screens. */
 .pose-metrics { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .pose-metrics th, .pose-metrics td { padding: .7rem .4rem; text-align: left; border-bottom: 1px solid #36363a; }
+.pose-metrics th:first-child { white-space: nowrap; }
+@media (max-width: 600px) { .motion-evidence { padding: 16px 0; border: 0; } }

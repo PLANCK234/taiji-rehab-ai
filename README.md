@@ -1,5 +1,7 @@
 # 太极拳康复分级评估与科研数据平台
 
+> **姿态分析完善（DEMO-V2-15）**：新报告使用`pose-geometry-v2`，并列原始/平滑曲线、残差噪声和骨架证据；视频文件按200ms媒体时刻采样，保存失败可重试且不重复。旧报告保留原值。更新后的增量迁移头为`0009_pose_geometry_v2`；已有库升级前先备份，勿通过删除/改写v2记录来回退。详见[信号与采集决策](docs/decisions/0017-pose-signal-and-retry.md)。
+
 > **新增真实AI姿态识别（2026-11-26）**：编号对象详情→“AI视频动作评估”。可加载合成年长人物视频样例、选择合成视频或打开测试摄像；固定版本模型在浏览器Worker中提取33点并绘制骨架，后端计算肘/肩/膝角度和幅度，PostgreSQL保存报告/证据/人工观察复核。原视频不上传，当前不输出SPPB自动分数或康复阶段。启动前需增量迁移到`0008_pose_analyses`；已有卷先备份，勿重建。模型随前端构建下载并验哈希，本地开发先`pnpm --dir frontend prepare:pose`。验证与复现见[AI姿态验证](docs/testing/AI_POSE_VALIDATION.md)。
 
 > **DEMO-V2 当前可操作入口（2026-10-31）**：本机启动后打开 [http://127.0.0.1:3000/login](http://127.0.0.1:3000/login)，用 `.env` 中的 `DEMO_PASSWORD` 登录合成演示账号。研究人员可在工作台创建 `SYN-` 编号，明确勾选模拟同意并输入 SPPB=8 或 5，自动进入 II/III 级 `DEMO_ONLY` 方案；可搜索动作、开始/暂停/继续/结束训练、录入 RPE 并完成。所有结果由 FastAPI/PostgreSQL 持久化。详见 [七步流程](docs/product/DEMO_USER_FLOW.md)、[状态](docs/STATUS.md)。这不是已批准的临床分级或处方。

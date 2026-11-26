@@ -9,10 +9,15 @@ export type PoseInput = {
   support: "unknown" | "standing" | "seated" | "supported"; frames: PoseFrame[];
 };
 export type Metric = { valid_frames: number; coverage: number; observed_seconds: number;
-  median_deg: number | null; range_p05_p95_deg: number | null; reason: string | null };
+  median_deg: number | null; range_p05_p95_deg: number | null; reason: string | null;
+  smoothed_range_p05_p95_deg?: number | null; noise_sigma_deg?: number | null;
+  variation_status?: "insufficient_data" | "within_residual_noise" | "above_residual_noise" };
+export type AngleSample = { timestamp_ms: number; angles: Record<string, number | null>;
+  smoothed_angles?: Record<string, number | null> };
 export type PoseResult = {
   status: "measured" | "not_assessable"; sampled_frames: number; single_pose_frames: number;
   multiple_pose_frames: number; duration_seconds: number; metrics: Record<string, Metric>;
+  series?: AngleSample[];
 };
 export type PoseSummary = { id: string; participant_id: string; algorithm_version: string;
   input_sha256: string; created_at: string; result: PoseResult };
@@ -35,6 +40,6 @@ export async function getPoseHistory(id: string, cookie: string): Promise<PoseSu
     return response.ok ? await response.json() as PoseSummary[] : null;
   } catch { return null; }
 }
-export function savePose(id: string, input: PoseInput) {
-  return writeDemo<PoseSummary>(`/participants/${encodeURIComponent(id)}/pose-analyses`, input, document.cookie);
+export function savePose(id: string, input: PoseInput, key: string) {
+  return writeDemo<PoseSummary>(`/participants/${encodeURIComponent(id)}/pose-analyses`, input, document.cookie, key);
 }

@@ -14,10 +14,13 @@ from app.models import (
     ConsentRecord,
     Participant,
     ParticipantAssignment,
+    PoseAnalysis,
     Study,
     StudyAssignment,
     User,
 )
+from app.pose_analysis import analyze_pose_v1
+from app.pose_schemas import PoseInput
 from app.security import password_hash
 from tests.test_pose_analysis import input_payload
 
@@ -48,6 +51,14 @@ def test_pose_commits_and_reloads_in_postgres():
                           recorded_by=user.id),
         ])
         participant_id = str(participant.id)
+        original = analyze_pose_v1(PoseInput(**input_payload()))
+        legacy = PoseAnalysis(
+            participant_id=participant.id, input_data=input_payload(), input_sha256="b" * 64,
+            algorithm_version="pose-geometry-v1", result=original, created_by=user.id,
+        )
+        db.add(legacy)
+        db.flush()
+        legacy_id = str(legacy.id)
         db.commit()
     with TestClient(app) as client:
         login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
@@ -70,5 +81,10 @@ def test_pose_commits_and_reloads_in_postgres():
         detail = client.get(f"/api/v1/pose-analyses/{analysis_id}").json()
         assert detail["result"]["metrics"]["left_elbow"]["median_deg"] == 92
         assert detail["reviews"][0]["revision_no"] == 1
+        assert detail["algorithm_version"] == "pose-geometry-v2"
+        assert detail["result"]["series"][0]["smoothed_angles"]["left_elbow"] is not None
+        legacy_detail = client.get(f"/api/v1/pose-analyses/{legacy_id}").json()
+        assert legacy_detail["algorithm_version"] == "pose-geometry-v1"
+        assert legacy_detail["result"] == original
     engine.dispose()
     get_engine.cache_clear()

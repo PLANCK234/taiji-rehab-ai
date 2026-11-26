@@ -1,5 +1,7 @@
 # Implementation roadmap / executable milestones
 
+2026-11-26接续：独立工程任务`DEMO-V2-15`补原始/平滑信号、残差噪声、固定媒体时间采样、保存恢复与v1/v2兼容，未改变临床任务状态。11实体手机/真实多样化动作与12评分表仍待后续；最新验证见[STATUS](STATUS.md)与[ADR-0017](decisions/0017-pose-signal-and-retry.md)。
+
 2026-11-26 新增 AI 视频主线：`DEMO-V2-09` 方案 → `10` 合成关键点/数据库分析（DONE）→ `11` 姿态模型/采集（已接入，实体手机待验）→ `12` 版本评分 → `13` 人工审核/计划关联（观察复核已实现）→ `14` 专家标注验证。详见 [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)与[验证](testing/AI_POSE_VALIDATION.md)；原 REAL/ENG/S 状态不变。下一优先任务为 `DEMO-V2-11`剩余实机/多场景验证；评分表依Q-14，`REAL-01E0`保留。
 
 **Principle:** one bounded Codex task/PR at a time; do not ask a model to build the entire site in one message. Actual study deployment has separate institutional gates.

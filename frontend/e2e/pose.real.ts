@@ -21,6 +21,16 @@ test("real pose model yields landmarks, persists evidence, and retains review af
   const errors: string[] = [];
   page.on("pageerror", e => errors.push(e.message));
   await createTask(page, "SYN-POSE-BROWSER-001");
+  // Actual model dispatch deliberately slower than the 200ms file sampling step.
+  await page.evaluate(() => {
+    const NativeWorker = window.Worker;
+    window.Worker = class extends NativeWorker {
+      postMessage(message: { type?: string }, transfer: Transferable[] | StructuredSerializeOptions = []) {
+        const send = () => { if (Array.isArray(transfer)) super.postMessage(message, transfer); else super.postMessage(message, transfer); };
+        if (message.type === "frame") setTimeout(send, 250); else send();
+      }
+    };
+  });
   await page.getByLabel("任务姿势/辅助方式").selectOption("seated");
   await page.getByRole("button", { name: "加载合成样例" }).click();
   await expect(page.getByRole("button", { name: "开始AI识别并评估" })).toBeEnabled({ timeout: 15_000 });
@@ -39,6 +49,10 @@ test("real pose model yields landmarks, persists evidence, and retains review af
   const data = await detail.json();
   expect(data.input_data.frames[0].landmarks).toHaveLength(33);
   expect(data.input_data.support).toBe("seated");
+  expect(summary.algorithm_version).toBe("pose-geometry-v2");
+  expect(data.input_data.frames.map((frame: { timestamp_ms: number }) => frame.timestamp_ms))
+    .toEqual(data.input_data.frames.map((_: unknown, index: number) => index * 200));
+  await expect(page.getByRole("img", { name: "左肘原始和平滑角度曲线" })).toBeVisible();
   await page.getByLabel("复核说明").fill("合成样例：已核对骨架与观察指标，不作为临床评分。");
   await page.getByRole("button", { name: "保存人工复核" }).click();
   await expect(page.getByText(/版本1 · 确认观察指标/)).toBeVisible();
@@ -48,6 +62,52 @@ test("real pose model yields landmarks, persists evidence, and retains review af
   await expect(page.getByText(/版本1 · 确认观察指标/)).toBeVisible();
   expect(errors).toEqual([]);
   await test.info().attach("pose-summary", { body: JSON.stringify(summary, null, 2), contentType: "application/json" });
+});
+
+test("lost save response retries captured evidence without duplicate records", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await createTask(page, "SYN-POSE-BROWSER-005");
+  const keys: string[] = [], bodies: string[] = [];
+  let first = true;
+  await page.route("**/api/v1/participants/*/pose-analyses", async route => {
+    if (route.request().method() !== "POST") { await route.continue(); return; }
+    keys.push(route.request().headers()["idempotency-key"]);
+    bodies.push(route.request().postData()!);
+    if (first) {
+      first = false;
+      const committed = await route.fetch();
+      expect(committed.status()).toBe(201);
+      await route.abort("connectionfailed");
+    } else { await route.continue(); }
+  });
+  await page.getByRole("button", { name: "加载合成样例" }).click();
+  await expect(page.getByRole("button", { name: "开始AI识别并评估" })).toBeEnabled({ timeout: 15_000 });
+  await page.getByRole("button", { name: "开始AI识别并评估" }).click();
+  await expect(page.getByRole("button", { name: "重试保存本次分析" })).toBeEnabled({ timeout: 45_000 });
+  await expect(page.getByRole("button", { name: "开始AI识别并评估" })).toBeDisabled();
+  let failDetailOnce = true;
+  await page.route("**/api/v1/pose-analyses/*", async route => {
+    if (route.request().method() === "GET" && failDetailOnce) {
+      failDetailOnce = false;
+      await route.fulfill({ status: 503, body: "synthetic detail read outage" });
+    } else { await route.continue(); }
+  });
+  await page.getByRole("button", { name: "重试保存本次分析" }).click();
+  await expect(page.getByRole("status").first()).toContainText("记录已保存，报告详情暂不可用");
+  await expect(page.getByRole("button", { name: "重试保存本次分析" })).toHaveCount(0);
+  await page.getByRole("button", { name: /有测量指标/ }).click();
+  await expect(page.getByRole("heading", { name: "2. AI 初评报告" })).toBeVisible();
+  await expect(page.getByRole("status").first()).toContainText("已打开已保存的评估记录");
+  expect(keys).toHaveLength(2); expect(keys[0]).toBe(keys[1]); expect(bodies[0]).toBe(bodies[1]);
+  await expect(page.getByRole("button", { name: /有测量指标/ })).toHaveCount(1);
+  await page.getByLabel("查看关节曲线").selectOption("right_elbow");
+  await expect(page.getByRole("img", { name: "右肘原始和平滑角度曲线" })).toBeVisible();
+  const width = await page.evaluate(() => ({ body: document.documentElement.scrollWidth, screen: innerWidth }));
+  expect(width.body).toBeLessThanOrEqual(width.screen);
+  await page.screenshot({ path: `${process.env.E2E_OUTPUT_DIR}/pose-mobile-retry.png`, fullPage: true });
+  await page.reload();
+  await expect(page.getByRole("button", { name: /有测量指标/ })).toHaveCount(1);
 });
 
 test("blank video produces unknown metrics and cannot be accepted as measured", async ({ page }) => {

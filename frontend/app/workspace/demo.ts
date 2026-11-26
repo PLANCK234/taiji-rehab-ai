@@ -42,13 +42,13 @@ export function getDemoRun(id: string, cookies: string) {
   return read<DemoRun>(`/demo-runs/${encodeURIComponent(id)}`, cookies);
 }
 
-export async function writeDemo<T>(path: string, body: object, cookies: string): Promise<{ status: number; value: T | null }> {
+export async function writeDemo<T>(path: string, body: object, cookies: string, key = crypto.randomUUID()): Promise<{ status: number; value: T | null }> {
   const csrf = csrfFromCookies(cookies);
   if (!csrf) return { status: 403, value: null };
   try {
     const response = await fetch(`/api/v1${path}`, {
       method: "POST", credentials: "same-origin",
-      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf, "Idempotency-Key": crypto.randomUUID() },
+      headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf, "Idempotency-Key": key },
       body: JSON.stringify(body),
     });
     return { status: response.status, value: response.ok ? await response.json() as T : null };

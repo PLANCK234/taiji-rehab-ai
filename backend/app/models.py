@@ -17,7 +17,10 @@ def utc_now() -> datetime:
 class PoseAnalysis(Base):
     __tablename__ = "pose_analyses"
     __table_args__ = (
-        CheckConstraint("algorithm_version = 'pose-geometry-v1'", name="ck_pose_algorithm"),
+        CheckConstraint(
+            "algorithm_version IN ('pose-geometry-v1','pose-geometry-v2')",
+            name="ck_pose_algorithm",
+        ),
         Index("ix_pose_participant_created", "participant_id", "created_at"),
     )
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)

@@ -31,6 +31,8 @@ def test_pose_history_permissions_idempotency_and_reviews(training_api):  # noqa
     assert no_csrf.status_code == 403
     detail = f'/api/v1/pose-analyses/{record["id"]}'
     assert client.get(detail).json()["input_data"] == payload
+    assert "series" in client.get(detail).json()["result"]
+    assert "series" not in client.get(path).json()[0]["result"]
     review = {"expected_revision": 0, "decision": "needs_retake", "reason": "部分下肢遮挡"}
     review_key = str(uuid.uuid4())
     reviewed = client.post(f"{detail}/reviews", json=review, headers=headers(client, review_key))

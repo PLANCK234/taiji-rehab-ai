@@ -1,5 +1,15 @@
 # Requirements traceability
 
+## 2026-11-26 DEMO-V2-15 信号与采集完善
+
+| 验收 | 实现 | 证据/限制 |
+|---|---|---|
+| AI-SIGNAL-01..04 | `pose_analysis.py` v2，分段中位数/线性残差MAD，原始序列保留 | `test_pose_signal.py`固定种子：静态RMS降低37.54%，带噪4°慢变RMS0.086615°；两周期轨迹RMS0.091788°，范围3.96°；缺失/时间缺口不跨越。数值验证，不是人体精度 |
+| AI-CAPTURE-02 / AI-SAVE-02 | `pose-capture.ts`、采集页、可传固定幂等键的writeDemo/savePose | `pose.real.ts`实际模型+250ms故意慢分发仍200ms时间点、提交响应丢失后恢复无重复、随后详情503恢复与提示清除；390px截图/曲线；最终9通过(39.6s)，exports/pose-browser-34c0eb4513/browser/ |
+| AI-UPGRADE-02 / AI-LEGACY-02 | `0009_pose_geometry_v2`、v1函数/结果保留、摘要列表与图表兼容 | `test_pose_upgrade.py`带旧数据升级/存在v2拒绝回退；`test_pose_postgres.py`重开v1/v2；API完整详情/摘要区分；后端59/6skip，独立PostgreSQL7通过，前端25测试通过 |
+
+预设目标见[验证](testing/AI_POSE_VALIDATION.md)，取舍见[ADR-0017](decisions/0017-pose-signal-and-retry.md)。实体手机、真实连续太极与专家评分仍未验。
+
 ## 2026-11-26 真实AI姿态实施追踪
 
 | 范围 | 实现 | 执行证据与未验范围 |

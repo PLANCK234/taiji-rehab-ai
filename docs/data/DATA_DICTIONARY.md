@@ -1,5 +1,7 @@
 # Data dictionary and missingness
 
+**DEMO-V2-15增补**：pose-geometry-v2保留v1原始角度/范围，追加`series.smoothed_angles`和各关节`smoothed_range_p05_p95_deg`（度）、`noise_sigma_deg`（度，高频残差代理）、`noise_residual_count`与`variation_status`。残差不足7个则噪声null；missing处原始/平滑均null，不把0°和未知混淆。`signal_processing`记录时间窗/分段/阈值；状态“高于残差”不等于真实动作或达标。v1没有这些字段时显示旧版未计算，不能展示为0。原始输入与旧结果不重算；列表仅摘要、完整证据在详情。
+
 | Variable | Type / unit | Source | Missingness / cautions |
 |---|---|---|---|
 | study_code | string | registration | no name/phone in general exports |

@@ -49,12 +49,18 @@ def list_analyses(
     authorized_participant(
         db, auth, participant_id, action="pose_list", allowed_roles=READ_ROLES, audit_success=False,
     )
-    rows = list(db.scalars(select(PoseAnalysis).where(
+    rows = db.execute(select(
+        PoseAnalysis.id, PoseAnalysis.participant_id, PoseAnalysis.algorithm_version,
+        PoseAnalysis.input_sha256, PoseAnalysis.result, PoseAnalysis.created_at,
+    ).where(
         PoseAnalysis.participant_id == participant_id,
-    ).order_by(PoseAnalysis.created_at.desc(), PoseAnalysis.id.desc()).limit(50)))
+    ).order_by(PoseAnalysis.created_at.desc(), PoseAnalysis.id.desc()).limit(50)).mappings().all()
+    summaries = [PoseAnalysisView(**{
+        **row, "result": {key: value for key, value in row["result"].items() if key != "series"},
+    }) for row in rows]
     audit(db, "list", "pose_analysis", "allowed", auth.user.id, participant_id)
     db.commit()
-    return rows
+    return summaries
 
 
 @router.post("/participants/{participant_id}/pose-analyses", response_model=PoseAnalysisView,

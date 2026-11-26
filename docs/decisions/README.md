@@ -19,5 +19,6 @@ Current proposals:
 - [ADR-0014](0014-isolated-demo-rule-and-run.md): isolated `DEMO_ONLY` grade, catalog and persisted training run using existing observations/feedback.
 - [ADR-0015](0015-ai-video-assessment-proposal.md): proposed pose/geometry/candidate/review pipeline; separates Tai Chi performance from scale scoring; not implemented.
 - [ADR-0016](0016-local-pose-geometry-evidence.md): implemented local pose inference and server geometry evidence, independent append-only human observation review; no clinical scale/stage inference.
+- [ADR-0017](0017-pose-signal-and-retry.md): preserve raw v1/v2 evidence, segment smoothing/residual noise, media-time file sampling and idempotent save recovery.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.

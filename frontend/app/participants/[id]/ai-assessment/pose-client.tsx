@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { demoError, writeDemo } from "../../../workspace/demo";
 import { connections, jointNames, savePose } from "../../../workspace/pose";
 import type { Point, PoseDetail, PoseFrame, PoseInput, PoseReview, PoseSummary } from "../../../workspace/pose";
+import { fileDurationMs, MAX_CAPTURE_FRAMES, MAX_CAPTURE_MS, sampleTimes, seekFrame } from "../../../workspace/pose-capture";
+import MotionEvidence from "./motion-evidence";
 
 type Reply = { id: number; ready?: boolean; error?: string; landmarks?: Point[]; pose_count?: number };
 
@@ -15,6 +17,8 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
   const requests = useRef(new Map<number, { resolve: (r: Reply) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout> }>());
   const seq = useRef(0), active = useRef(false), source = useRef<PoseInput["source"]>("synthetic_video");
   const alive = useRef(true);
+  const pendingSubmission = useRef<{ input: PoseInput; key: string } | null>(null);
+  const [hasPending, setHasPending] = useState(false);
   const blobUrl = useRef<string | null>(null), frames = useRef<PoseFrame[]>([]);
   const manifest = useRef<{ model_version: PoseInput["model_version"]; sha256: string } | null>(null);
   const [status, setStatus] = useState("加载合成样例或选择合成测试视频。"), [busy, setBusy] = useState(false);
@@ -50,7 +54,8 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
   }
 
   async function ensureModel() {
-    if (worker.current) return;
+    // A fresh tracking graph gives every clip its own media-time clock.
+    worker.current?.terminate(); worker.current = null;
     setStatus("正在加载本地姿态模型…");
     const response = await fetch("/pose-assets/manifest.json");
     if (!response.ok) throw new Error("本地模型资源缺失，请先运行 pnpm prepare:pose。");
@@ -113,7 +118,7 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
     resetSource();
     if (file.size > 100 * 1024 * 1024) { setStatus("测试视频不能超过100 MB。"); return; }
     source.current = "synthetic_video"; blobUrl.current = URL.createObjectURL(file);
-    video.current!.src = blobUrl.current; setStatus("测试视频已加载；仅处理前5分钟，原视频留在浏览器。");
+    video.current!.src = blobUrl.current; setStatus("视频已加载；按200毫秒间隔分析前5分钟，不按播放速度跳帧。");
   }
 
   async function loadCamera() {
@@ -143,6 +148,31 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
     const response = await fetch(`/api/v1/pose-analyses/${encodeURIComponent(id)}`, { cache: "no-store" });
     if (!response.ok) throw new Error(demoError(response.status));
     setReport(await response.json() as PoseDetail); setCursor(0);
+    setStatus("已打开已保存的评估记录。");
+  }
+
+  async function submitPending() {
+    const pending = pendingSubmission.current;
+    if (!pending) return;
+    setStatus("正在保存关键点并由后端计算指标…");
+    const result = await savePose(participantId, pending.input, pending.key);
+    if (!result.value) throw new Error(demoError(result.status));
+    const saved = result.value;
+    setHistory(prior => [saved, ...(prior ?? []).filter(row => row.id !== saved.id)]);
+    // Do not re-submit a committed record merely because the detail read failed.
+    pendingSubmission.current = null; setHasPending(false);
+    try { await openReport(saved.id); } catch {
+      setStatus("记录已保存，报告详情暂不可用；请从已保存的评估重新打开。");
+      return;
+    }
+    setStatus("AI识别与指标已保存，等待工作人员复核。");
+  }
+
+  async function retrySave() {
+    setBusy(true);
+    try { await submitPending(); } catch (error) {
+      setStatus(`保存未完成：${String(error)}。可重试保存，或从历史重新打开已保存记录。`);
+    } finally { setBusy(false); }
   }
 
   async function start() {
@@ -151,43 +181,54 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
       await ensureModel();
       const el = video.current!;
       const width = el.videoWidth, height = el.videoHeight;
-      if (!stream.current) el.currentTime = 0;
-      await el.play(); active.current = true; setRunning(true);
-      const base = el.currentTime * 1000;
-      let last = -1;
-      while (active.current && !el.ended && frames.current.length < 1800) {
-        const timestamp = el.currentTime * 1000 - base;
-        if (timestamp > 300_000) break;
-        if (el.readyState >= 2 && timestamp > last && (last < 0 || timestamp - last >= 100)) {
+      active.current = true; setRunning(true);
+      async function capture(timestamp: number, suffix = "") {
           const bitmap = await createImageBitmap(el);
-          const reply = await ask({ type: "frame", bitmap, timestamp: performance.now() }, [bitmap]);
-          // Reset first timestamp to zero; preserve actual relative intervals thereafter.
-          const first = frames.current.length === 0;
+          const reply = await ask({ type: "frame", bitmap, timestamp: timestamp + 1 }, [bitmap]);
+          if (!alive.current) return;
           const points = reply.landmarks ?? [];
-          frames.current.push({ timestamp_ms: first ? 0 : timestamp, landmarks: points, pose_count: reply.pose_count ?? 0 });
-          last = timestamp; draw(points);
-          setStatus(`${points.length ? "已识别33个关键点" : reply.pose_count === 2 ? "多人画面，本帧不评估" : "未识别到完整人体，本帧缺失"} · ${frames.current.length}帧`);
+          frames.current.push({ timestamp_ms: timestamp, landmarks: points, pose_count: reply.pose_count ?? 0 });
+          draw(points);
+          setStatus(`${points.length ? "已识别33个关键点" : reply.pose_count === 2 ? "多人画面，本帧不评估" : "未识别到完整人体，本帧缺失"} · ${frames.current.length}帧${suffix}`);
+      }
+      if (stream.current) {
+        await el.play();
+        const base = el.currentTime * 1000;
+        let firstTime: number | null = null, last = -1, progressedAt = performance.now();
+        while (active.current && !el.ended && frames.current.length < MAX_CAPTURE_FRAMES) {
+          const mediaTime = el.currentTime * 1000 - base;
+          if (mediaTime > MAX_CAPTURE_MS) break;
+          if (el.readyState >= 2 && (last < 0 || mediaTime - last >= 100)) {
+            firstTime ??= mediaTime;
+            await capture(mediaTime - firstTime); last = mediaTime; progressedAt = performance.now();
+          }
+          if (performance.now() - progressedAt > 10_000) throw new Error("摄像输入已停止更新，请重新打开摄像头。");
+          await new Promise(resolve => setTimeout(resolve, 30));
         }
-        await new Promise(resolve => setTimeout(resolve, 30));
+        setLoaded(false);
+      } else {
+        const times = sampleTimes(await fileDurationMs(el));
+        for (const timestamp of times) {
+          if (!active.current || !alive.current) break;
+          await seekFrame(el, timestamp / 1000);
+          await capture(timestamp, ` / ${times.length}帧`);
+        }
       }
       if (!alive.current) return;
       el.pause(); stream.current?.getTracks().forEach(t => t.stop()); stream.current = null;
       active.current = false; setRunning(false);
       if (frames.current.length < 3) throw new Error("有效采样不足3帧，请使用更长的视频重试。");
-      setStatus("正在保存关键点并由后端计算指标…");
-      const result = await savePose(participantId, {
+      const input: PoseInput = {
         source: source.current, model_version: manifest.current!.model_version,
         model_sha256: manifest.current!.sha256, width, height,
         support, frames: frames.current,
-      });
-      if (!result.value) throw new Error(demoError(result.status));
-      const saved = result.value;
-      setHistory(prior => [saved, ...(prior ?? [])]); await openReport(saved.id);
-      setStatus("AI识别与指标已保存，等待工作人员复核。");
+      };
+      pendingSubmission.current = { input, key: crypto.randomUUID() }; setHasPending(true);
+      await submitPending();
     } catch (error) {
       active.current = false; setRunning(false); video.current?.pause();
       stream.current?.getTracks().forEach(t => t.stop()); stream.current = null;
-      setStatus(`识别未完成：${String(error)}`);
+      setStatus(`${pendingSubmission.current ? "本次分析待保存，可重试而无需重新采集" : "识别未完成"}：${String(error)}`);
     } finally { setBusy(false); }
   }
 
@@ -208,13 +249,13 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
     <section>
       <h2>1. 视频与人体骨架</h2>
       <p className="note">仅使用合成测试素材，不采集真实患者资料。姿态模型测量图像平面表现；低幅度、慢动作和坐位不会因幅度小自动判错。</p>
-      <label>任务姿势/辅助方式<select value={support} disabled={busy} onChange={e => setSupport(e.target.value as PoseInput["support"])}>
+      <label>任务姿势/辅助方式<select value={support} disabled={busy || hasPending} onChange={e => setSupport(e.target.value as PoseInput["support"])}>
         <option value="unknown">未记录</option><option value="standing">站位</option><option value="seated">坐位</option><option value="supported">扶持/辅助</option>
       </select></label>
       <div className="pose-demo-actions">
-        <button type="button" disabled={busy || !canWrite} onClick={() => void loadSample()}>加载合成样例</button>
-        <label>选择合成测试视频<input type="file" accept="video/*" disabled={busy || !canWrite} onChange={e => loadFile(e.target.files?.[0])} /></label>
-        <button type="button" disabled={busy || !canWrite} onClick={() => void loadCamera()}>打开测试摄像</button>
+        <button type="button" disabled={busy || hasPending || !canWrite} onClick={() => void loadSample()}>加载合成样例</button>
+        <label>选择合成测试视频<input type="file" accept="video/*" disabled={busy || hasPending || !canWrite} onChange={e => loadFile(e.target.files?.[0])} /></label>
+        <button type="button" disabled={busy || hasPending || !canWrite} onClick={() => void loadCamera()}>打开测试摄像</button>
       </div>
       <div style={{ position: "relative", maxWidth: 600 }}>
         <video ref={video} muted playsInline controls={!busy} style={{ width: "100%", display: "block" }}
@@ -222,10 +263,14 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
         <canvas ref={overlay} aria-label="实时识别骨架" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
       </div>
       <div className="pose-demo-actions">
-        <button type="button" disabled={busy || !loaded || !canWrite} onClick={() => void start()}>开始AI识别并评估</button>
+        <button type="button" disabled={busy || hasPending || !loaded || !canWrite} onClick={() => void start()}>开始AI识别并评估</button>
         <button type="button" disabled={!running} onClick={() => { active.current = false; }}>停止并分析</button>
       </div>
       <p role="status" aria-live="polite">{status}</p>
+      {hasPending && <div><p>待保存数据仅在当前页面内，离开页面会丢失。</p>
+        <button type="button" disabled={busy} onClick={() => void retrySave()}>重试保存本次分析</button>
+        <button type="button" disabled={busy} onClick={() => { pendingSubmission.current = null; setHasPending(false); setStatus("已放弃本次待保存数据。"); }}>放弃待保存数据</button>
+      </div>}
     </section>
     {report && <section>
       <h2>2. AI 初评报告</h2>
@@ -238,6 +283,7 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
           <td>{(m.coverage * 100).toFixed(0)}%</td>
         </tr>)}</tbody></table>
       <p className="note">幅度为图像平面角度变化，含模型抖动；静止时也可能非零。SPPB分数及康复阶段需结合已确认量表和专家规则，本报告不从动作幅度直接推断。</p>
+      <MotionEvidence report={report} cursor={cursor} onCursorChange={setCursor} />
       {frame && <><h3>关键点证据回放</h3><label>证据帧<input type="range" min={0} max={report.input_data.frames.length - 1} value={cursor} onChange={e => setCursor(Number(e.target.value))} /></label>
         <p>时间：{(frame.timestamp_ms / 1000).toFixed(2)} 秒 · {frame.landmarks.length ? "单人关键点" : "缺失/多人，不补成正常"}</p>
         <svg viewBox={`0 0 ${report.input_data.width} ${report.input_data.height}`} aria-label="已保存的骨架证据" role="img" style={{ maxWidth: 400, maxHeight: 400, width: "100%", background: "#17232a" }}>

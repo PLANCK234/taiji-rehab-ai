@@ -1,5 +1,7 @@
 # Security, privacy and clinical safety requirements
 
+DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页面即丢失，不写localStorage或持久缓存；界面允许重试/明确放弃，并禁止待保存时重新采集覆盖。服务器继续校验对象权限/同意/CSRF/幂等，客户端状态不代替授权。已提交但响应丢失可用同键恢复；历史摘要不含原始关键点或逐帧series，详情仍受同一权限保护。
+
 ## Core protection
 1. Human-only accounts for research staff; secure session cookie (HttpOnly, Secure, SameSite), CSRF protection, rate-limited login, password hash with proven scheme and proper secrets rotation.
 2. RBAC **and** participant/study scope checked by backend for each endpoint, CSV export, image read and model report.
