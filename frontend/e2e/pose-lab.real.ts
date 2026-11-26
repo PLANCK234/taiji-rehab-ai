@@ -111,7 +111,7 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await page.getByLabel(/曲线时间定位/).fill("0.2");
   await expect(page.getByLabel(/曲线时间定位/)).toHaveValue("0.2");
   await expect(page.getByText("曲线时间定位：0.2 秒")).toBeVisible();
-  const positionedTime = await page.locator("video").evaluate((video) => (video as HTMLVideoElement).currentTime);
+  const positionedTime = await page.locator("video[controls]").evaluate((video) => (video as HTMLVideoElement).currentTime);
   expect(positionedTime).toBeCloseTo(0.2, 1);
   await expect(page.getByText(/识别覆盖/)).toBeVisible();
   await expect(page.locator("canvas[aria-label='识别到的人体骨架叠加层']")).toBeVisible();
@@ -209,5 +209,122 @@ test("local synthetic video produces landmarks, kinematics and export without up
   await confirmTiming.click();
   const [unknownDownload] = await Promise.all([page.waitForEvent("download"), exportTiming.click()]);
   expect(await readFile((await unknownDownload.path())!, "utf8")).toContain("\nunavailable,start_unverifiable,,,,,,");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(async (source) => {
+    const image = new Image();
+    image.src = source;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = 512; canvas.height = 768;
+    const context = canvas.getContext("2d")!;
+    const stream = canvas.captureStream(10);
+    const draw = () => context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    draw();
+    const timer = window.setInterval(draw, 100);
+    const track = stream.getVideoTracks()[0];
+    const stop = track.stop.bind(track);
+    track.stop = () => { window.clearInterval(timer); stop(); };
+    let requests = 0;
+    Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+      configurable: true,
+      value: async (constraints: MediaStreamConstraints) => {
+        const video = constraints.video;
+        if (typeof video === "object" && video.facingMode &&
+            typeof video.facingMode === "object" && "exact" in video.facingMode &&
+            video.facingMode.exact === "environment" && constraints.audio === false) {
+          throw new DOMException("No rear camera", "OverconstrainedError");
+        }
+        requests++;
+        if (requests === 1) throw new DOMException("Denied", "NotAllowedError");
+        if (requests === 2) {
+          const lateTrack = track.clone();
+          window.addEventListener("test-camera-permission-granted", () => {
+            window.dispatchEvent(new CustomEvent("test-camera-track", { detail: lateTrack }));
+          }, { once: true });
+          return new Promise<MediaStream>((resolve) => {
+            window.addEventListener("test-camera-track", () => resolve(new MediaStream([lateTrack])), { once: true });
+          });
+        }
+        return stream;
+      },
+    });
+  }, dataUrl);
+  const camera = page.getByRole("region", { name: "实时摄像头骨架验证" });
+  const startCamera = camera.getByRole("button", { name: "开启摄像头预览" });
+  const startAnalysis = camera.getByRole("button", { name: "开始识别", exact: true });
+  await expect(startCamera).toBeDisabled();
+  await expect(startAnalysis).toBeDisabled();
+  await camera.getByRole("checkbox").check();
+  const modelRequestsBeforePreview = poseAssetRequests.length;
+  const stopCamera = camera.getByRole("button", { name: "停止摄像头" });
+  const status = camera.getByRole("status");
+  await startCamera.click();
+  await expect(status).toContainText("摄像头权限被拒绝");
+  await expect(startCamera).toBeEnabled();
+  await startCamera.click();
+  await expect(status).toContainText("正在请求摄像头权限");
+  await stopCamera.click();
+  const lateTrack = await page.evaluateHandle(() => {
+    const track = new Promise<MediaStreamTrack>((resolve) => {
+      window.addEventListener("test-camera-track", (event) => resolve((event as CustomEvent<MediaStreamTrack>).detail), { once: true });
+    });
+    window.dispatchEvent(new Event("test-camera-permission-granted"));
+    return track;
+  });
+  await expect.poll(() => lateTrack.evaluate((track) => track.readyState)).toBe("ended");
+  await lateTrack.dispose();
+  await expect(status).toHaveText("摄像头已停止。");
+  expect(await camera.locator("video").evaluate((video: HTMLVideoElement) => video.srcObject === null)).toBe(true);
+  await expect(camera.getByRole("button", { name: "导出实时分析摘要" })).toHaveCount(0);
+  const cameraChoice = camera.getByLabel("摄像头选择");
+  await cameraChoice.selectOption("rear");
+  await startCamera.click();
+  await expect(status).toContainText("当前设备无法使用后置摄像头");
+  await cameraChoice.selectOption("default");
+  await startCamera.click();
+  await expect(camera.getByRole("status")).toHaveText(/摄像头预览已开启/);
+  await expect(cameraChoice).toBeDisabled();
+  const preview = camera.getByLabel("摄像头预览");
+  await expect.poll(() => preview.evaluate((video: HTMLVideoElement) => {
+    const { width, height } = video.getBoundingClientRect();
+    return height > width && width > 0 && width <= window.innerWidth;
+  })).toBe(true);
+  expect(poseAssetRequests).toHaveLength(modelRequestsBeforePreview);
+  await startAnalysis.click();
+  await expect(camera.getByRole("status")).toHaveText(/实时骨架识别中|部分关键点不可见/, { timeout: 30_000 });
+  await expect.poll(() => camera.locator("canvas").evaluate((canvas: HTMLCanvasElement) =>
+    canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height).data.some((value) => value > 0),
+  )).toBe(true);
+  const tracks = await camera.locator("video").evaluateHandle((video: HTMLVideoElement) =>
+    (video.srcObject as MediaStream).getTracks(),
+  );
+  await stopCamera.click();
+  await expect(camera.getByRole("status")).toHaveText("摄像头已停止。");
+  expect(await tracks.evaluate((items) => items.map((track) => track.readyState))).toEqual(["ended"]);
+  await tracks.dispose();
+  const [cameraDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    camera.getByRole("button", { name: "导出实时分析摘要" }).click(),
+  ]);
+  const cameraSummary = JSON.parse(await readFile((await cameraDownload.path())!, "utf8"));
+  expect(cameraSummary).toMatchObject({
+    schema_version: 1, source: "live_camera", angle_source: "model_estimate",
+  });
+  expect(cameraSummary.detected_count).toBeGreaterThan(0);
+  expect(cameraSummary.sample_count).toBeGreaterThanOrEqual(cameraSummary.detected_count);
+  expect(Object.values(cameraSummary.joint_ranges).length).toBeGreaterThan(0);
+  expect(cameraSummary).not.toHaveProperty("frames");
+  const review = page.getByRole("region", { name: "核对实时分析摘要" });
+  const summaryInput = review.getByLabel("打开实时分析 JSON");
+  await summaryInput.setInputFiles((await cameraDownload.path())!);
+  await expect(review.getByRole("heading", { name: "已打开实时分析摘要" })).toBeVisible();
+  await expect(review.getByText(`检出 ${cameraSummary.detected_count} / ${cameraSummary.sample_count} 次采样`, { exact: false })).toBeVisible();
+  await expect(review.getByRole("table", { name: "各关节估算角度范围" })).toBeVisible();
+  await summaryInput.setInputFiles({
+    name: "invalid-summary.json", mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({ ...cameraSummary, detected_count: cameraSummary.sample_count + 1 })),
+  });
+  await expect(review.getByRole("alert")).toContainText("无法读取摘要");
+  await expect(review.getByRole("table")).toHaveCount(0);
   expect(writes).toEqual([]);
 });

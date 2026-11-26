@@ -15,6 +15,7 @@ import { getPublicationHistory, getPublicationReadiness, getSyntheticCardOptions
 import PublicationControls from "./publication-controls";
 import { getPatientReports } from "../../workspace/patient-reports";
 import StaffPatientReports from "./staff-patient-reports";
+import { getPatientReviews } from "../../workspace/patient-reviews";
 import { getCycles } from "../../workspace/cycles";
 import CycleForms from "./cycle-forms";
 import ProfileSection from "./profile-section";
@@ -30,7 +31,10 @@ const consentText = {
 };
 const answerText = { yes: "是", no: "否", unknown: "未知" };
 
-export default async function ParticipantPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ParticipantPage({ params, searchParams }: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ feedbackVersion?: string | string[] }>;
+}) {
   const { id } = await params;
   const cookieHeader = (await headers()).get("cookie") ?? "";
   const user = await getCurrentUser(cookieHeader);
@@ -54,8 +58,16 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
     getTrainingTimeline(id, cookieHeader),
   ]);
   const canWrite = user.role === "clinician" || user.role === "research_assistant";
+  const patientReviews = await getPatientReviews(id, cookieHeader);
   const canExport = canWrite || user.role === "clinical_approver";
   const posePrototypeEnabled = process.env.POSE_PROTOTYPE_ENABLED === "true";
+  const { feedbackVersion } = await searchParams;
+  const selectedFeedbackVersion = publicationHistory?.find(
+    (entry) => entry.state === "published" && String(entry.version) === feedbackVersion,
+  )?.version;
+  const versionIssue = feedbackVersion !== undefined && selectedFeedbackVersion === undefined
+    ? (publicationHistory === null ? "unavailable" : "invalid")
+    : undefined;
 
   return (
     <main>
@@ -63,11 +75,16 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       <div className="eyebrow">合成数据编号对象</div>
       <h1>{participant.study_code}</h1>
       <p>此页面仅用于开发演示，不代表真实建档或研究入组。</p>
+      <nav aria-label="患者端流程快捷入口" className="button-row">
+        {user.role === "clinician" && <a href="#publication-heading">前往患者端发布</a>}
+        <a href="#patient-reports-heading">查看患者自报</a>
+      </nav>
       <ProfileSection participantId={id} history={profileHistory} canWrite={canWrite} />
       <ManualObservations participantId={id} canWrite={canWrite && consents?.state === "granted"} />
       <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
-      <PublicationControls participantId={id} initialHistory={publicationHistory} cardOptions={cardOptions} readiness={publicationReadiness} canPublish={user.role === "clinician"} />
-      <StaffPatientReports reports={patientReports} />
+      <PublicationControls participantId={id} studyCode={participant.study_code} initialHistory={publicationHistory} cardOptions={cardOptions} readiness={publicationReadiness} canPublish={user.role === "clinician"} />
+      <StaffPatientReports reports={patientReports} publicationVersion={selectedFeedbackVersion} versionIssue={versionIssue}
+        participantId={id} reviews={patientReviews} canReview={canWrite} />
       <section aria-labelledby="consent-heading">
         <h2 id="consent-heading">模拟同意记录</h2>
         {consents ? <>

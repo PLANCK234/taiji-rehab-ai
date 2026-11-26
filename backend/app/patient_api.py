@@ -4,7 +4,7 @@ import uuid
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -24,6 +24,7 @@ from app.patient_publication import (
     LEGACY_CARD_TITLE,
     MARKER,
     MESSAGE,
+    TAIJI_ACTIONS,
     VIDEO_STATUS,
     active_binding,
     latest_publication,
@@ -34,6 +35,11 @@ from app.training import has_current_synthetic_consent
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(require_demo)])
 
 
+class PublicationAction(BaseModel):
+    code: str
+    title: str
+
+
 class PublicationView(BaseModel):
     version: int
     state: Literal["published", "withdrawn"]
@@ -42,11 +48,13 @@ class PublicationView(BaseModel):
     video_status: Literal["awaiting_review"]
     card_code: str | None
     card_title: str
+    actions: list[PublicationAction] = Field(default_factory=list)
 
 
 class CardOptionView(BaseModel):
     code: str
     title: str
+    message: str
 
 
 class PublicationReadinessView(BaseModel):
@@ -66,8 +74,30 @@ class PublicationWrite(BaseModel):
     operation: Literal["publish", "withdraw"]
     expected_version: int = Field(ge=0)
     synthetic_only_acknowledged: Literal[True]
-    card_code: Literal["SYN-CARD-A", "SYN-CARD-B"] | None = None
+    card_code: Literal[
+        "SYN-CARD-A", "SYN-CARD-B", "SYN-TAIJI-OPENING",
+        "SYN-TAIJI-CLOUD-HANDS", "SYN-TAIJI-OPENING-CLOUD-HANDS",
+    ] | None = None
     selection_confirmed: bool = False
+    action_codes: list[str] | None = Field(
+        default=None, min_length=1, max_length=24, exclude_if=lambda value: value is None
+    )
+
+    @model_validator(mode="after")
+    def validate_actions(self) -> "PublicationWrite":
+        if self.action_codes is None:
+            return self
+        codes = set(self.action_codes)
+        if (
+            self.operation != "publish"
+            or self.card_code is not None
+            or not self.selection_confirmed
+            or len(codes) != len(self.action_codes)
+            or not codes.issubset(TAIJI_ACTIONS)
+        ):
+            raise ValueError("invalid synthetic action selection")
+        self.action_codes = [code for code in TAIJI_ACTIONS if code in codes]
+        return self
 
 
 def publication_view(row: DemoPatientPublication) -> PublicationView:
@@ -76,6 +106,7 @@ def publication_view(row: DemoPatientPublication) -> PublicationView:
         message=MESSAGE, video_status=VIDEO_STATUS,
         card_code=row.card_code,
         card_title=row.card_title or LEGACY_CARD_TITLE,
+        actions=[PublicationAction(**item) for item in row.actions or []],
     )
 
 
@@ -94,7 +125,10 @@ def card_options(
     )
     audit(db, "read", "demo_patient_card_options", "allowed", auth.user.id, participant_id)
     db.commit()
-    return [CardOptionView(code=code, title=title) for code, title in CARD_OPTIONS.items()]
+    return [
+        CardOptionView(code=code, title=title, message=MESSAGE)
+        for code, title in (CARD_OPTIONS | TAIJI_ACTIONS).items()
+    ]
 
 
 @router.get(
@@ -219,15 +253,24 @@ def record_publication(
             raise HTTPException(status_code=403, detail="active demo binding and consent required")
     elif previous is None or previous.state != "published":
         raise HTTPException(status_code=409, detail="no published card to withdraw")
+    if payload.operation == "publish":
+        actions = [
+            {"code": code, "title": TAIJI_ACTIONS[code]} for code in payload.action_codes or []
+        ]
+        card_title = (
+            "简化24式太极拳动作演示" if actions
+            else CARD_OPTIONS.get(payload.card_code or "", LEGACY_CARD_TITLE)
+        )
+    else:
+        actions = previous.actions
+        card_title = previous.card_title
     row = DemoPatientPublication(
         id=event_id, participant_id=participant_id, version=version + 1,
         state="published" if payload.operation == "publish" else "withdrawn",
         marker=MARKER, recorded_by=auth.user.id,
         card_code=payload.card_code if payload.operation == "publish" else previous.card_code,
-        card_title=(
-            CARD_OPTIONS[payload.card_code] if payload.card_code is not None
-            else LEGACY_CARD_TITLE
-        ) if payload.operation == "publish" else previous.card_title,
+        card_title=card_title,
+        actions=actions or None,
     )
     db.add(row)
     audit(

@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "../../../workspace/auth";
 import { getParticipant } from "../../../workspace/intake";
 import PoseVideoLab from "./pose-video-lab";
+import PoseCamera from "./pose-camera";
+import LivePoseSummaryReview from "./live-pose-summary-review";
 
 export const dynamic = "force-dynamic";
 
@@ -23,5 +25,7 @@ export default async function PoseLabPage({ params }: { params: Promise<{ id: st
     <p>编号对象：{participant.study_code}</p>
     <p role="status"><strong>仅用于姿态识别可行性验证，不生成临床评分、康复分级或训练处方。</strong></p>
     <PoseVideoLab />
+    <PoseCamera />
+    <LivePoseSummaryReview />
   </main>;
 }

@@ -70,3 +70,9 @@ The additive migration permits the `patient` user role and creates `demo_patient
 ## Synthetic display profile revisions `0013_demo_profile_revisions` (2026-11-06)
 
 The original `demo_participant_profiles` row remains an immutable initial snapshot. New `demo_profile_revisions` stores append-only full display snapshots with `(participant_id, revision_no)` uniqueness, optional age/sex/assistance/note, correction reason, actor and UTC time. Newly created profiles also get an initial version-1 event. Existing profiles without that event are read as a legacy version 1 with actor/time unknown; the migration does not fabricate provenance or rewrite rows. The latest revision drives the current display read. This contains no identity or consent fields; populated database downgrade is not approved. See [ADR-0020](../decisions/0020-synthetic-profile-revisions.md).
+
+## 0018 合成反馈复核
+
+新增 `demo_patient_report_reviews`，以 `report_revision_id` 外键关联不可变的反馈修订；不重复存 participant_id，读取按源反馈联表限定对象。`(report_revision_id, review_no)` 唯一，序号正数，结果仅 reviewed/unable，备注 1–500 字。人员外键及 UTC 时间由服务端填入。表仅追加，不改已有表或行；没有级联删除。
+
+仅在隔离临时库演练 downgrade。现用数据库先留存可恢复备份、执行向前迁移；有记录后回滚应用保留新表，不对现用库执行 downgrade。

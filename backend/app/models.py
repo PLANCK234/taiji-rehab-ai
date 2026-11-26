@@ -3,7 +3,16 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
 
@@ -129,6 +138,28 @@ class DemoPatientPublication(Base):
     marker: Mapped[str] = mapped_column(String(40), nullable=False)
     card_code: Mapped[str | None] = mapped_column(String(40))
     card_title: Mapped[str | None] = mapped_column(String(100))
+    actions: Mapped[list[dict[str, str]] | None] = mapped_column(JSON(none_as_null=True))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class DemoPatientReportReview(Base):
+    """Append-only staff review of an exact patient-authored revision."""
+
+    __tablename__ = "demo_patient_report_reviews"
+    __table_args__ = (
+        UniqueConstraint("report_revision_id", "review_no"),
+        CheckConstraint("review_no > 0", name="ck_report_review_no"),
+        CheckConstraint("result IN ('reviewed','unable')", name="ck_report_review_result"),
+        CheckConstraint("length(trim(note)) BETWEEN 1 AND 500", name="ck_report_review_note"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    report_revision_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("demo_patient_report_revisions.id"), nullable=False
+    )
+    review_no: Mapped[int] = mapped_column(nullable=False)
+    result: Mapped[str] = mapped_column(String(20), nullable=False)
+    note: Mapped[str] = mapped_column(String(500), nullable=False)
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
@@ -139,6 +170,11 @@ class DemoPatientReportRevision(Base):
     __tablename__ = "demo_patient_report_revisions"
     __table_args__ = (
         UniqueConstraint("report_id", "revision_no"),
+        ForeignKeyConstraint(
+            ["participant_id", "publication_version"],
+            ["demo_patient_publications.participant_id", "demo_patient_publications.version"],
+            name="fk_demo_report_publication",
+        ),
         Index("ix_demo_patient_report_participant", "participant_id", "recorded_at"),
         CheckConstraint("revision_no > 0", name="ck_patient_report_revision_positive"),
         CheckConstraint(
@@ -170,6 +206,8 @@ class DemoPatientReportRevision(Base):
         Uuid, ForeignKey("participants.id"), nullable=False
     )
     revision_no: Mapped[int] = mapped_column(nullable=False)
+    publication_version: Mapped[int | None] = mapped_column()
+    pose_summary: Mapped[dict[str, int] | None] = mapped_column(JSON(none_as_null=True))
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     activity_state: Mapped[str] = mapped_column(String(20), nullable=False)
     actual_minutes: Mapped[int | None] = mapped_column()

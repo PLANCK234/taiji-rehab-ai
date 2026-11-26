@@ -1,5 +1,13 @@
 # REST API contract (proposed /api/v1)
 
+合成卡片选项提供 `SYN-24-01` 至 `SYN-24-24`。发布可提交 1–24 个互异的 `action_codes`，需确认选择，不能同时提交旧卡片代码。服务端按套路顺序保存动作编号与标题快照，通过 `actions` 返回；旧请求和旧记录仍兼容。[动作目录依据](https://tyxy.yau.edu.cn/__local/F/30/A4/06C022E94C47A353D1926073185_0B9FAB4F_1A977B.pdf?e=.pdf)
+
+新建任务关联的合成自报可带 `pose_summary`。仅接受三个整数计数 `sample_count`、`detected_count`、`framing_check_pass_count`；总采样大于零，取景通过数不大于检出数，检出数不大于总数。自报视图返回可空摘要；修订保留首次提交摘要。该字段不接收画面、逐帧内容、评分或角度。
+
+合成患者新增自报时可传可选的 `publication_version`。服务端在本人作用域检查该版本为当前有效发布，撤回或替换后以 409 拒绝新关联。自报返回可空的 `publication_version`；已有记录保持空值，更正沿用原关联。
+
+合成患者卡片选项响应在 `code`、`title` 之外返回 `message`，供获分配医护预览；其正文与患者投影由同一服务端常量生成。响应增量字段不改变发布请求。
+
 **Status**: Sprint 1 implements authentication, coded reads and synthetic intake; S2-01 adds synthetic manual SPPB total assessment entry, and ENG-02A adds a read-only trend projection. Other routes remain design proposals. `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503) are public. Implemented business routes are prefixed `/api/v1`; use JSON, UUIDs, server-side session/RBAC/study/participant scope. All require authentication except login. Error format is in [ERRORS.md](ERRORS.md).
 
 | Implemented path | Behavior |
@@ -129,3 +137,12 @@ All endpoints use the existing staff session and server-side study/participant s
 Assessment confirmation (`POST /assessments/{id}/confirm`) additionally persists one `demo_grade_results` per confirmed revision. Existing assessment/training response shapes and endpoints remain valid. The generated OpenAPI snapshot is `backend/openapi.json`.
 
 REAL-01C1 Demo 合成子集：GET/POST `/api/v1/participants/{id}/manual-observations`，POST `.../{observation_id}` 追加更正。快照含固定指标/单位、十进制字符串、有效性/缺失原因、时间/侧别/说明，服务端记录来源/操作者/时间；更正需预期版本与 SYN 原因。当前模拟同意、对象范围、CSRF 和幂等必需；不触发 SPPB 分级。REAL-01F1 已将结构化观察及修订纳入单对象 Demo CSV，说明文字仍排除；真实数据与临床使用未批准。
+
+## A-02 合成反馈复核（0018）
+
+- `GET /api/v1/participants/{participant_id}/patient-report-reviews`：READ_ROLES + study/object scope，返回全部复核历史；失败不能当作空列表。
+- `POST` 同路径：clinician / research_assistant，Demo、SYN 编号、当前模拟同意、CSRF、Idempotency-Key、对象锁；只允许已关联发布的当前反馈修订。
+- 输入：`report_revision_id` UUID、`expected_review_no` 非负严格整数、`result=reviewed|unable`、`note` 去首尾空白后 1–500 字；拒绝额外字段。
+- 输出：id、report_revision_id、review_no、result、note、recorded_by UUID、recorded_at UTC。新建返回 201；相同幂等请求返回原记录；键复用不同内容、复核版本变化、旧反馈修订或无任务关联返回 409；无权限/跨对象返回 403；格式错误 422。
+- 源反馈与复核共享对象写锁；先校验权限，再检查幂等收据，再检查当前版本，已提交操作可在反馈更正后安全重试。撤回发布不抹去既有事实，仍可复核当前反馈；模拟同意撤回后只读。
+- 无更新/删除路由，不修改患者事实或分析；不返回给患者、不进入既有 CSV 自由文本导出；审计只记操作与编码对象。

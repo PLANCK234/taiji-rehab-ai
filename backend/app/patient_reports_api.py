@@ -22,16 +22,37 @@ from app.db import get_db
 from app.intake import reserve_write
 from app.intake_api import READ_ROLES, idempotency_header
 from app.models import DemoPatientBinding, DemoPatientReportRevision, Participant
+from app.patient_publication import latest_publication
 from app.runtime import require_demo
 from app.training import has_current_synthetic_consent
 
 router = APIRouter(prefix="/api/v1", dependencies=[Depends(require_demo)])
 
 
+class PatientPoseCounts(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sample_count: StrictInt = Field(gt=0, le=2_147_483_647)
+    detected_count: StrictInt = Field(ge=0)
+    framing_check_pass_count: StrictInt = Field(ge=0)
+
+    @model_validator(mode="after")
+    def check_counts(self) -> "PatientPoseCounts":
+        if not self.framing_check_pass_count <= self.detected_count <= self.sample_count:
+            raise ValueError("pose counts are inconsistent")
+        return self
+
+
 class PatientReportWrite(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     expected_revision: StrictInt = Field(ge=0)
+    publication_version: StrictInt | None = Field(
+        default=None, ge=1, exclude_if=lambda value: value is None
+    )
+    pose_summary: PatientPoseCounts | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     observed_at: AwareDatetime
     activity_state: Literal["performed", "not_performed", "unknown"]
     actual_minutes: StrictInt | None = Field(default=None, ge=0)
@@ -54,6 +75,10 @@ class PatientReportWrite(BaseModel):
             raise ValueError("correction reason required")
         if self.expected_revision == 0 and self.change_reason is not None:
             raise ValueError("new report cannot have a correction reason")
+        if self.pose_summary is not None and (
+            self.expected_revision != 0 or self.publication_version is None
+        ):
+            raise ValueError("pose counts require a new task-linked report")
         return self
 
 
@@ -64,6 +89,8 @@ class PatientReportView(BaseModel):
     report_id: uuid.UUID
     participant_id: uuid.UUID
     revision_no: int
+    publication_version: int | None
+    pose_summary: PatientPoseCounts | None
     observed_at: datetime
     activity_state: Literal["performed", "not_performed", "unknown"]
     actual_minutes: int | None
@@ -193,6 +220,16 @@ def write_report(
         if payload.expected_revision != 0:
             raise HTTPException(status_code=409, detail="new report revision must be zero")
         report_id, current_no = revision_id, 0
+        publication_version = payload.publication_version
+        pose_summary = payload.pose_summary.model_dump() if payload.pose_summary else None
+        if publication_version is not None:
+            publication = latest_publication(db, participant.id)
+            if (
+                publication is None
+                or publication.state != "published"
+                or publication.version != publication_version
+            ):
+                raise HTTPException(status_code=409, detail="patient task publication changed")
     else:
         previous = db.scalar(
             select(DemoPatientReportRevision)
@@ -205,6 +242,15 @@ def write_report(
             db.commit()
             raise HTTPException(status_code=403, detail="access denied")
         current_no = previous.revision_no
+        publication_version = previous.publication_version
+        pose_summary = previous.pose_summary
+        if payload.pose_summary is not None:
+            raise HTTPException(status_code=409, detail="patient pose counts cannot change")
+        if (
+            payload.publication_version is not None
+            and payload.publication_version != publication_version
+        ):
+            raise HTTPException(status_code=409, detail="patient task association cannot change")
     if payload.expected_revision != current_no:
         raise HTTPException(status_code=409, detail="stale patient report revision")
     row = DemoPatientReportRevision(
@@ -213,7 +259,9 @@ def write_report(
         participant_id=participant.id,
         revision_no=current_no + 1,
         recorded_by=auth.user.id,
-        **payload.model_dump(exclude={"expected_revision"}),
+        publication_version=publication_version,
+        pose_summary=pose_summary,
+        **payload.model_dump(exclude={"expected_revision", "publication_version", "pose_summary"}),
     )
     db.add(row)
     audit(db, action, "patient_report", "allowed", auth.user.id, report_id)

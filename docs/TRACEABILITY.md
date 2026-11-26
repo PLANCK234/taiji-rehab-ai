@@ -1,5 +1,47 @@
 # Requirements traceability
 
+AT-POSE-01 实时识别优化由 `pose-analysis.test.ts` 验证侧身单侧可见、部分出框及未检出分类，由 `patient.real.ts` 验证无人画面提示并继续完成自报。
+
+AT-PAT-02 简化24式多选由 `patient.real.ts` 验证，覆盖 24 项清单、双选回显、撤回及历史反馈；`publication-controls.test.tsx` 验证当前任务置顶、历史默认折叠及最近十条分页。
+
+AT-PAT-02 合成动作选择由 `patient.real.ts` 覆盖单项切换为组合、重新确认、患者端标题与版本一致及撤回。
+
+A-02 / DEMO-V2-38 → AT-PAT-03 合成复核：`backend/tests/test_patient_reviews.py` 覆盖鉴权、CSRF、幂等、版本冲突及不可变源；`patient-report-review.test.tsx` 覆盖失败输入与键复用、不可用/只读、新旧修订隔离；`frontend/e2e/patient.real.ts` 验证真实 PostgreSQL 保存/刷新/追加与患者更正后历史分离。见 [A-02 验证记录](testing/A-02-STAFF-REVIEW.md)。
+
+QA-01 首条合成手机任务的保存与摘要核对证据见 [iPhone 真机记录](testing/C-01-MOBILE-VALIDATION.md)。
+
+QA-01 异常路径由 `patient.real.ts` 验证，模拟权限拒绝和模型请求中断，反馈仍可关联任务并保存，工作人员看到「未提交姿态摘要」。
+
+QA-01 工作人员版次核对由 `staff-patient-reports.test.tsx` 与 `patient.real.ts` 验证，覆盖其他版本和独立补录排除、摘要缺失提示、已提交摘要展示及恢复全部记录。
+
+QA-01 摘要回传由 `patient.real.ts` 验证：结束后默认未勾选，主动提交后在工作人员端显示采样、检出、取景检查计数；更正保留摘要，撤回拒绝新关联。
+
+QA-01 任务执行控制由 `patient.real.ts` 验证，覆盖当前发布版本的开始、暂停时保留预览、恢复分析、结束释放轨道和定位到自报。
+
+AT-PAT-02/03 合成任务关联由 `patient.real.ts` 验证。迁移 0016 按编号对象和发布版本约束关联，验证患者保存、工作人员核对、修订保留及撤回后旧页面拒绝新增关联。
+
+AT-PAT-03 自报发生日期查询由 `patient.real.ts` 验证，覆盖异时区浏览器、北京时间跨日、与不适联合筛选和清除日期。
+
+AT-PAT-03 自报不适筛选由 `patient.real.ts` 验证，只读取当前版本；更正后退出筛选可继续查看旧版事实。
+
+AT-PAT-02 发布前预览由 `patient.real.ts` 验证，覆盖两张卡片切换、确认重置、接收编号及实际发布正文与预览一致。
+
+AT-PAT-02 无素材子集由 `patient.real.ts` 验证，覆盖两端提示、文字卡片发布、患者卡片区无视频元素及撤回。
+
+AT-PAT-03 自报保存定位由 `patient.real.ts` 验证，覆盖新增、更正和补录较早发生的事实，以及获授权工作人员查看。
+
+工作人员档案导航对应 AT-PAT-02/03 合成子集。`patient.real.ts` 验证医护使用顶部快捷入口后，焦点分别进入发布和自报区，且可以完成后续发布与自报核对。
+
+合成患者端闭环覆盖 AT-PAT-01/02/03 与 AT-POSE-01 的流程子集。`patient.real.ts` 验证确认授权、预览、继续填写时释放摄像头轨道并将焦点移至记录区、训练状态初始为未知、患者保存后工作人员可查看。
+
+C-01 患者端合成联调关联 AT-POSE-01 与 AT-PAT-01/02 的合成子集。`patient.real.ts` 验证发布前与撤回后刷新隐藏，发布后须显式确认画面授权，并用合成画面验证预览与停止。真实患者准入、计划和视频审核不在本次验收范围。
+
+C-01 真机验证对应 AT-POSE-01 的实时预览子集。[手机实测清单](testing/C-01-MOBILE-VALIDATION.md)定义真机验收步骤与观察项，尚待执行。
+
+C-01 摄像头选择属于 AT-POSE-01 的实时预览子集。`pose-lab.real.ts` 验证明确请求后置且关闭音频、后置不可用时可改选默认，以及预览期间锁定选项。
+
+C-01 对应 AT-POSE-01 的实时预览子集。`pose-lab.real.ts` 覆盖权限拒绝后重试、取消后释放迟到的轨道、预览时无新增模型资源请求、390 像素视窗下竖向预览、开始识别后绘制骨架，以及停止后释放轨道并导出摘要。
+
 S6-19 对应 AT-POSE-01 的五次坐站计时复核子集。`sit-to-stand-timing.test.tsx` 校验起止顺序、人工和辅助用时及差值、确认与未知 CSV。`pose-lab.real.ts` 验证原视频标记、真实下载、换片清空、无法核实起点及无写入请求。
 
 DEMO-V2-37 对应 AT-DEMO-02/05 的工作台列表子集。`participant-list.test.tsx` 检查不同研究的同编号、账号隔离；`demo-v2.real.ts` 验证隐藏、恢复、刷新、直接打开原档案和零写入请求。隔离 Chromium 17 项通过。
@@ -179,4 +221,17 @@ DEMO-V2-26（AT-PAT-01 合成身份可见性子集）：`frontend/app/workspace/
 
 DEMO-V2-27（AT-PAT-01 合成故障可辨认子集）：`frontend/app/patient/home.ts` 将 `/patient/me` 映射为正常、绑定不可用、会话失效和服务不可用四类；`home.test.ts` 覆盖 200/403/401/503/网络异常，患者真实浏览器流程核对撤销后新提示。2026-11-13 隔离前端 lint/typecheck/40 tests/build、PostgreSQL→Chromium 10 passed，临时资源清理；API 权限和本人隔离未改变。
 
+QA-01 / AT-PAT-03 手机复核准备见 [入口验证与真机操作](testing/A-02-STAFF-REVIEW.md#qa-01-手机复核准备)。本机账号和公开入口预检已通过，iPhone Safari 保存及刷新仍待记录。
+
+DEMO-V2-39 → AT-PAT-02 合成子集。publication-controls.test.tsx 验证撤回重试复用原请求及冲突后重读。patient.real.ts 让真实发布请求成功入库，再向浏览器返回 503，验证页面锁定、重试仅留一条发布版本，以及患者看到原卡片。前端 74 项、生产构建及隔离 Chromium 17 项通过。
+
+DEMO-V2-39 上线烟测：确认现用容器的浏览器包包含发布重试界面，本机双角色登录、SYN-001 版本 5 原摘要与复核表单、患者摄像头及权限隔离通过。公开 HTTPS 登录页返回 200。此次没有追加业务测试记录，写入与重试证据来自隔离浏览器。
+
+DEMO-V2-40 → AT-PAT-03：staff-patient-reports.test.tsx 验证旧复核、独立补录、日期和读取失败。patient.real.ts 验证“无法判定”保存后移出列表、筛选框接收焦点、刷新后排除已复核反馈、患者更正后新修订重新进入。前端 75 项、Docker 生产构建和隔离 Chromium 17 项通过。
+
+DEMO-V2-40 上线烟测：本机工作人员可打开 SYN-001 版本 5 的筛选入口、原摘要与复核表单，患者摄像头入口及复核权限检查通过。公开登录页和后端 ready 均返回 200。发布、反馈和复核响应在更新前后一致，写入场景使用隔离浏览器证据。
+
+DEMO-V2-41 → AT-PAT-03：staff-patient-reports.test.tsx 验证无效/不可读状态、重读和返回入口，无法核对指定版时隐藏反馈与筛选。patient.real.ts 验证撤回事件编号、重复参数、追溯原发布版本和主动切回全部记录。
+
+DEMO-V2-41 上线烟测：本机验证 SYN-001 版本 5 可见筛选、原摘要和复核表单，无效版本和重复参数显示提示，普通档案页可查看全部反馈。患者摄像头和角色隔离检查通过。公开登录页与后端 ready 均返回 200。
 | ENG-05 / AT-BACKUP-01 / AT-13 synthetic subset | `scripts/demo_backup.py`; [ADR-0024](decisions/0024-local-demo-backup.md) | [12 unit tests + real restore and two scheduled cycles](testing/ENG-05-BACKUP.md) | Demo ops | local verified; PR review pending; no Research approval |

@@ -391,6 +391,10 @@
             "title": "Code",
             "type": "string"
           },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
           "title": {
             "title": "Title",
             "type": "string"
@@ -398,7 +402,8 @@
         },
         "required": [
           "code",
-          "title"
+          "title",
+          "message"
         ],
         "title": "CardOptionView",
         "type": "object"
@@ -1707,6 +1712,34 @@
         "title": "PatientHomeView",
         "type": "object"
       },
+      "PatientPoseCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "detected_count": {
+            "minimum": 0.0,
+            "title": "Detected Count",
+            "type": "integer"
+          },
+          "framing_check_pass_count": {
+            "minimum": 0.0,
+            "title": "Framing Check Pass Count",
+            "type": "integer"
+          },
+          "sample_count": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 2147483647.0,
+            "title": "Sample Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sample_count",
+          "detected_count",
+          "framing_check_pass_count"
+        ],
+        "title": "PatientPoseCounts",
+        "type": "object"
+      },
       "PatientReportView": {
         "properties": {
           "activity_state": {
@@ -1775,6 +1808,27 @@
             "title": "Participant Id",
             "type": "string"
           },
+          "pose_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PatientPoseCounts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publication_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Version"
+          },
           "recorded_at": {
             "format": "date-time",
             "title": "Recorded At",
@@ -1800,6 +1854,8 @@
           "report_id",
           "participant_id",
           "revision_no",
+          "publication_version",
+          "pose_summary",
           "observed_at",
           "activity_state",
           "actual_minutes",
@@ -1881,6 +1937,28 @@
             "format": "date-time",
             "title": "Observed At",
             "type": "string"
+          },
+          "pose_summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PatientPoseCounts"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publication_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publication Version"
           }
         },
         "required": [
@@ -1890,6 +1968,24 @@
           "discomfort_state"
         ],
         "title": "PatientReportWrite",
+        "type": "object"
+      },
+      "PublicationAction": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "title"
+        ],
+        "title": "PublicationAction",
         "type": "object"
       },
       "PublicationReadinessView": {
@@ -1917,6 +2013,13 @@
       },
       "PublicationView": {
         "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/PublicationAction"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
           "card_code": {
             "anyOf": [
               {
@@ -1973,12 +2076,31 @@
       "PublicationWrite": {
         "additionalProperties": false,
         "properties": {
+          "action_codes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 24,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Codes"
+          },
           "card_code": {
             "anyOf": [
               {
                 "enum": [
                   "SYN-CARD-A",
-                  "SYN-CARD-B"
+                  "SYN-CARD-B",
+                  "SYN-TAIJI-OPENING",
+                  "SYN-TAIJI-CLOUD-HANDS",
+                  "SYN-TAIJI-OPENING-CLOUD-HANDS"
                 ],
                 "type": "string"
               },
@@ -2018,6 +2140,94 @@
           "synthetic_only_acknowledged"
         ],
         "title": "PublicationWrite",
+        "type": "object"
+      },
+      "ReportReviewView": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "report_revision_id": {
+            "format": "uuid",
+            "title": "Report Revision Id",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "reviewed",
+              "unable"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "review_no": {
+            "title": "Review No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "report_revision_id",
+          "review_no",
+          "result",
+          "note",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "ReportReviewView",
+        "type": "object"
+      },
+      "ReportReviewWrite": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_review_no": {
+            "minimum": 0.0,
+            "title": "Expected Review No",
+            "type": "integer"
+          },
+          "note": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Note",
+            "type": "string"
+          },
+          "report_revision_id": {
+            "format": "uuid",
+            "title": "Report Revision Id",
+            "type": "string"
+          },
+          "result": {
+            "enum": [
+              "reviewed",
+              "unable"
+            ],
+            "title": "Result",
+            "type": "string"
+          }
+        },
+        "required": [
+          "report_revision_id",
+          "expected_review_no",
+          "result",
+          "note"
+        ],
+        "title": "ReportReviewWrite",
         "type": "object"
       },
       "SafetyEventCreate": {
@@ -5077,6 +5287,110 @@
           }
         },
         "summary": "Write"
+      }
+    },
+    "/api/v1/participants/{participant_id}/patient-report-reviews": {
+      "get": {
+        "operationId": "read_reviews_api_v1_participants__participant_id__patient_report_reviews_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReportReviewView"
+                  },
+                  "title": "Response Read Reviews Api V1 Participants  Participant Id  Patient Report Reviews Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Reviews"
+      },
+      "post": {
+        "operationId": "write_review_api_v1_participants__participant_id__patient_report_reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportReviewWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportReviewView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Write Review"
       }
     },
     "/api/v1/participants/{participant_id}/patient-reports": {

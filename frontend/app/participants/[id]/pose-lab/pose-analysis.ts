@@ -126,6 +126,19 @@ export function createPoseFrame(
   return { timestampMs, detected: true, landmarks, worldLandmarks, angles };
 }
 
+export function liveFraming(frame: PoseFrame): "missing" | "full" | "one-side" | "partial" {
+  if (!frame.detected) return "missing";
+  const visibleInFrame = (index: number) => {
+    const point = frame.landmarks[index];
+    return (point.visibility ?? 1) >= MIN_POINT_CONFIDENCE
+      && point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1;
+  };
+  if ([0, 27, 28, 31, 32].every(visibleInFrame)) return "full";
+  const visibleSide = [[11, 23, 25, 27, 31], [12, 24, 26, 28, 32]]
+    .some((side) => side.every(visibleInFrame));
+  return visibleSide ? "one-side" : "partial";
+}
+
 export function summarizePose(frames: PoseFrame[], videoDurationMs: number, sampleHz: number): PoseSummary {
   const detected = frames.filter((frame) => frame.detected);
   const jointRanges: PoseSummary["jointRanges"] = {};

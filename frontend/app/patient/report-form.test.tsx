@@ -18,6 +18,8 @@ afterEach(() => {
 });
 
 const first: PatientReport = {
+  publication_version: null,
+  pose_summary: null,
   id: "revision-1", report_id: "report-1", participant_id: "synthetic-participant",
   revision_no: 1, observed_at: "2026-11-05T02:00:00Z",
   activity_state: "unknown", actual_minutes: null,
