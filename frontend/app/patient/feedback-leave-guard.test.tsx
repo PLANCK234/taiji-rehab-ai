@@ -10,7 +10,7 @@ const navigation = vi.hoisted(() => ({ refresh: vi.fn(), replace: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
 vi.mock("../workspace/intake", () => ({ postIntake: vi.fn() }));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.mocked(postIntake).mockReset(); navigation.replace.mockReset(); document.cookie = "taiji_csrf=; max-age=0"; });
-const row: PatientReport = { id: "revision-1", report_id: "report-1", participant_id: "synthetic-participant", revision_no: 1,
+const row: PatientReport = { publication_version: null, pose_summary: null, id: "revision-1", report_id: "report-1", participant_id: "synthetic-participant", revision_no: 1,
   observed_at: "2026-11-25T02:00:00Z", activity_state: "unknown", actual_minutes: null, discomfort_state: "unknown", discomfort_note: null,
   change_reason: null, recorded_by: "synthetic-patient", recorded_at: "2026-11-25T02:05:00Z" };
 function setup(reports: PatientReport[] = []) {

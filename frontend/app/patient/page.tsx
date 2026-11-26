@@ -3,11 +3,10 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "../workspace/auth";
 import { FeedbackLeaveGuard, PatientLogoutButton, UnsavedFeedbackNotice } from "./feedback-leave-guard";
 import { getPatientReports } from "../workspace/patient-reports";
-import PatientReportForm from "./report-form";
 import { roleLabel } from "../workspace/role-label";
 import { readPatientHome } from "./home";
 import RetryPatientHomeButton from "./retry-button";
-import PatientJourney from "./journey";
+import PatientTaskFeedback from "./task-feedback";
 import styles from "./journey.module.css";
 import { localTeachingVideos } from "./local-teaching-server";
 
@@ -30,20 +29,25 @@ export default async function PatientPage() {
     <UnsavedFeedbackNotice />
     {homeResult.kind === "ready" ? <>
       <p>我的演示编号：{homeResult.home.study_code}</p>
-      <PatientJourney localVideos={localVideos} key={JSON.stringify([user.id, homeResult.home.study_code])} learning={<section>
-        <h2>训练计划与视频</h2>
+      <PatientTaskFeedback localVideos={localVideos} key={JSON.stringify([user.id, homeResult.home.study_code])}
+        initialReports={reports} publicationVersion={homeResult.home.publication?.version}
+        cameraEnabled={process.env.POSE_PROTOTYPE_ENABLED === "true"} learning={<section aria-labelledby="patient-plan-heading">
+        <h2 id="patient-plan-heading">训练计划与视频</h2>
         {homeResult.home.publication ? <>
           <p role="status">合成流程测试版本 {homeResult.home.publication.version} · 不可作为训练指导</p>
           <p>当前卡片：{homeResult.home.publication.card_title}</p>
+          {!!homeResult.home.publication.actions?.length && <ul aria-label="已发布动作">
+            {homeResult.home.publication.actions.map((action) => <li key={action.code}>{action.title}</li>)}
+          </ul>}
           <p>{homeResult.home.publication.message}</p>
           <div className="demo-video-frame"><div className="demo-video-empty" role="status">
             <span className="demo-video-icon" aria-hidden="true">▶</span>
             <strong>视频待添加</strong>
-            <span>尚无经审核的视频素材，当前不能播放。</span>
+            <span>当前卡片暂无可播放视频。</span>
           </div></div>
         </> : <p>目前没有经医护确认并发布给此账号的计划或视频。</p>}
         <p className="note">研究工作台中的 DEMO_ONLY 内容不会自动成为患者训练指导。</p>
-      </section>} feedback={<PatientReportForm initialReports={reports} />} />
+      </section>} />
     </> : homeResult.kind === "binding_unavailable" ? (
       <section>
         <h2>演示编号不可用</h2>

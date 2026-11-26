@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  absoluteAngleDifference, angleDegrees, createPoseFrame, jointAngleSegments, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
+  absoluteAngleDifference, angleDegrees, createPoseFrame, jointAngleSegments, liveFraming, nearestPoseFrame, poseAnalysisCsv, poseAnnotationTemplateCsv,
   parsePoseManualAnnotationsCsv, poseComparisonSummaryJson, poseManualAnnotationsCsv, summarizeManualAngleComparisons, summarizePose,
   timelinePositionRatio, type ManualPoseAnnotation, type PosePoint,
 } from "./pose-analysis";
@@ -8,6 +8,18 @@ import {
 const visible = (x: number, y: number, z = 0): PosePoint => ({ x, y, z, visibility: 1, presence: 1 });
 
 describe("pose prototype kinematics", () => {
+  it("distinguishes one visible side and partial framing from a missed person", () => {
+    const points = Array.from({ length: 33 }, () => visible(0.5, 0.5));
+    expect(liveFraming(createPoseFrame(0))).toBe("missing");
+    expect(liveFraming(createPoseFrame(0, points, points))).toBe("full");
+    const side = points.map((point, index) =>
+      [0, 12, 24, 26, 28, 32].includes(index) ? { ...point, visibility: 0.2 } : point,
+    );
+    expect(liveFraming(createPoseFrame(0, side, points))).toBe("one-side");
+    side[25] = { ...side[25], y: 1.2 };
+    expect(liveFraming(createPoseFrame(0, side, points))).toBe("partial");
+  });
+
   it("computes a three-dimensional joint angle and rejects unavailable points", () => {
     expect(angleDegrees(visible(1, 0), visible(0, 0), visible(0, 1))).toBe(90);
     expect(angleDegrees(visible(1, 0), { ...visible(0, 0), visibility: 0.2 }, visible(0, 1))).toBeNull();

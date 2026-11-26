@@ -488,7 +488,9 @@ def test_synthetic_publication_version_withdrawal_and_consent(seeded_api) -> Non
         assert patient_client.get(path).status_code == 403
         options_path = f"/api/v1/participants/{ids['assigned']}/demo-patient-card-options"
         assert [row["code"] for row in staff.get(options_path).json()] == [
-            "SYN-CARD-A", "SYN-CARD-B"
+            "SYN-CARD-A", "SYN-CARD-B", "SYN-TAIJI-OPENING", "SYN-TAIJI-CLOUD-HANDS",
+            "SYN-TAIJI-OPENING-CLOUD-HANDS",
+            *(f"SYN-24-{number:02}" for number in range(1, 25)),
         ]
         assert patient_client.get(options_path).status_code == 403
         assert staff.get(

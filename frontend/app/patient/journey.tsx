@@ -13,9 +13,10 @@ const steps = [
   { name: "反馈", detail: "记录与回顾", title: "反馈 · 训练与不适记录" },
 ];
 
-export default function PatientJourney({ learning, feedback, localVideos = [] }: {
+export default function PatientJourney({ learning, feedback, training, localVideos = [] }: {
   learning: ReactNode;
   feedback: ReactNode;
+  training?: (active: boolean, showFeedback: () => void) => ReactNode;
   localVideos?: LocalTeachingVideo[];
 }) {
   const [current, setCurrent] = useState(0);
@@ -48,7 +49,7 @@ export default function PatientJourney({ learning, feedback, localVideos = [] }:
     {steps.map((step, index) => <div key={step.name} id={`patient-step-${index}`}
       hidden={current !== index} role="region" aria-labelledby={`patient-step-title-${index}`}>
       <h2 className={styles.heading} id={`patient-step-title-${index}`} tabIndex={-1}
-        ref={(element) => { headings.current[index] = element; }}>{step.title}</h2>
+        ref={(element) => { headings.current[index] = element; }}>{index === 2 && training ? "训练 · 合成演示任务" : step.title}</h2>
       {index === 0 ? <><TeachingPlayer videos={localVideos} active={current === 0} />{learning}</> : index === 1 ? <section>
         <h3>取景准备</h3>
         <ul className={styles.checklist}>
@@ -57,7 +58,7 @@ export default function PatientJourney({ learning, feedback, localVideos = [] }:
           <li>可以穿鞋，无需为了演示脱鞋。</li>
         </ul>
         {current === 1 ? <CameraPreview /> : null}
-      </section> : index === 2 ? <section>
+      </section> : index === 2 && training ? training(current === 2, () => setCurrent(3)) : index === 2 ? <section>
         <h3>训练尚未开始</h3>
         <p>训练任务和操作功能待接入，当前不能开始训练。姿态识别算法尚未接入。</p>
         <div className={styles.placeholder}>
@@ -67,7 +68,7 @@ export default function PatientJourney({ learning, feedback, localVideos = [] }:
         </div>
         <p className="note">如需填写已经发生的合成演示记录，可直接前往反馈。</p>
       </section> : <>
-        <p className="note">这里沿用本人事实记录，尚未关联四步训练任务。切换步骤会保留未提交内容；刷新或离开页面不会保留未提交内容。</p>
+        <p className="note">可记录独立事实；如有当前演示任务，可主动选择关联其版本。切换步骤会保留未提交内容；刷新或离开页面不会保留未提交内容。</p>
         {feedback}
       </>}
     </div>)}

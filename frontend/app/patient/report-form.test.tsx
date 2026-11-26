@@ -19,6 +19,8 @@ afterEach(() => {
 });
 
 const first: PatientReport = {
+  publication_version: null,
+  pose_summary: null,
   id: "revision-1", report_id: "report-1", participant_id: "synthetic-participant",
   revision_no: 1, observed_at: "2026-11-05T02:00:00Z",
   activity_state: "unknown", actual_minutes: null,
@@ -327,4 +329,73 @@ it("orders multiple current reports by latest save time before and after correct
   expect(shown(reloaded.container)[0]).toContain("当前版本 3");
   expect(shown(reloaded.container)[1]).toContain("自报未训练");
   expect(reloaded.container.querySelectorAll("section > ul > li")[0].querySelectorAll("details li")).toHaveLength(2);
+});
+
+it("retries linked task feedback with exactly the same confirmed summary and key", async () => {
+  const summary = { sample_count: 12, detected_count: 8, framing_check_pass_count: 3 };
+  const saved = { ...first, publication_version: 4, pose_summary: summary };
+  const onSaved = vi.fn();
+  vi.mocked(postIntake).mockResolvedValueOnce({ status: 503, value: null }).mockResolvedValueOnce({ status: 201, value: saved });
+  render(<PatientReportForm initialReports={[]} publicationVersion={4} poseSummary={summary} onPoseSummarySaved={onSaved} />);
+  fillTime();
+  fireEvent.click(screen.getByLabelText(/将本次反馈关联/));
+  fireEvent.click(screen.getByLabelText(/一并提交本次姿态/));
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await screen.findByRole("button", { name: "重试保存" });
+  expect(onSaved).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "重试保存" }));
+  await screen.findByText("当前版本 1");
+  const calls = vi.mocked(postIntake).mock.calls;
+  expect(calls[0].slice(0, 3)).toEqual(calls[1].slice(0, 3));
+  expect(calls[1][1]).toMatchObject({ publication_version: 4, pose_summary: summary });
+  expect(onSaved).toHaveBeenCalledExactlyOnceWith(summary);
+});
+
+it("requires fresh confirmation for a changed task version and never silently attaches the old summary", async () => {
+  const summary = { sample_count: 12, detected_count: 8, framing_check_pass_count: 3 };
+  vi.mocked(postIntake).mockResolvedValue({ status: 201, value: first });
+  const view = render(<PatientReportForm initialReports={[]} publicationVersion={4} poseSummary={summary} />);
+  fillTime();
+  fireEvent.click(screen.getByLabelText(/将本次反馈关联/));
+  fireEvent.click(screen.getByLabelText(/一并提交本次姿态/));
+  view.rerender(<PatientReportForm initialReports={[]} publicationVersion={5} poseSummary={null} />);
+  expect((screen.getByLabelText(/将本次反馈关联/) as HTMLInputElement).checked).toBe(false);
+  expect(screen.queryByLabelText(/一并提交本次姿态/)).toBeNull();
+  expect((screen.getByLabelText("发生时间（北京时间）") as HTMLInputElement).value).toBe("2026-11-25T10:00");
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await screen.findByText("当前版本 1");
+  expect(vi.mocked(postIntake).mock.calls[0][1]).not.toHaveProperty("publication_version");
+  expect(vi.mocked(postIntake).mock.calls[0][1]).not.toHaveProperty("pose_summary");
+});
+
+it("does not reuse a failed request key if the linked task version changes", async () => {
+  vi.mocked(postIntake).mockResolvedValueOnce({ status: 503, value: null }).mockResolvedValueOnce({ status: 201, value: first });
+  const view = render(<PatientReportForm initialReports={[]} publicationVersion={4} />);
+  fillTime();fireEvent.click(screen.getByLabelText(/将本次反馈关联/));
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await screen.findByRole("button", { name: "重试保存" });
+  view.rerender(<PatientReportForm initialReports={[]} publicationVersion={5} />);
+  fireEvent.click(screen.getByRole("button", { name: "重试保存" }));
+  await screen.findByText("当前版本 1");
+  const calls = vi.mocked(postIntake).mock.calls;
+  expect(calls[0][2]).not.toBe(calls[1][2]);
+  expect(calls[0][1]).toHaveProperty("publication_version", 4);
+  expect(calls[1][1]).not.toHaveProperty("publication_version");
+});
+
+it("restores an uncertain new-report retry key after saving a separate correction", async () => {
+  vi.mocked(postIntake).mockResolvedValueOnce({ status: 503, value: null })
+    .mockResolvedValueOnce({ status: 201, value: { ...first, id: "revision-2", revision_no: 2 } })
+    .mockResolvedValueOnce({ status: 201, value: { ...first, id: "new-revision", report_id: "new-report" } });
+  render(<PatientReportForm initialReports={[first]} />); fillTime();
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await screen.findByRole("button", { name: "重试保存" });
+  fireEvent.click(screen.getByRole("button", { name: "更正" }));
+  fireEvent.change(screen.getByLabelText(/更正原因/), { target: { value: "SYN-核对" } });
+  fireEvent.click(screen.getByRole("button", { name: "保存更正" }));
+  await screen.findByText("当前版本 2");
+  fireEvent.click(screen.getByRole("button", { name: "保存记录" }));
+  await waitFor(() => expect(postIntake).toHaveBeenCalledTimes(3));
+  const calls = vi.mocked(postIntake).mock.calls;
+  expect(calls[2].slice(0, 3)).toEqual(calls[0].slice(0, 3));
 });

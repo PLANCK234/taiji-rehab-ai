@@ -78,3 +78,7 @@ REAL-01F4 扩展：`record_type=synthetic_consent_record` 逐条导出模拟决�
 ## DEMO-V2 专用字段
 
 `demo_participant_profiles.age/sex/needs_assistance/note` 为可选虚构展示资料，`null` 为未知；不映射真实身份。`demo_grade_results.functional_grade` 为 `I|II|III|IV|UNASSESSED`，`demo_training_mode` 独立且 IV/UNASSESSED 为空；`rule_version=demo-rule-v1`、`evidence.marker=DEMO_RULE` 及 `assessment_revision_id` 记录依据。`demo_actions.marker=DEMO_ONLY`，不含临床剂量；`demo_runs.status` 为 in_progress/paused/awaiting_feedback/completed/stopped，`current_index` 为浏览进度，`completed_action_ids` 为实际完成动作的可空独立记录，`training_session_id` 关联原有观察。计划动作或浏览进度不得充当实际完成动作。`actual_minutes` 和 RPE 未记录均为 null，绝不默认为 0。
+
+## A-02 复核字段
+
+`demo_patient_report_reviews.report_revision_id`：复核所针对的精确患者反馈修订；发布版本由源反馈确定。`review_no`：该修订下递增序号。`result`：reviewed=人工已核对、unable=人工无法判定，均非临床结论。`note`：必填合成核对依据/无法判定原因/追加变化说明，1–500 字，排除既有 CSV。`recorded_by`：工作人员 UUID；`recorded_at`：服务端 UTC。无复核行=该版待复核；读取失败=未知，不作待复核或通过。
