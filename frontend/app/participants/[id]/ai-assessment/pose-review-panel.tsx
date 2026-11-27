@@ -2,11 +2,11 @@
 
 import { useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { demoError, writeDemo } from "../../../workspace/demo";
-import { correctionDrafts, correctionPayload } from "../../../workspace/pose-corrections";
-import type { CorrectionDraft } from "../../../workspace/pose-corrections";
-import { jointNames, reviewDecisionNames, reviewMetricNames } from "../../../workspace/pose";
-import type { PoseDetail, PoseJoint, PoseReview, ReviewDecision, ReviewMetric } from "../../../workspace/pose";
+import { demoError, writeDemo } from "../../../../lib/demo";
+import { correctionDrafts, correctionPayload } from "../../../../lib/pose-corrections";
+import type { CorrectionDraft } from "../../../../lib/pose-corrections";
+import { jointNames, reviewDecisionNames, reviewMetricNames } from "../../../../lib/pose";
+import type { PoseDetail, PoseJoint, PoseReview, ReviewDecision, ReviewMetric } from "../../../../lib/pose";
 
 const degrees = (value: number | null | undefined) => value == null ? "未知" : `${value}°`;
 
@@ -76,7 +76,7 @@ export default function PoseReviewPanel({ report, canReview, busy, onBusy, onSta
         {jointNames[row.joint]} · {reviewMetricNames[row.metric]}：AI {degrees(report.result.metrics[row.joint][row.metric])} → 人工 {degrees(row.value)} · {row.reason}
       </li>)}</ul>}
     </li>)}</ul> : <p>尚未人工复核。</p>}
-    <button type="button" disabled={busy} onClick={() => void refresh()}>刷新复核记录</button>
+    <button type="button" className="btn-secondary btn-sm" disabled={busy} onClick={() => void refresh()}>刷新复核记录</button>
     {canReview && <form onSubmit={event => void save(event)}>
       <label>复核结论<select value={decision} disabled={busy} onChange={e => setDecision(e.target.value as ReviewDecision)}>
         <option value="accepted_observations">确认观察指标（不代表临床处方）</option>

@@ -32,7 +32,7 @@
 |---|---|---|
 | DEMO-V2-09 / AT-AI-DOC-01 | [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)、[ADR-0015](decisions/0015-ai-video-assessment-proposal.md)、[任务](TASKS.md)、[Q-14/15](OPEN_QUESTIONS.md) | 已读人工评估、Demo规则、姿态SVG代码并核对官方模型文档；handoff与diff检查通过。仅设计交付，不代表量表/真实识别或模型准确率验收。 |
 
-> 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](testing/S6-01-REMOTE-RECONCILIATION.md)。
+> 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](archive/testing/S6-01-REMOTE-RECONCILIATION.md)。
 
 | Requirement | Design | Tests | Sprint | State |
 |---|---|---|---|---|

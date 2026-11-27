@@ -20,5 +20,6 @@ Current proposals:
 - [ADR-0015](0015-ai-video-assessment-proposal.md): proposed pose/geometry/candidate/review pipeline; separates Tai Chi performance from scale scoring; not implemented.
 - [ADR-0016](0016-local-pose-geometry-evidence.md): implemented local pose inference and server geometry evidence, independent append-only human observation review; no clinical scale/stage inference.
 - [ADR-0017](0017-pose-signal-and-retry.md): preserve raw v1/v2 evidence, segment smoothing/residual noise, media-time file sampling and idempotent save recovery.
+- [ADR-0018](0018-usable-demo-and-pose-v3.md): free-text correction reasons, one-step create form, real action guidance, pose-geometry-v3 posture/balance metrics, new design system; ADR-0008 preview shell removed.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.

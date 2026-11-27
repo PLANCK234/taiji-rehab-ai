@@ -4,7 +4,8 @@ import math
 
 from app.pose_schemas import PoseInput
 
-ALGORITHM_VERSION = "pose-geometry-v2"
+ALGORITHM_VERSION = "pose-geometry-v3"
+V2_VERSION = "pose-geometry-v2"
 V1_VERSION = "pose-geometry-v1"
 # Engineering visibility threshold, not a clinical or movement-amplitude cutoff.
 VISIBILITY = 0.5
@@ -133,9 +134,9 @@ def signal_quality(series: list[dict], name: str) -> tuple[list[float | None], d
     }
 
 
-def analyze_pose(payload: PoseInput) -> dict:
+def analyze_pose_v2(payload: PoseInput) -> dict:
     result = analyze_pose_v1(payload)
-    result["algorithm_version"] = ALGORITHM_VERSION
+    result["algorithm_version"] = V2_VERSION
     for row in result["series"]:
         row["smoothed_angles"] = {}
     for name in JOINTS:
@@ -149,4 +150,87 @@ def analyze_pose(payload: PoseInput) -> dict:
         "noise": "normalized_local_linear_residual_mad", "min_noise_residuals": 7,
         "noise_multiplier": 3, "limitations": "curvature_and_drift_are_not_ground_truth_motion",
     }
+    return result
+
+
+# Shoulders and hips define the trunk; these four landmarks drive posture/balance metrics.
+TRUNK = (11, 12, 23, 24)
+SYMMETRY_PAIRS = {"elbow": ("left_elbow", "right_elbow"),
+                  "shoulder": ("left_shoulder", "right_shoulder"),
+                  "knee": ("left_knee", "right_knee")}
+
+
+def _trunk_points(frame, width: int, height: int):
+    if not frame.landmarks:
+        return None
+    points = [frame.landmarks[i] for i in TRUNK]
+    if not all(p.visibility >= VISIBILITY and 0 <= p.x <= 1 and 0 <= p.y <= 1 for p in points):
+        return None
+    ls, rs, lh, rh = [(p.x * width, p.y * height) for p in points]
+    shoulder = ((ls[0] + rs[0]) / 2, (ls[1] + rs[1]) / 2)
+    hip = ((lh[0] + rh[0]) / 2, (lh[1] + rh[1]) / 2)
+    torso = math.hypot(shoulder[0] - hip[0], shoulder[1] - hip[1])
+    return (shoulder, hip, torso) if torso >= 1e-6 else None
+
+
+def _spread(values: list[float]) -> float:
+    return percentile(values, .95) - percentile(values, .05)
+
+
+def posture_metrics(payload: PoseInput, series: list[dict]) -> dict:
+    """Trunk uprightness, pelvis travel and left/right balance in the image plane.
+
+    Pelvis travel is normalised by the median trunk length so the value is comparable
+    across camera distance; it describes weight shift and sinking, not a clinical score.
+    """
+    trunk = [_trunk_points(frame, payload.width, payload.height) for frame in payload.frames]
+    usable = [item for item in trunk if item is not None]
+    for row, item in zip(series, trunk):
+        row["angles"]["trunk_lean"] = None
+        if item is not None:
+            (sx, sy), (hx, hy), _ = item
+            # Deviation of hip->shoulder from image vertical, independent of lean direction.
+            row["angles"]["trunk_lean"] = round(math.degrees(math.atan2(abs(sx - hx), hy - sy)), 4)
+    lean_values = [row["angles"]["trunk_lean"] for row in series
+                   if row["angles"]["trunk_lean"] is not None]
+    smoothed, quality = signal_quality(series, "trunk_lean")
+    for row, value in zip(series, smoothed):
+        row.setdefault("smoothed_angles", {})["trunk_lean"] = (
+            round(value, 4) if value is not None else None)
+    enough = len(usable) >= 3
+    lateral = vertical = None
+    if enough:
+        torso = percentile([item[2] for item in usable], .5)
+        lateral = round(_spread([item[1][0] for item in usable]) / torso * 100, 1)
+        vertical = round(_spread([item[1][1] for item in usable]) / torso * 100, 1)
+    return {
+        "valid_frames": len(usable),
+        "coverage": len(usable) / len(series),
+        "trunk_lean_median_deg": round(percentile(lean_values, .5), 2) if enough else None,
+        "trunk_lean_range_p05_p95_deg": round(_spread(lean_values), 2) if enough else None,
+        "trunk_lean_variation_status": quality["variation_status"],
+        "pelvis_lateral_range_pct_torso": lateral,
+        "pelvis_vertical_range_pct_torso": vertical,
+        "reason": None if enough else "insufficient_visible_landmarks",
+    }
+
+
+def symmetry_metrics(metrics: dict) -> dict:
+    """Left/right range difference on smoothed ranges (positive = left moves more)."""
+    out = {}
+    for pair, (left, right) in SYMMETRY_PAIRS.items():
+        lv = metrics[left].get("smoothed_range_p05_p95_deg")
+        rv = metrics[right].get("smoothed_range_p05_p95_deg")
+        out[pair] = {
+            "left_range_deg": lv, "right_range_deg": rv,
+            "difference_deg": round(lv - rv, 2) if lv is not None and rv is not None else None,
+        }
+    return out
+
+
+def analyze_pose(payload: PoseInput) -> dict:
+    result = analyze_pose_v2(payload)
+    result["algorithm_version"] = ALGORITHM_VERSION
+    result["posture"] = posture_metrics(payload, result["series"])
+    result["symmetry"] = symmetry_metrics(result["metrics"])
     return result

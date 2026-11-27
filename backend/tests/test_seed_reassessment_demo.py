@@ -140,7 +140,7 @@ def test_seed_on_migrated_postgres(monkeypatch: pytest.MonkeyPatch) -> None:
     with engine.connect() as connection:
         assert connection.scalar(text("select current_database()")) == "taiji_eng04"
         assert connection.scalar(text("select version_num from alembic_version")) == (
-            "0010_pose_review_corrections"
+            "0011_pose_v3_free_text_reasons"
         )
     monkeypatch.setenv("APP_ENV", "local")
     monkeypatch.setenv("DEMO_PASSWORD", PASSWORD)

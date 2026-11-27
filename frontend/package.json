@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test --config playwright.real.config.ts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "0.10.32",

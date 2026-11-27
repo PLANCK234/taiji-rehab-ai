@@ -176,3 +176,11 @@
 - 任务15先提交为`afd29c4`。复核npm audit与Next官方公告，7项Next和1项工具链moderate；固定Next/eslint-config-next16.4.5，重解析其依赖锁，无强制overrides/安全开关改动。React/TypeScript/姿态SDK模型与后端不变。
 - 全量/生产audit均0，原JSON在exports/pose-audit-{before,after,prod-after}.json；lint/typecheck/25 tests/build通过，补丁构建一次成功。真实模型→数据库→故障恢复/旧Demo训练9通过(40.2s)，runner退出0，证据exports/pose-browser-2692906a8a/browser/。不是临床精度验收。
 - 仅使用独立测试库，服务/容器已停止，无共享卷操作或生产发布。后端59/6skip与PostgreSQL7沿用15源码相同的证据，不宣称重跑。同步验证文档/任务/状态/追踪/交接；下一任务仍11实体机/多场景与Q-14评分表。本地补丁提交见git log，无推送/合并。
+
+## 2026-11-26 DEMO-V2-17/18/19（feat/ux-refresh）
+
+- 先把 `feat/real-01f0-coded-export` 上未提交的逐项修正工作（0010、复核面板）在测试通过后提交为 `5875d96`，再开新分支。
+- 后端：更正原因改自由文本（0011 放宽列长）；动作库写入真实要领，种子可更新自有 DEMO_ONLY 行；Demo 训练记录用动作名命名；`pose-geometry-v3` 增加躯干倾斜、骨盆左右/上下移动、左右幅度差。
+- 前端：重组为 `lib/` + `components/`，统一 `lib/api.ts`；新中式设计系统与 AppShell；登录页服务状态与演示账号快填；一步建档；对象页流程进度与下一步；两步确认中止；删除旧 SVG 姿态演示页与模拟 API 测试。
+- 文档：STATUS 精简，历史移至 `docs/archive/`；新增设计系统、小程序方案、ADR-0018；删除过时 MANIFEST.json。
+- 验证：后端 77 passed/6 skip；PostgreSQL 7 passed；前端 28 tests；真实浏览器 12 passed；截图人工检查。

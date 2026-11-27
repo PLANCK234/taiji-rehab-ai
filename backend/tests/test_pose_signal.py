@@ -34,7 +34,7 @@ def test_median_reduces_seeded_stationary_jitter_and_preserves_raw():
     assert result["metrics"]["left_elbow"]["variation_status"] == "within_residual_noise"
     legacy = analyze_pose_v1(payload)
     assert legacy["algorithm_version"] == "pose-geometry-v1"
-    assert result["algorithm_version"] == "pose-geometry-v2"
+    assert result["algorithm_version"] == "pose-geometry-v3"
     assert raw == [row["angles"]["left_elbow"] for row in legacy["series"]]
 
 

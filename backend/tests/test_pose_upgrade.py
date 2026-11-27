@@ -94,7 +94,7 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
         assert "v2 evidence exists" in rollback.stderr
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-                "0010_pose_review_corrections"
+                "0011_pose_v3_free_text_reasons"
             )
             assert connection.scalar(text("SELECT count(*) FROM pose_analyses")) == 2
         with Session(engine) as db:
@@ -111,7 +111,7 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
         assert "structured review evidence exists" in structured_rollback.stderr
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-                "0010_pose_review_corrections"
+                "0011_pose_v3_free_text_reasons"
             )
             assert connection.scalar(text("SELECT count(*) FROM pose_reviews")) == 2
     finally:

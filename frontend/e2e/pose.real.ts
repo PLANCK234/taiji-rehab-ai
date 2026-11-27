@@ -10,7 +10,7 @@ async function createTask(page: Page, code: string) {
   await page.getByLabel("明确记录模拟同意（仅合成数据）").check();
   await page.getByRole("button", { name: "创建编号对象" }).click();
   await expect(page).toHaveURL(/\/participants\/[^/]+$/);
-  await page.getByRole("button", { name: "追加同意记录" }).click();
+  // Checking consent on the create form records it immediately.
   await expect(page.getByText("当前记录：模拟同意已记录")).toBeVisible();
   await page.getByRole("link", { name: "AI视频动作评估" }).click();
   await expect(page.getByRole("heading", { name: "AI 视频动作评估" })).toBeVisible();
@@ -49,7 +49,8 @@ test("real pose model yields landmarks, persists evidence, and retains review af
   const data = await detail.json();
   expect(data.input_data.frames[0].landmarks).toHaveLength(33);
   expect(data.input_data.support).toBe("seated");
-  expect(summary.algorithm_version).toBe("pose-geometry-v2");
+  expect(summary.algorithm_version).toBe("pose-geometry-v3");
+  expect(summary.result.posture.valid_frames).toBeGreaterThanOrEqual(3);
   expect(data.input_data.frames.map((frame: { timestamp_ms: number }) => frame.timestamp_ms))
     .toEqual(data.input_data.frames.map((_: unknown, index: number) => index * 200));
   await expect(page.getByRole("img", { name: "左肘原始和平滑角度曲线" })).toBeVisible();

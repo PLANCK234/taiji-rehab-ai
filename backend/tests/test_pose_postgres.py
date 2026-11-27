@@ -85,7 +85,7 @@ def test_pose_commits_and_reloads_in_postgres():
         assert detail["reviews"][0]["revision_no"] == 1
         assert detail["reviews"][0]["corrections"] == []
         assert detail["human_confirmation"]["metrics"]["left_elbow"]["median_deg"] == 92
-        assert detail["algorithm_version"] == "pose-geometry-v2"
+        assert detail["algorithm_version"] == "pose-geometry-v3"
         assert detail["result"]["series"][0]["smoothed_angles"]["left_elbow"] is not None
         legacy_detail = client.get(f"/api/v1/pose-analyses/{legacy_id}").json()
         assert legacy_detail["algorithm_version"] == "pose-geometry-v1"

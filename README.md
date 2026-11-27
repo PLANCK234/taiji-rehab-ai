@@ -1,94 +1,77 @@
 # 太极拳康复分级评估与科研数据平台
 
-> **姿态分析完善（DEMO-V2-15）**：新报告使用`pose-geometry-v2`，并列原始/平滑曲线、残差噪声和骨架证据；视频文件按200ms媒体时刻采样，保存失败可重试且不重复。旧报告保留原值。更新后的增量迁移头为`0009_pose_geometry_v2`；已有库升级前先备份，勿通过删除/改写v2记录来回退。详见[信号与采集决策](docs/decisions/0017-pose-signal-and-retry.md)。
-
-> **新增真实AI姿态识别（2026-11-26）**：编号对象详情→“AI视频动作评估”。可加载合成年长人物视频样例、选择合成视频或打开测试摄像；固定版本模型在浏览器Worker中提取33点并绘制骨架，后端计算肘/肩/膝角度和幅度，PostgreSQL保存报告/证据/人工观察复核。原视频不上传，当前不输出SPPB自动分数或康复阶段。启动前需增量迁移到`0008_pose_analyses`；已有卷先备份，勿重建。模型随前端构建下载并验哈希，本地开发先`pnpm --dir frontend prepare:pose`。验证与复现见[AI姿态验证](docs/testing/AI_POSE_VALIDATION.md)。
-
-> **DEMO-V2 当前可操作入口（2026-10-31）**：本机启动后打开 [http://127.0.0.1:3000/login](http://127.0.0.1:3000/login)，用 `.env` 中的 `DEMO_PASSWORD` 登录合成演示账号。研究人员可在工作台创建 `SYN-` 编号，明确勾选模拟同意并输入 SPPB=8 或 5，自动进入 II/III 级 `DEMO_ONLY` 方案；可搜索动作、开始/暂停/继续/结束训练、录入 RPE 并完成。所有结果由 FastAPI/PostgreSQL 持久化。详见 [七步流程](docs/product/DEMO_USER_FLOW.md)、[状态](docs/STATUS.md)。这不是已批准的临床分级或处方。
-
-> **REAL-01 工程目标（2026-10-31）**：逐步构建数据库持久化的医疗研究人员业务工作台。可先用合成数据开发真实业务字段与流程；真实患者数据接入须另行完成机构、伦理、同意、安全与部署批准。当前 Research 配置只是独立且关闭的准备环境，不能处理患者数据。详见 [REAL-01 台账](docs/TASKS.md)、[最新状态](docs/STATUS.md) 和 [ADR-0011](docs/decisions/0011-demo-research-profile-boundary.md)。
-
-Demo 使用 `infra/compose.yaml`、`.env.example` 和现有合成 PostgreSQL 卷。Research 的**未激活**配置模板为 `infra/compose.research.yaml` 与 `.env.research.example`：不同 Compose 项目、数据库用户/库名/卷/私网/密钥；共享后端代码，但业务 API、演示种子和迁移在 `APP_PROFILE=research` 时拒绝。单独更改 `ALLOW_SYNTHETIC_ONLY` 不会开放 Research。不要运行该模板来接入真实数据。
-
-**已可操作的合成纵向子流程**：工作人员登录→编码建档→模拟同意→人工 SPPB 总分及复评→对象页趋势→记录已发生训练观察→单独记录事件→录入/更正反馈→单对象编号化 CSV 下载。页面刷新后从 PostgreSQL 读取记录；入口在对象详情。导出仅含结构化数据与修订历史，不含身份或自由文本，并附行数与哈希；它是实时 Demo 下载，**不是周期冻结快照**。训练观察只记录事实，尚无周期/规则关联；REAL-01E0 周期、其他评估量表、人员管理、研究级冻结导出与真实数据准入仍未完成。见 [ADR-0012](docs/decisions/0012-training-observation-before-cycle.md)、[ADR-0013](docs/decisions/0013-live-coded-demo-export.md)。
-
 [![Status](https://img.shields.io/badge/status-synthetic--demo-yellow)](docs/STATUS.md)
 
-**Researcher-facing Tai Chi Rehabilitation Assessment & Research Platform.**
+面向**医疗研究人员**的 Web 工作台：编码建档 → 人工 SPPB 评估 → 版本化 Demo 分级 → 太极动作方案与训练 → 训练反馈 → AI 视频动作分析与人工复核。所有数据由 FastAPI 写入 PostgreSQL，可追溯、可导出。
 
-> 当前仓库还包含独立的 DEMO-V2 合成分级/训练演示；不包含真实数据接入或临床判定功能。
+> 当前只用于**合成数据演示**。Demo 分级与动作组合（`DEMO_ONLY`）不是临床处方；真实患者数据需另行完成伦理、同意、安全与部署审批。
 
-## 目标
-医疗人员对研究对象建档、安全筛查、录入 SPPB 等客观评估，获取可解释的功能分级候选及太极训练适配建议并人工复核；每次训练后收集结构化反馈；周期末冻结数据并对照 V0 规则离线优化，审批通过的新版本才可发布。
+## 功能一览
 
-## 不做什么
-不提供患者端、实时治疗纠错、自动诊断、自动调整临床处方或在线自学习；旧姿态照片模块仍是SVG演示，新AI入口提供合成视频的真实关键点识别与观察指标。
-
-## 技术方案
-| 层 | 选型 |
+| 功能 | 说明 |
 |---|---|
-| 前端 | Next.js、React、TypeScript |
-| 后端 | FastAPI、Pydantic、SQLAlchemy、Alembic |
-| 数据库 | PostgreSQL |
-| 分析 | 端侧预训练MediaPipe姿态识别、后端版本化几何指标；`ml/`含合成数据质量/对象级切分；自训练评分/阶段模型未实现 |
-| 部署 | Docker Compose 本地开发；生产 TLS/私有存储待审批 |
+| 一步建档 | 填编号 →（勾选模拟同意）→（填 SPPB）即自动生成 Demo 分级与训练方案 |
+| 人工评估 | 草稿 / 确认 / 追加更正，零分、缺失、无效严格区分 |
+| 太极训练 | 12 个动作（含要领与步骤），按等级自动组合；开始/暂停/继续/结束/反馈，刷新可恢复 |
+| AI 动作分析 | 浏览器本地 MediaPipe 识别 33 关键点（原视频不上传）；后端 `pose-geometry-v3` 计算关节角度、躯干倾斜、骨盆重心移动、左右差；工作人员可逐项修正复核 |
+| 数据导出 | 单对象编号化 CSV，不含身份与自由文本，附 SHA-256 |
 
-## 本地启动（合成数据）
+## 快速启动
 
-需要 Docker Desktop / Docker Engine 与 Compose。首次复制 `.env.example` 为 `.env`，将 `SESSION_SECRET` 和 `DEMO_PASSWORD` 改为仅用于本机的随机值（后者至少 12 字符），不要提交 `.env`。PowerShell：
+需要 Docker Desktop。复制 `.env.example` 为 `.env`，把 `SESSION_SECRET`（≥32 字符）和 `DEMO_PASSWORD`（≥12 字符）改成本机随机值。
 
 ```powershell
 Copy-Item .env.example .env
-docker compose --env-file .env -f infra/compose.yaml config --quiet
 docker compose --env-file .env -f infra/compose.yaml up --build -d
 docker compose --env-file .env -f infra/compose.yaml run --rm backend uv run --no-dev alembic upgrade head
 docker compose --env-file .env -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_demo
 docker compose --env-file .env -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_demo_actions
-Invoke-RestMethod http://127.0.0.1:8000/health
-Invoke-RestMethod http://127.0.0.1:8000/ready
-Start-Process http://localhost:3000/login
+Start-Process http://localhost:3000
 ```
 
-本地合成 Demo 也可使用 `http://127.0.0.1:3000/login`；浏览器带 Origin 的登录及后续写请求接受与 `APP_PUBLIC_URL` 同端口的这两个回环来源。外部来源和 Research 环境不使用该别名规则。
+演示账号（密码为 `.env` 中的 `DEMO_PASSWORD`，登录页可一键填入邮箱）：
+`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`。
 
-演示账号：`demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，密码为本机 `.env` 的 `DEMO_PASSWORD`。基础种子脚本仅在 `APP_ENV=local` 且 `ALLOW_SYNTHETIC_ONLY=true` 时执行；再次运行须使用同一密码。若丢失本地演示密码，在 `.env` 写入新密码，并临时设置 `RESET_DEMO_PASSWORD=true` 后运行同一种子命令；脚本会撤销旧会话并追加审计。运行后删除该临时设置。基础种子只创建虚构研究编号、编码对象和权限分配。
+- 已有数据库：先备份，再执行 `alembic upgrade head`（当前头 `0011`）；重跑 `seed_demo_actions` 会更新动作要领文本。不要删除数据卷。
+- 忘记演示密码：在 `.env` 写新密码并临时设置 `RESET_DEMO_PASSWORD=true` 后重跑 `seed_demo`。
+- 可选复评夹具：`python -m app.seed_reassessment_demo`。
 
-可选的人工复评合成夹具：在已配置的本地合成环境运行 `docker compose --env-file .env -f infra/compose.yaml run --rm backend uv run --no-dev python -m app.seed_reassessment_demo`。它先确认基础种子，再创建 `SYN-ENG01A-001/002` 两名虚构编号对象的模拟同意、未知/未记录筛查、人工基线与复评（含缺失和更正历史）。重复运行只核对既有记录；如果夹具被改动会报错，不覆盖记录。密码重置须先单独运行基础种子。夹具原始值不是疗效结果，不生成临床等级或建议。
+不用容器时需要 Node.js 26、pnpm 10、Python 3.12+ 与 uv：`pnpm --dir frontend install && pnpm --dir frontend dev`；`cd backend && uv sync && uv run uvicorn app.main:app --reload`（`DATABASE_URL` 指向可达的 PostgreSQL）。AI 模型资源首次需 `pnpm --dir frontend prepare:pose`。
 
-登录后可在上述编号对象详情页查看只读的人工总分记录趋势。已确认有效值才有 0–12 分图示；待确认草稿、缺失和无效分别显示。它按登记顺序排列，不是获批准的周期访视或疗效报告。
-
-独立离线合成数据演示（不读取业务数据库）：在 `ml/` 运行 `uv sync --frozen`、`uv run ruff check .`、`uv run pytest`；从仓库根目录运行 `uv run --project ml python -m ml.offline_dataset --output exports/eng03a-demo`。输出含 JSONL 记录、质量报告、对象级划分和带 SHA-256 的清单；相同种子重复运行只核对相同内容，内容变化时拒绝覆盖。`exports/` 被 Git 忽略。所有数值均为明确标记的合成演示数据，不是疗效标签、获批准研究快照或临床模型输入。
-
-登录后从工作台选择已分配研究，创建 `SYN-` 编号对象；可走快速 Demo 表单明确记录模拟同意与人工 SPPB，或进入对象页逐项录入。无当前模拟同意时评估及训练写入关闭；筛查结果始终“待复核”，绝不表示安全或入组资格。人工总分保留草稿、确认和追加更正；零分与缺失分离。确认后另存 `demo-rule-v1` 展示等级，不能当临床等级或训练建议。对象页的姿态演示仍只有合成线条图；真实照片与身份映射关闭。单对象编号化实时 CSV 仅限合成 Demo，不是冻结研究导出。
-
-迁移回退只在**空的临时合成测试数据库**操作；已创建记录后不要直接执行，需先有获批准的备份及回退计划。停止服务用 `docker compose --env-file .env -f infra/compose.yaml down`，保留数据库卷；不要删除卷。数据库只在 Compose 私网，宿主机不公开 5432。
-
-不使用容器时，需要 Node.js 26、pnpm 10、Python 3.12–3.14 与 uv；数据库仍可用 Compose 启动：
+## 质量检查
 
 ```powershell
-docker compose --env-file .env -f infra/compose.yaml up -d db
-pnpm --dir frontend install --frozen-lockfile
-pnpm --dir frontend dev
-cd backend
-uv sync --frozen
-# DATABASE_URL 需指向可达的本地 PostgreSQL；Compose 数据库未映射宿主机端口
-uv run uvicorn app.main:app --reload
+cd backend; uv run ruff check .; uv run pytest            # 后端
+pnpm --dir frontend lint; pnpm --dir frontend typecheck; pnpm --dir frontend test
+uv run --no-project python scripts/run_eng04_integration.py   # 临时 PostgreSQL 迁移门禁
+uv run --no-project python scripts/run_pose_browser.py        # 真实模型 + 浏览器 E2E
+uv run --no-project python scripts/check_handoff.py           # 文档与交接检查
 ```
 
-前后端质量检查：`pnpm --dir frontend lint`、`typecheck`、`test`、`build`；在 `backend/` 执行 `uv run ruff check .` 和 `uv run pytest`。完整真实数据库浏览器测试：`uv run --no-project python scripts/run_eng04b_browser.py`（临时 PostgreSQL）。交接检查：`uv run --no-project python scripts/check_handoff.py`。准确执行结果见 [STATUS](docs/STATUS.md)。系统没有真实身份字段；Demo 展示等级与临床审批分离。
+浏览器 E2E 用本机 Chrome 时设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`；只跑部分用例设置 `E2E_SPECS="demo-v2.real.ts"`。
 
-## 研究安全边界
-- 数据是敏感研究数据；真实患者数据只进入获批准的环境。
-- SPPB 分级规则仅作为 V0 可解释候选：10–12 Ⅰ，7–9 Ⅱ，4–6 Ⅲ，0–3 Ⅳ；缺失/不安全无法自动分级。
-- 训练反馈是模型特征而非疗效真值；周期末客观测量和经审核的标签才可用于指定预测任务。
-- AI 只提供候选，所有变更由授权医疗人员确认；保留完整审计链。
+## 目录
 
-## 开发协作
-- 每次 PR 写明需求编号、迁移影响、测试证据、隐私与安全影响。
-- 新的医学规则或研究用途先更新文档并获批准，不得由 Codex 猜测。
-- 当前项目状态与接续入口见 [`docs/STATUS.md`](docs/STATUS.md) 和 [`docs/HANDOFF.md`](docs/HANDOFF.md)。
+```text
+frontend/   Next.js + TypeScript
+  app/          页面（App Router）
+  components/   AppShell、Card、Badge、FlowSteps 等 UI 组件
+  lib/          API 客户端（api.ts 统一读写/CSRF/幂等）、标签与格式化
+  workers/      MediaPipe 姿态推理 Worker
+backend/    FastAPI + SQLAlchemy + Alembic（app/、alembic/versions/、tests/）
+ml/         离线合成数据质量与对象级切分
+infra/      Docker Compose（Demo；Research 模板默认关闭）
+scripts/    集成/浏览器测试运行器、交接检查
+docs/       产品、架构、API、数据、安全、测试、ADR、交接
+```
 
-## 参考与来源
-- 输入依据：用户提供的 PRD V0.9、剪枝版 PRD V1.1、技术实现路径 V1.1（2026-10-30）。
-- Codex 官方说明：https://learn.chatgpt.com/docs/agent-configuration/agents-md
-- 本仓库所有新增工程约定均是**建议方案**，不是医院已批准的研究协议。
+## 文档入口
+
+[当前状态](docs/STATUS.md) · [交接](docs/HANDOFF.md) · [文档索引](docs/README.md) · [设计系统](docs/product/DESIGN_SYSTEM.md) · [小程序方案](docs/product/MINIPROGRAM_PLAN.md) · [ADR](docs/decisions/README.md)
+
+## 研究边界（不变）
+
+- 系统没有真实身份字段；编号必须以 `SYN-` 开头。
+- 权限、对象范围、CSRF 与审计全部在服务器端执行。
+- 缺失的评估或反馈永远是“未知”，不是 0、正常或安全。
+- AI 只提供观察指标与候选，人工复核另存版本；新的医学规则需先经授权人员批准。

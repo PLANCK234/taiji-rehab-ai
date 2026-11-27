@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { writeDemo } from "../../../workspace/demo";
-import { jointNames } from "../../../workspace/pose";
-import type { PoseDetail, PoseReview } from "../../../workspace/pose";
+import { writeDemo } from "../../../../lib/demo";
+import { jointNames } from "../../../../lib/pose";
+import type { PoseDetail, PoseReview } from "../../../../lib/pose";
 import PoseReviewPanel from "./pose-review-panel";
 
-vi.mock("../../../workspace/demo", async importOriginal => ({
-  ...await importOriginal<typeof import("../../../workspace/demo")>(), writeDemo: vi.fn(),
+vi.mock("../../../../lib/demo", async importOriginal => ({
+  ...await importOriginal<typeof import("../../../../lib/demo")>(), writeDemo: vi.fn(),
 }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 

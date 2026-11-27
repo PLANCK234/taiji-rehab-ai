@@ -1,43 +1,56 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAssignedStudies, getCurrentUser } from "./auth";
-import { getAssignedParticipants } from "./intake";
+import AppShell from "../../components/app-shell";
+import { Card, Empty, Notice, PageHeader, Stat } from "../../components/ui";
+import { can, getAssignedStudies, getCurrentUser, roleNames } from "../../lib/auth";
+import { getDemoPlan } from "../../lib/demo";
+import { getAssignedParticipants } from "../../lib/intake";
 import CreateParticipantForm from "./create-participant-form";
-import LogoutButton from "./logout-button";
 import ParticipantList from "./participant-list";
-import { getDemoPlan } from "./demo";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "研究工作台" };
 
 export default async function WorkspacePage() {
   const cookieHeader = (await headers()).get("cookie") ?? "";
   const user = await getCurrentUser(cookieHeader);
   if (!user) redirect("/login");
-  const studies = await getAssignedStudies(cookieHeader);
-  const participants = await getAssignedParticipants(cookieHeader);
-  const plans = Object.fromEntries(await Promise.all((participants ?? []).map(async (item) => [item.id, await getDemoPlan(item.id, cookieHeader)] as const)));
-  const canWrite = user.role === "clinician" || user.role === "research_assistant";
+  const [studies, participants] = await Promise.all([
+    getAssignedStudies(cookieHeader), getAssignedParticipants(cookieHeader),
+  ]);
+  const plans = Object.fromEntries(await Promise.all((participants ?? []).map(
+    async item => [item.id, await getDemoPlan(item.id, cookieHeader)] as const,
+  )));
+  const graded = Object.values(plans).filter(plan => plan?.grade && plan.grade.functional_grade !== "UNASSESSED").length;
+  const active = Object.values(plans).filter(plan => plan?.current_run).length;
 
-  return (
-    <main>
-      <div className="eyebrow">合成数据工作台</div>
-      <h1>研究工作台</h1>
-      <p>当前账号：{user.email}（{user.role}）</p>
-      <section aria-labelledby="studies-heading">
-        <h2 id="studies-heading">已分配研究</h2>
-        {studies === null ? <p>研究分配暂不可用。</p> : studies.length ? (
-          <ul>{studies.map((study) => <li key={study.id}>{study.code}</li>)}</ul>
-        ) : <p>暂无研究分配。</p>}
-        {canWrite && studies?.length ? <CreateParticipantForm studies={studies} canConfirm={user.role === "clinician"} /> : null}
-      </section>
-      <section aria-labelledby="participants-heading">
-        <h2 id="participants-heading">已分配编号对象</h2>
-        {participants === null ? <p>对象列表暂不可用或当前角色无权查看。</p> : participants.length ? (
-          <ParticipantList participants={participants} plans={plans} />
-        ) : <p>暂无已分配对象。</p>}
-        <p className="note">仅限合成数据；Demo 分级不代表临床批准。真实照片与 Research 数据准入仍关闭。</p>
-      </section>
-      <LogoutButton />
-    </main>
-  );
+  return <AppShell user={user}>
+    <PageHeader eyebrow="Workspace" title="研究工作台"
+      sub={<>你好，{roleNames[user.role] ?? user.role}。从左侧选择编号对象继续工作，或在右侧快速建档。</>} />
+    {participants !== null && <div className="grid-3" style={{ marginBottom: 18 }}>
+      <Stat label="已分配编号对象" value={participants.length} unit="人" />
+      <Stat label="已生成 Demo 分级" value={graded} unit="人" />
+      <Stat label="训练进行中 / 待反馈" value={active} unit="人" />
+    </div>}
+    <div className="grid-main">
+      <Card title="编号对象" id="participants-heading">
+        {participants === null ? <Notice tone="warn">对象列表暂不可用，或当前角色无权查看编号对象。</Notice>
+          : participants.length ? <ParticipantList participants={participants} plans={plans} />
+            : <Empty title="还没有编号对象">{can.write(user.role) ? "在右侧填写合成编号即可创建第一位对象。" : "请联系管理员分配研究对象。"}</Empty>}
+      </Card>
+      <div className="stack">
+        {can.write(user.role) && studies?.length ? <Card title="快速建档" id="create-heading"
+          sub="填写 SPPB 总分并勾选模拟同意，一步生成 Demo 分级与训练方案。">
+          <CreateParticipantForm studies={studies} canConfirm={can.confirm(user.role)} />
+        </Card> : null}
+        <Card title="已分配研究" id="studies-heading">
+          {studies === null ? <Notice tone="warn">研究分配暂不可用。</Notice> : studies.length ? (
+            <ul className="list">{studies.map(study => <li key={study.id}><span className="main"><strong>{study.code}</strong></span></li>)}</ul>
+          ) : <Empty title="暂无研究分配" />}
+          <p className="note" style={{ marginTop: 12 }}>仅限合成数据。真实患者数据需另行完成伦理、同意与安全审批。</p>
+        </Card>
+      </div>
+    </div>
+  </AppShell>;
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { jointNames } from "../../../workspace/pose";
-import type { AngleSample, PoseDetail } from "../../../workspace/pose";
+import { jointNames } from "../../../../lib/pose";
+import type { AngleSample, Metric, PoseDetail } from "../../../../lib/pose";
 
 const qualityText = {
   insufficient_data: "连续可见数据不足",
@@ -15,7 +15,11 @@ export default function MotionEvidence({ report, cursor, onCursorChange }: {
 }) {
   const [joint, setJoint] = useState("left_elbow");
   const series = report.result.series ?? [];
-  const metric = report.result.metrics[joint];
+  const posture = report.result.posture;
+  const curveNames: Record<string, string> = posture ? { ...jointNames, trunk_lean: "躯干倾斜" } : jointNames;
+  const metric: Partial<Metric> = joint === "trunk_lean" && posture
+    ? { range_p05_p95_deg: posture.trunk_lean_range_p05_p95_deg, variation_status: posture.trunk_lean_variation_status }
+    : report.result.metrics[joint];
   const durationMs = Math.max(series.at(-1)?.timestamp_ms ?? 0, 1);
   const values = series.flatMap(row => [row.angles[joint], row.smoothed_angles?.[joint]])
     .filter((value): value is number => typeof value === "number");
@@ -34,23 +38,38 @@ export default function MotionEvidence({ report, cursor, onCursorChange }: {
     }).join(" ");
   }
   const selectedTime = report.input_data.frames[cursor]?.timestamp_ms ?? 0;
+  const noise = joint === "trunk_lean" ? undefined : metric.noise_sigma_deg;
   return <section className="motion-evidence" aria-labelledby="motion-evidence-heading">
-    <h3 id="motion-evidence-heading">角度变化与噪声证据</h3>
-    <label>查看关节曲线<select value={joint} onChange={e => setJoint(e.target.value)}>
-      {Object.entries(jointNames).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
-    </select></label>
-    <p>原始幅度：{metric.range_p05_p95_deg === null ? "未知" : `${metric.range_p05_p95_deg}°`} · 平滑幅度：{metric.smoothed_range_p05_p95_deg == null ? "未计算" : `${metric.smoothed_range_p05_p95_deg}°`} · 残差噪声估计：{metric.noise_sigma_deg == null ? "数据不足/旧版未计算" : `${metric.noise_sigma_deg}°`}</p>
+    <div className="row between">
+      <h3 id="motion-evidence-heading" style={{ margin: 0 }}>角度变化曲线</h3>
+      <label className="row" style={{ gap: 8 }}>查看关节曲线<select value={joint} onChange={e => setJoint(e.target.value)} style={{ width: "auto" }}>
+        {Object.entries(curveNames).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+      </select></label>
+    </div>
+    <div className="metric-tiles">
+      <div className="metric-tile"><div className="label">原始幅度 P5–P95</div><div className="value">{metric.range_p05_p95_deg == null ? "未知" : `${metric.range_p05_p95_deg}°`}</div></div>
+      <div className="metric-tile"><div className="label">平滑幅度</div><div className="value">{metric.smoothed_range_p05_p95_deg == null ? "未计算" : `${metric.smoothed_range_p05_p95_deg}°`}</div></div>
+      <div className="metric-tile"><div className="label">残差噪声估计</div><div className="value">{noise == null ? "数据不足/旧版未计算" : `${noise}°`}</div></div>
+    </div>
     <p>{metric.variation_status ? qualityText[metric.variation_status] : "旧版报告保留原值，未重算噪声。"}</p>
-    <p>纵轴：{min}°–{max}° · 横轴：0–{(durationMs / 1000).toFixed(1)}秒</p>
-    <svg viewBox="0 0 600 156" preserveAspectRatio="none" role="img" aria-label={`${jointNames[joint]}原始和平滑角度曲线`} style={{ width: "100%", height: 180, maxWidth: 800 }}>
-      <line x1={42} x2={578} y1={140} y2={140} stroke="#777" />
-      <path d={path("angles")} fill="none" stroke="#8f99a8" strokeWidth={1.5} />
-      <path d={path("smoothed_angles")} fill="none" stroke="#b4ffdf" strokeWidth={2} />
-      <line x1={x(selectedTime)} x2={x(selectedTime)} y1={20} y2={140} stroke="#f8dc91" />
-    </svg>
-    <p>灰线：原始角度 · 浅绿：平滑角度 · 黄色：当前证据时刻。缺失处断线。</p>
-    <label>角度曲线时间<input type="range" min={0} max={report.input_data.frames.length - 1}
+    <div className="chart-box">
+      <svg viewBox="0 0 600 156" preserveAspectRatio="none" role="img" aria-label={`${curveNames[joint]}原始和平滑角度曲线`} style={{ width: "100%", height: 180, display: "block" }}>
+        {[20, 80, 140].map(level => <line key={level} x1={42} x2={578} y1={level} y2={level} stroke="#2a3d36" />)}
+        <text x={4} y={24} fill="#7d9a90" fontSize={10}>{max}°</text>
+        <text x={4} y={144} fill="#7d9a90" fontSize={10}>{min}°</text>
+        <path d={path("angles")} fill="none" stroke="#7f8d88" strokeWidth={1.4} />
+        <path d={path("smoothed_angles")} fill="none" stroke="#7fe0bd" strokeWidth={2.2} />
+        <line x1={x(selectedTime)} x2={x(selectedTime)} y1={14} y2={140} stroke="#f1c27d" strokeWidth={1.5} />
+      </svg>
+    </div>
+    <div className="legend">
+      <span><i style={{ background: "#7f8d88" }} />原始角度</span>
+      <span><i style={{ background: "#7fe0bd" }} />平滑角度</span>
+      <span><i style={{ background: "#f1c27d" }} />当前证据时刻</span>
+      <span>纵轴：{min}°–{max}° · 横轴：0–{(durationMs / 1000).toFixed(1)}秒 · 缺失处断线</span>
+    </div>
+    <label>角度曲线时间<input type="range" min={0} max={Math.max(report.input_data.frames.length - 1, 0)}
       value={cursor} onChange={e => onCursorChange(Number(e.target.value))} /></label>
-    <p className="note">噪声是局部线性残差的估计；真实曲线的弯曲、镜头移动或模型漂移也会影响它。“高于残差”不等于确认真实运动或动作达标。</p>
+    <p className="note">噪声为局部线性残差估计，镜头移动或模型漂移也会影响它；“高于残差”不等于动作达标。</p>
   </section>;
 }

@@ -1,4 +1,6 @@
-import { csrfFromCookies } from "./intake";
+import { apiGet, apiSend, errorText, type HttpMethod, type WriteResult } from "./api";
+
+export { localTimeToUtc } from "./format";
 
 export type TrainingSession = {
   id: string;
@@ -40,22 +42,7 @@ export type SafetyEvent = {
   recorded_at: string;
 };
 
-async function read<T>(
-  path: string,
-  cookieHeader: string,
-  fetcher: typeof fetch = fetch,
-  baseUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8000",
-): Promise<T | null> {
-  try {
-    const response = await fetcher(`${baseUrl}/api/v1${path}`, {
-      headers: { cookie: cookieHeader },
-      cache: "no-store",
-    });
-    return response.ok ? ((await response.json()) as T) : null;
-  } catch {
-    return null;
-  }
-}
+const read = apiGet;
 
 export function getTrainingSessions(id: string, cookies: string, fetcher?: typeof fetch) {
   return read<TrainingSession[]>(
@@ -79,41 +66,26 @@ export function getSafetyEvents(id: string, cookies: string, fetcher?: typeof fe
   );
 }
 
-export async function writeTraining<T>(
-  path: string,
-  body: object,
-  key: string,
-  cookieHeader: string,
-  method: "POST" | "PUT" = "POST",
-  fetcher: typeof fetch = fetch,
-): Promise<{ status: number; value: T | null }> {
-  const csrf = csrfFromCookies(cookieHeader);
-  if (!csrf) return { status: 403, value: null };
-  try {
-    const response = await fetcher(`/api/v1${path}`, {
-      method,
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrf,
-        "Idempotency-Key": key,
-      },
-      body: JSON.stringify(body),
-    });
-    return { status: response.status, value: response.ok ? ((await response.json()) as T) : null };
-  } catch {
-    return { status: 503, value: null };
-  }
+export function writeTraining<T>(
+  path: string, body: object, key: string, cookieHeader: string,
+  method: HttpMethod = "POST", fetcher: typeof fetch = fetch,
+): Promise<WriteResult<T>> {
+  return apiSend<T>(path, body, { key, cookie: cookieHeader, method, fetcher });
 }
 
 export function trainingError(status: number): string {
-  if (status === 403) return "无访问权限、模拟同意不适用，或会话已失效。";
-  if (status === 409) return "记录已变化或提交键冲突，请刷新核对。";
-  if (status === 422) return "请检查时间、缺失原因、RPE 与更正原因。";
-  return "服务暂不可用，请稍后重试。";
+  return errorText(status, {
+    403: "无操作权限、模拟同意已撤回，或会话已失效。",
+    409: "记录已变化，请刷新后核对。",
+    422: "请检查时间、缺失原因、RPE（6–20）与更正原因。",
+  });
 }
 
-export function localTimeToUtc(value: string): string | null {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
-}
+
+export const completionNames: Record<TrainingSession["completion_status"], string> = {
+  completed: "完成", partial: "部分完成", interrupted: "中断", not_started: "未开始",
+};
+
+export const feedbackMissingNames: Record<NonNullable<TrainingFeedback["missing_reason"]>, string> = {
+  declined: "拒绝反馈", interrupted: "训练中断", technical_failure: "技术故障", unknown: "原因未知",
+};

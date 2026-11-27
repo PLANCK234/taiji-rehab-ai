@@ -1,5 +1,7 @@
 # Data dictionary and missingness
 
+**DEMO-V2-19增补**：pose-geometry-v3 追加 `posture`（躯干偏离竖直角度、骨盆左右/上下移动占躯干长度%）与 `symmetry`（左右平滑幅度差，度）；均为图像平面描述量，缺失为 null。`assessment_revisions.change_reason` 列宽 64→240（迁移 0011）。
+
 **DEMO-V2-15增补**：pose-geometry-v2保留v1原始角度/范围，追加`series.smoothed_angles`和各关节`smoothed_range_p05_p95_deg`（度）、`noise_sigma_deg`（度，高频残差代理）、`noise_residual_count`与`variation_status`。残差不足7个则噪声null；missing处原始/平滑均null，不把0°和未知混淆。`signal_processing`记录时间窗/分段/阈值；状态“高于残差”不等于真实动作或达标。v1没有这些字段时显示旧版未计算，不能展示为0。原始输入与旧结果不重算；列表仅摘要、完整证据在详情。
 
 | Variable | Type / unit | Source | Missingness / cautions |
@@ -13,7 +15,7 @@
 | screening_record.item_code | `SYN-` code | synthetic staff entry | placeholder only; no clinical question or required set approved |
 | screening_record.answer | yes/no/unknown | synthetic staff entry | unknown is explicit; no answer implies not assessed |
 | screening.review_state | not_assessed/needs_review | API projection | never safe/eligible; even all answered remains needs_review |
-| intake.change_reason | `SYN-` code | synthetic staff entry | required for later consent records or same-item screening corrections |
+| intake / assessment change_reason | free text ≤240（ADR-0018；不进入 CSV 导出） | staff entry | required for later consent records or same-item screening corrections |
 | assessment.visit_kind | baseline/revisit | synthetic staff entry | visit label only; no approved visit schedule inferred |
 | assessment.protocol_version | `SYN-MANUAL-V1` | assessment API | synthetic marker, not a signed measurement SOP |
 | assessment_revision.state | draft/confirmed | assessment API | confirmation is staff record review, not a clinical grade or completed measurement when missing |

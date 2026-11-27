@@ -100,6 +100,13 @@ def scoped_run(db: Session, auth: AuthContext, run_id: uuid.UUID, *, write: bool
     return row
 
 
+def run_label(db: Session, run: DemoRun) -> str:
+    names = dict(db.execute(
+        select(DemoAction.id, DemoAction.name).where(DemoAction.id.in_(run.action_ids))
+    ).all())
+    return "、".join(names.get(action_id, action_id) for action_id in run.action_ids)[:120]
+
+
 def require_demo_consent(db: Session, participant_id: uuid.UUID) -> None:
     if not has_current_synthetic_consent(db, participant_id):
         raise HTTPException(status_code=403, detail="synthetic consent required")
@@ -270,7 +277,7 @@ def end_demo_run(
     session = TrainingSession(
         participant_id=row.participant_id,
         session_at=row.started_at,
-        action_label="、".join(row.action_ids)[:120],
+        action_label=run_label(db, row),
         actual_minutes=payload.actual_minutes,
         completion_status=payload.completion_status,
         notes=payload.notes,
@@ -330,7 +337,7 @@ def stop_demo_run(
     session = TrainingSession(
         participant_id=row.participant_id,
         session_at=row.started_at,
-        action_label="、".join(row.action_ids)[:120],
+        action_label=run_label(db, row),
         actual_minutes=None,
         completion_status="interrupted",
         notes=None,

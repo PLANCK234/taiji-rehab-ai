@@ -2,6 +2,8 @@
 
 ## 2026-11-26 已实现的合成视频姿态分析
 
+**DEMO-V2-19/ADR-0018增补**：新建分析使用`pose-geometry-v3`（v1/v2 原样保留）。`result.posture`：`trunk_lean_median_deg`、`trunk_lean_range_p05_p95_deg`、`trunk_lean_variation_status`、`pelvis_lateral_range_pct_torso`、`pelvis_vertical_range_pct_torso`（占中位躯干长度%）、`valid_frames`、`coverage`、`reason`；`result.symmetry.{elbow,shoulder,knee}`：`left_range_deg`、`right_range_deg`、`difference_deg`（左−右，平滑幅度）；`series[].angles.trunk_lean`。关键点不足时为 null。所有 `change_reason` 改为自由文本（去空白，≤240，空白=未填），不再要求 `SYN-` 代码。
+
 **DEMO-V2-15增补**：新建分析使用`pose-geometry-v2`，旧v1结果不重算。原metrics字段保留，新增`smoothed_range_p05_p95_deg`、`noise_sigma_deg`、`noise_residual_count`、`variation_status`（insufficient_data/within_residual_noise/above_residual_noise）；`series`新增逐帧`smoothed_angles`，缺失仍为null。`signal_processing`保存参数与方法。仅高频残差代理，不是临床置信度。列表仍返回最近50条，但仅摘要（不返回series、不加载原关键点列）；GET详情返回原输入、完整series及复核。客户端提交失败使用同一Idempotency-Key重试；不同输入复用键仍409。字段与原量表/阶段不混用，详见[ADR-0017](../decisions/0017-pose-signal-and-retry.md)。
 
 | 路径 | 行为 |

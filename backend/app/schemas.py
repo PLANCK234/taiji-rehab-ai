@@ -2,11 +2,12 @@
 
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import (
     AwareDatetime,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     EmailStr,
     Field,
@@ -15,6 +16,18 @@ from pydantic import (
 )
 
 SYNTHETIC_CODE = r"^SYN-[A-Z0-9_-]{3,60}$"
+
+
+def _blank_to_none(value: object) -> object:
+    if isinstance(value, str):
+        return value.strip() or None
+    return value
+
+
+# Correction reasons are short free text for staff; the coded export never includes them.
+ChangeReason = Annotated[
+    Annotated[str, Field(max_length=240)] | None, BeforeValidator(_blank_to_none)
+]
 
 
 class LoginRequest(BaseModel):
@@ -68,7 +81,7 @@ class ConsentCreate(BaseModel):
     purpose_code: str = Field(min_length=7, max_length=64, pattern=SYNTHETIC_CODE)
     decision: Literal["granted", "refused", "withdrawn"]
     photo_scope: bool = False
-    change_reason: str | None = Field(default=None, max_length=64, pattern=SYNTHETIC_CODE)
+    change_reason: ChangeReason = None
 
     @model_validator(mode="after")
     def photo_requires_grant(self) -> "ConsentCreate":
@@ -101,7 +114,7 @@ class ScreeningCreate(BaseModel):
 
     item_code: str = Field(min_length=7, max_length=64, pattern=SYNTHETIC_CODE)
     answer: Literal["yes", "no", "unknown"]
-    change_reason: str | None = Field(default=None, max_length=64, pattern=SYNTHETIC_CODE)
+    change_reason: ChangeReason = None
 
 
 class ScreeningView(BaseModel):
@@ -147,7 +160,7 @@ class MeasurementWrite(BaseModel):
     raw_value: StrictInt | None = None
     missing_reason: MissingReason | None = None
     performed_at: AwareDatetime | None = None
-    change_reason: str | None = Field(default=None, max_length=64, pattern=SYNTHETIC_CODE)
+    change_reason: ChangeReason = None
 
     @model_validator(mode="after")
     def validate_measurement(self) -> "MeasurementWrite":

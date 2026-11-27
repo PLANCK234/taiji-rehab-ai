@@ -1,6 +1,6 @@
 # 任务台账
 
-> 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
+> 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](archive/testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
 
 状态仅使用 `NOT_STARTED`、`IN_PROGRESS`、`BLOCKED`、`IN_REVIEW`、`DONE`。`DONE` 必须附实际验证证据。临床与真实数据功能受 [待决问题](OPEN_QUESTIONS.md) 约束。
 
@@ -20,6 +20,10 @@
 | DEMO-V2-14 | 数据库/手机全流程与专家标注验证 | IN_PROGRESS | pose真实模型E2E、离线验证、文档 | 合成模型→PostgreSQL→复核→刷新与旧Demo/训练回归通过；实体机与专家标注精度未验，不能宣称临床准确率 |
 | DEMO-V2-15 | 信号抖动/慢小幅、固定文件采样、曲线与幂等重试 | DONE | pose v2、0009、采集/图表、回归与契约 | 静态数值RMS降低37.54%、慢变/两周期保留；59/6skip、PostgreSQL7、前端25、浏览器9通过；含详情故障恢复，见STATUS |
 | DEMO-V2-16 | Next修复补丁与识别链路回归 | DONE | frontend/package.json、pnpm锁、交接/验证 | 固定16.4.5；lint/typecheck/25测试/build/真实模型浏览器9通过；全量/生产audit均0；见STATUS |
+| DEMO-V2-17 | 姿态复核逐项人工修正 | DONE | 0010、pose_review、复核面板 | `modified_observations` + 逐项修正快照，AI 原值不变；后端/前端/浏览器测试通过 |
+| DEMO-V2-18 | 降低操作摩擦与界面重设计 | DONE | frontend 全部页面、lib/、components/、0011、种子动作 | ADR-0018；前端 28 单测、真实浏览器 12 passed；桌面/手机截图检查 |
+| DEMO-V2-19 | pose-geometry-v3 躯干与重心指标 | DONE | pose_analysis、0011、AI 报告页 | 已知几何单测（倾斜/骨盆归一化/缺失为 null）；PostgreSQL 7 passed；非临床评分 |
+| DEMO-V2-20 | 微信小程序 | NOT_STARTED | docs/product/MINIPROGRAM_PLAN.md、后端 Bearer 鉴权 | 先实现 token 鉴权 + ADR，再建 miniprogram/ 工程；HTTPS 部署依赖 Q-01/Q-10 |
 
 不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。当前分支 `feat/real-01f0-coded-export`，最新检查点以 Git 日志为准。
 

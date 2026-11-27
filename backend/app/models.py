@@ -27,7 +27,7 @@ class PoseAnalysis(Base):
     __tablename__ = "pose_analyses"
     __table_args__ = (
         CheckConstraint(
-            "algorithm_version IN ('pose-geometry-v1','pose-geometry-v2')",
+            "algorithm_version IN ('pose-geometry-v1','pose-geometry-v2','pose-geometry-v3')",
             name="ck_pose_algorithm",
         ),
         Index("ix_pose_participant_created", "participant_id", "created_at"),
@@ -318,7 +318,7 @@ class AssessmentRevision(Base):
     missing_reason: Mapped[str | None] = mapped_column(String(32))
     performed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     source: Mapped[str] = mapped_column(String(32), nullable=False)
-    change_reason: Mapped[str | None] = mapped_column(String(64))
+    change_reason: Mapped[str | None] = mapped_column(String(240))
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 

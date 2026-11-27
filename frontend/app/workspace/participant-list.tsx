@@ -2,24 +2,43 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { CodedParticipant } from "./intake";
-import type { DemoPlan } from "./demo";
+import { Badge } from "../../components/ui";
+import { gradeNames, runStatusNames, type DemoPlan } from "../../lib/demo";
+import type { CodedParticipant } from "../../lib/intake";
 
 export default function ParticipantList({ participants, plans }: {
   participants: CodedParticipant[]; plans: Record<string, DemoPlan | null>;
 }) {
   const [search, setSearch] = useState("");
-  const filtered = participants.filter((item) => item.study_code.toLowerCase().includes(search.toLowerCase()));
+  const query = search.trim().toLowerCase();
+  const filtered = participants.filter(item => item.study_code.toLowerCase().includes(query));
   return <>
-    <label htmlFor="participant-search">搜索研究编号或演示名称</label>
-    <input id="participant-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="输入 SYN- 编号" />
-    <ul className="participant-list">{filtered.map((item) => {
-      const grade = plans[item.id]?.grade;
-      return <li key={item.id}><span><strong><Link href={`/participants/${item.id}`}>{item.study_code}</Link></strong><small>{grade ? `${grade.functional_grade} 级 · ${grade.rule_version}` : "尚无 Demo 分级"}</small></span>
-        <Link href={grade ? `/participants/${item.id}/demo` : `/participants/${item.id}`}>
-          {grade ? "打开方案 →" : "打开评估 →"}
-        </Link></li>;
+    <div className="field" style={{ marginBottom: 14 }}>
+      <label htmlFor="participant-search" className="sr-only">搜索研究编号或演示名称</label>
+      <input id="participant-search" type="search" value={search} onChange={event => setSearch(event.target.value)}
+        placeholder="搜索 SYN- 编号…" />
+    </div>
+    <ul className="participant-list">{filtered.map(item => {
+      const plan = plans[item.id];
+      const grade = plan?.grade;
+      const code = grade?.functional_grade;
+      const graded = code && code !== "UNASSESSED";
+      return <li key={item.id}>
+        <span className={`grade-seal${graded ? "" : " muted"}`} aria-hidden="true">{graded ? code : "—"}</span>
+        <div className="grow">
+          <Link className="code" href={`/participants/${item.id}`}>{item.study_code}</Link>
+          <div className="meta">
+            {grade ? <Badge tone={graded ? "jade" : "gray"}>{gradeNames[grade.functional_grade]}</Badge>
+              : <Badge tone="amber">待评估</Badge>}
+            {plan?.current_run && <Badge tone="blue">训练{runStatusNames[plan.current_run.status]}</Badge>}
+            {grade?.demo_training_mode && <span className="hint">{grade.demo_training_mode}</span>}
+          </div>
+        </div>
+        <Link className="btn btn-secondary btn-sm" href={grade ? `/participants/${item.id}/demo` : `/participants/${item.id}`}>
+          {grade ? "打开方案 →" : "去评估 →"}
+        </Link>
+      </li>;
     })}</ul>
-    {!filtered.length && <p>没有匹配的编号对象。</p>}
+    {!filtered.length && <p className="note" style={{ marginTop: 12 }}>没有匹配“{search}”的编号对象。</p>}
   </>;
 }

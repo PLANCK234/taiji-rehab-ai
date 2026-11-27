@@ -353,8 +353,7 @@
           "change_reason": {
             "anyOf": [
               {
-                "maxLength": 64,
-                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "maxLength": 240,
                 "type": "string"
               },
               {
@@ -1012,8 +1011,7 @@
           "change_reason": {
             "anyOf": [
               {
-                "maxLength": 64,
-                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "maxLength": 240,
                 "type": "string"
               },
               {
@@ -1686,8 +1684,7 @@
           "change_reason": {
             "anyOf": [
               {
-                "maxLength": 64,
-                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "maxLength": 240,
                 "type": "string"
               },
               {

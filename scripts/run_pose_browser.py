@@ -72,9 +72,13 @@ def main() -> None:
         background(["node", "node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1",
                     "--port", str(ui_port)], FRONTEND, "ui")
         wait_ready(f"http://127.0.0.1:{ui_port}/login")
+        # E2E_SPECS overrides the default suite, e.g. E2E_SPECS="demo-v2.real.ts".
+        specs = os.environ.get("E2E_SPECS", "").split() or [
+            "pose.real.ts", "demo-v2.real.ts", "training.real.ts", "real-business.real.ts",
+            "--grep-invert", "127.0.0.1 browser origin",
+        ]
         run(["node", "node_modules/@playwright/test/cli.js", "test", "--config",
-             "playwright.real.config.ts", "pose.real.ts", "demo-v2.real.ts", "training.real.ts"],
-            FRONTEND)
+             "playwright.real.config.ts", *specs], FRONTEND)
         print(f"Pose browser evidence: {artifacts.relative_to(ROOT)}")
     finally:
         for process in reversed(processes):

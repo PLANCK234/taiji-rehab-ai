@@ -620,3 +620,18 @@ def test_demo_grade_plan_run_feedback_and_refresh(assessment_api) -> None:
     assert client.get(plan_path).status_code == 200
     login(client, "analyst")
     assert client.get(plan_path).status_code == 403
+
+
+def test_change_reason_is_free_text_blank_is_absent_and_length_bounded():
+    from pydantic import ValidationError
+
+    from app.schemas import MeasurementWrite
+
+    base = dict(expected_revision=2, validity="valid", raw_value=8,
+                performed_at="2026-10-01T09:30:00+08:00")
+    assert MeasurementWrite(**base, change_reason="  录入时看错了秒表  ").change_reason == (
+        "录入时看错了秒表"
+    )
+    assert MeasurementWrite(**base, change_reason="   ").change_reason is None
+    with pytest.raises(ValidationError):
+        MeasurementWrite(**base, change_reason="x" * 241)

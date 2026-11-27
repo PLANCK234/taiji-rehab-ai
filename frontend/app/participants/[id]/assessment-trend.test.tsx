@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
-import type { AssessmentRevision, AssessmentTrend } from "../../workspace/assessments";
+import type { AssessmentRevision, AssessmentTrend } from "../../../lib/assessments";
 import AssessmentTrendSection from "./assessment-trend";
 
 vi.mock("next/link", () => ({
@@ -68,7 +68,7 @@ describe("synthetic assessment trend", () => {
     const view = render(<AssessmentTrendSection trend={null} />);
     expect(screen.getByText("趋势记录暂不可用；请稍后重试。")).toBeTruthy();
     view.rerender(<AssessmentTrendSection trend={{ participant_id: "participant", entries: [] }} />);
-    expect(screen.getByText("暂无评估记录。")).toBeTruthy();
+    expect(screen.getByText("暂无评估记录")).toBeTruthy();
     expect(screen.queryByText("趋势记录暂不可用；请稍后重试。")).toBeNull();
   });
 });

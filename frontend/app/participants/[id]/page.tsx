@@ -1,25 +1,38 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "../../workspace/auth";
-import { getConsentHistory, getParticipant, getScreeningHistory } from "../../workspace/intake";
-import { getAssessmentTrend, getParticipantAssessments, measurementText } from "../../workspace/assessments";
-import IntakeForms from "./intake-forms";
-import CreateAssessmentForm from "./create-assessment-form";
+import AppShell from "../../../components/app-shell";
+import { Badge, Card, Crumbs, Empty, FlowSteps, Notice, PageHeader, type StepState } from "../../../components/ui";
+import { getAssessmentTrend, getParticipantAssessments, measurementText, type AssessmentSummary } from "../../../lib/assessments";
+import { can, getCurrentUser } from "../../../lib/auth";
+import { getDemoPlan, gradeNames, runStatusNames, type DemoPlan } from "../../../lib/demo";
+import { formatDateTime } from "../../../lib/format";
+import { getConsentHistory, getParticipant, getScreeningHistory, type ConsentHistory } from "../../../lib/intake";
+import { completionNames, getSafetyEvents, getTrainingSessions, type TrainingSession } from "../../../lib/training";
 import AssessmentTrendSection from "./assessment-trend";
+import CreateAssessmentForm from "./create-assessment-form";
+import { ConsentForm, ScreeningForm } from "./intake-forms";
 import TrainingForms from "./training-forms";
-import { getSafetyEvents, getTrainingSessions } from "../../workspace/training";
-import { getDemoPlan } from "../../workspace/demo";
 
 export const dynamic = "force-dynamic";
 
-const consentText = {
-  not_recorded: "未记录",
-  granted: "模拟同意已记录",
-  refused: "模拟拒绝已记录",
-  withdrawn: "模拟撤回已记录",
-};
+const consentText = { not_recorded: "未记录", granted: "模拟同意已记录", refused: "模拟拒绝已记录", withdrawn: "模拟撤回已记录" };
 const answerText = { yes: "是", no: "否", unknown: "未知" };
+
+type NextStep = { title: string; detail: string; href: string; label: string };
+
+function nextStep(id: string, consent: ConsentHistory | null, assessments: AssessmentSummary[] | null,
+  plan: DemoPlan | null, sessions: TrainingSession[] | null): NextStep | null {
+  if (consent?.state !== "granted") return { title: "记录模拟同意", detail: "评估、训练与 AI 采集都需要当前有效的模拟同意。", href: "#consent-heading", label: "去记录同意" };
+  if (!assessments?.length) return { title: "创建基线评估", detail: "录入人工 SPPB 总分，确认后自动生成 Demo 分级与动作组合。", href: "#assessments-heading", label: "去创建评估" };
+  const draft = assessments.find(row => row.current.state === "draft");
+  if (draft) return { title: "完成评估录入与确认", detail: `当前草稿：${measurementText(draft.current)}。确认后才会生成 Demo 分级。`, href: `/assessments/${draft.id}`, label: "打开评估" };
+  if (plan?.current_run) return { title: `继续本次训练（${runStatusNames[plan.current_run.status]}）`, detail: "训练进度已保存在数据库中，可随时继续。", href: `/participants/${id}/demo/run/${plan.current_run.id}`, label: "继续训练" };
+  if (plan?.grade && plan.actions.length) return { title: "开始太极训练演示", detail: `${gradeNames[plan.grade.functional_grade]} · ${plan.grade.demo_training_mode ?? ""}，共 ${plan.actions.length} 个动作。`, href: `/participants/${id}/demo`, label: "打开训练方案" };
+  if (plan?.grade) return { title: "查看 Demo 方案", detail: "Ⅳ 级或缺失/无效评估不会自动安排自主训练动作，可人工查看动作库。", href: `/participants/${id}/demo`, label: "打开方案" };
+  if (!sessions?.length) return { title: "记录 AI 动作或训练观察", detail: "可使用 AI 视频动作评估，或在下方记录已发生的训练。", href: `/participants/${id}/ai-assessment`, label: "AI 动作评估" };
+  return null;
+}
 
 export default async function ParticipantPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,107 +41,114 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents, demoPlan] = await Promise.all([
-    getConsentHistory(id, cookieHeader),
-    getScreeningHistory(id, cookieHeader),
-    getParticipantAssessments(id, cookieHeader),
-    getAssessmentTrend(id, cookieHeader),
-    getTrainingSessions(id, cookieHeader),
-    getSafetyEvents(id, cookieHeader),
-    getDemoPlan(id, cookieHeader),
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, plan] = await Promise.all([
+    getConsentHistory(id, cookieHeader), getScreeningHistory(id, cookieHeader),
+    getParticipantAssessments(id, cookieHeader), getAssessmentTrend(id, cookieHeader),
+    getTrainingSessions(id, cookieHeader), getSafetyEvents(id, cookieHeader), getDemoPlan(id, cookieHeader),
   ]);
-  const canWrite = user.role === "clinician" || user.role === "research_assistant";
-  const canExport = canWrite || user.role === "clinical_approver";
+  const canWrite = can.write(user.role);
+  const consentGranted = consents?.state === "granted";
+  const grade = plan?.grade;
+  const step = nextStep(id, consents, assessments, plan, sessions);
+  const steps: { label: string; state: StepState }[] = [
+    { label: "编码建档", state: "done" },
+    { label: "模拟同意", state: consentGranted ? "done" : "todo" },
+    { label: "人工评估", state: assessments?.some(row => row.current.state === "confirmed") ? "done" : "todo" },
+    { label: "Demo 分级", state: grade ? "done" : "todo" },
+    { label: "训练记录", state: sessions?.length ? "done" : "todo" },
+  ];
+  const firstTodo = steps.findIndex(item => item.state === "todo");
+  if (firstTodo >= 0) steps[firstTodo].state = "current";
 
-  return (
-    <main>
-      <Link href="/workspace">← 返回工作台</Link>
-      <div className="eyebrow">合成数据编号对象</div>
-      <h1>{participant.study_code}</h1>
-      <Link className="button-link" href={`/participants/${id}/ai-assessment`}>AI视频动作评估</Link>
-      <p>此页面仅用于开发演示，不代表真实建档或研究入组。</p>
-      <section className="hero-card"><div className="eyebrow">DEMO ONLY</div><h2>训练演示方案</h2><p>当前功能等级：{demoPlan?.grade?.functional_grade ?? "未评估"} · {demoPlan?.grade?.demo_training_mode ?? "暂无自主训练方案"}</p><Link className="button-link" href={demoPlan?.grade ? `/participants/${id}/demo` : `#assessments-heading`}>{demoPlan?.grade ? "打开演示方案" : "先完成基础评估"}</Link></section>
-      <section aria-labelledby="consent-heading">
-        <h2 id="consent-heading">模拟同意记录</h2>
-        {consents ? <>
-          <p>当前记录：{consentText[consents.state]}</p>
-          <p className="note">照片上传始终关闭；这里的范围选项只记录合成演示状态。</p>
-          {consents.records.length ? <ul>{consents.records.map((row) => (
-            <li key={row.id}>{consentText[row.decision]} · {row.document_version} · 照片范围：{row.photo_scope ? "已记录" : "未记录"}</li>
-          ))}</ul> : <p>暂无记录。</p>}
-        </> : <p>同意记录暂不可用。</p>}
-      </section>
-      <section aria-labelledby="screen-heading">
-        <h2 id="screen-heading">模拟三态筛查</h2>
-        {screenings ? <>
-          <p role="status">{screenings.review_state === "not_assessed" ? "未评估" : "待复核"}</p>
-          <p className="note">没有已批准的筛查项目或安全判定规则；任何记录都不产生“安全通过”。</p>
-          {screenings.records.length ? <ul>{screenings.records.map((row) => (
-            <li key={row.id}>{row.item_code}：{answerText[row.answer]}</li>
-          ))}</ul> : <p>暂无筛查项。</p>}
-        </> : <p>筛查记录暂不可用；状态未知。</p>}
-      </section>
-      <section aria-labelledby="assessments-heading">
-        <h2 id="assessments-heading">合成人工总分评估</h2>
-        <p className="note">人工 SPPB 总分会在确认后生成独立 Demo 展示分级；不形成临床建议。</p>
-        {assessments === null ? <p>评估记录暂不可用。</p> : assessments.length ? (
-          <ul>{assessments.map((row) => (
-            <li key={row.id}>
-              <Link href={`/assessments/${row.id}`}>
-                {row.visit_kind === "baseline" ? "基线" : "复评"} ·
-                {row.current.state === "draft" ? "草稿" : "已确认"} ·
-                {measurementText(row.current)}
+  return <AppShell user={user}>
+    <Crumbs items={[{ href: "/workspace", label: "研究工作台" }, { label: participant.study_code }]} />
+    <PageHeader eyebrow="编号对象" title={participant.study_code}
+      sub={<div className="row" style={{ gap: 6 }}>
+        <Badge tone={consentGranted ? "jade" : "amber"}>{consents ? consentText[consents.state] : "同意状态未知"}</Badge>
+        {grade ? <Badge tone="ink">{gradeNames[grade.functional_grade]}{grade.demo_training_mode ? ` · ${grade.demo_training_mode}` : ""}</Badge> : <Badge>尚无 Demo 分级</Badge>}
+        {plan?.current_run && <Badge tone="blue">训练{runStatusNames[plan.current_run.status]}</Badge>}
+      </div>}
+      actions={<>
+        <Link className="btn btn-secondary" href={`/participants/${id}/ai-assessment`}>AI视频动作评估</Link>
+        <Link className="btn" href={grade ? `/participants/${id}/demo` : "#assessments-heading"}>{grade ? "打开训练方案" : "先完成基础评估"}</Link>
+      </>} />
+
+    <section className="card" aria-label="流程进度">
+      <FlowSteps steps={steps} />
+      {step && <div className="next-step">
+        <div><div className="label">下一步</div><strong>{step.title}</strong><p>{step.detail}</p></div>
+        <Link className="btn btn-sm" href={step.href}>{step.label} →</Link>
+      </div>}
+    </section>
+
+    <div className="grid-main" style={{ marginTop: 18 }}>
+      <div className="stack">
+        <Card title="人工 SPPB 评估" id="assessments-heading"
+          sub="人工总分确认后，另存一条版本化的 Demo 分级（demo-rule-v1），不作为临床结论。">
+          {assessments === null ? <Notice tone="warn">评估记录暂不可用。</Notice> : assessments.length ? (
+            <ul className="list">{assessments.map(row => <li key={row.id}>
+              <Link className="list-link" href={`/assessments/${row.id}`}>
+                <span className="main"><strong>{row.visit_kind === "baseline" ? "基线" : "复评"} · {measurementText(row.current)}</strong>
+                  <small>{formatDateTime(row.created_at)} 创建 · 版本 {row.current.revision_no}</small></span>
+                <Badge tone={row.current.state === "draft" ? "amber" : "jade"}>{row.current.state === "draft" ? "草稿" : "已确认"}</Badge>
               </Link>
-            </li>
-          ))}</ul>
-        ) : <p>暂无评估记录。</p>}
-        {canWrite && consents?.state === "granted" && assessments !== null ? (
-          <CreateAssessmentForm participantId={participant.id} />
-        ) : <p className="note">创建评估需要当前模拟同意及录入权限。</p>}
-      </section>
-      {canExport ? <section aria-labelledby="export-heading">
-        <h2 id="export-heading">编号化数据导出</h2>
-        <p className="note">仅导出此合成编号对象的实时结构化记录与修订版本；不含自由文本、身份映射或已冻结研究数据集。</p>
-        <a href={`/api/v1/participants/${participant.id}/research-export.csv`}>
-          下载编号化 CSV
-        </a>
-      </section> : null}
-      <AssessmentTrendSection trend={trend} />
-      <section aria-labelledby="training-heading">
-        <h2 id="training-heading">训练观察与反馈</h2>
-        <p className="note">仅记录已发生的合成训练观察，不表示处方、疗效或临床安全结论。</p>
-        {sessions === null ? <p>训练记录暂不可用。</p> : sessions.length ? (
-          <ul>{sessions.map((row) => <li key={row.id}>
-            <Link href={`/participants/${participant.id}/training/${row.id}`}>
-              {new Date(row.session_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {row.action_label} ·
-              {row.actual_minutes === null ? "时长未记录" : `${row.actual_minutes} 分钟`}
-            </Link>
-          </li>)}</ul>
-        ) : <p>尚无训练记录。</p>}
-        <h3>事件记录</h3>
-        {safetyEvents === null ? <p>事件记录暂不可用。</p> : safetyEvents.length ? (
-          <ul>{safetyEvents.map((row) => <li key={row.id}>
-            {new Date(row.event_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} · {row.description} · 未配置平台内处置闭环
-          </li>)}</ul>
-        ) : <p>尚无事件记录。</p>}
-        <TrainingForms
-          participantId={participant.id}
-          canWrite={canWrite}
-          consentGranted={consents?.state === "granted"}
-          sessions={sessions ?? []}
-        />
-      </section>
-      <section aria-labelledby="pose-demo-heading">
-        <h2 id="pose-demo-heading">姿态演示</h2>
-        <p className="note">仅生成合成线条人物预览；摄像头、照片文件、上传和识别均未启用。</p>
-        <Link href={`/participants/${participant.id}/pose-demo`}>打开合成姿态演示</Link>
-      </section>
-      {canWrite && consents && screenings ? <IntakeForms
-        participantId={participant.id}
-        consentCount={consents.records.length}
-        consentGranted={consents.state === "granted"}
-        existingItemCodes={screenings.records.map((row) => row.item_code)}
-      /> : null}
-    </main>
-  );
+            </li>)}</ul>
+          ) : <Empty title="暂无评估记录">创建基线评估后录入人工 SPPB 总分。</Empty>}
+          <div style={{ marginTop: 14 }}>
+            {canWrite && consentGranted && assessments !== null
+              ? <CreateAssessmentForm participantId={participant.id} hasBaseline={assessments.some(row => row.visit_kind === "baseline")} />
+              : <p className="note">{canWrite ? "记录模拟同意后即可创建评估。" : "当前角色只读。"}</p>}
+          </div>
+        </Card>
+        <AssessmentTrendSection trend={trend} />
+        <Card title="训练观察与反馈" id="training-heading" sub="记录已发生的训练与反馈；缺失值保持“未记录”，不会当作 0。">
+          {sessions === null ? <Notice tone="warn">训练记录暂不可用。</Notice> : sessions.length ? (
+            <ul className="list">{sessions.map(row => <li key={row.id}>
+              <Link className="list-link" href={`/participants/${participant.id}/training/${row.id}`}>
+                <span className="main"><strong>{row.action_label}</strong>
+                  <small>{formatDateTime(row.session_at)} · {row.actual_minutes === null ? "时长未记录" : `${row.actual_minutes} 分钟`}</small></span>
+                <Badge tone={row.completion_status === "completed" ? "jade" : "amber"}>{completionNames[row.completion_status]}</Badge>
+              </Link>
+            </li>)}</ul>
+          ) : <Empty title="尚无训练记录">完成一次 Demo 训练，或在下方手动记录。</Empty>}
+          <h3 style={{ marginTop: 18 }}>事件记录</h3>
+          {safetyEvents === null ? <Notice tone="warn">事件记录暂不可用。</Notice> : safetyEvents.length ? (
+            <ul className="list">{safetyEvents.map(row => <li key={row.id}>
+              <span className="main"><span>{row.description}</span><small>{formatDateTime(row.event_at)} · 请按机构既有流程处置</small></span>
+            </li>)}</ul>
+          ) : <p className="note">尚无事件记录。</p>}
+          <TrainingForms participantId={participant.id} canWrite={canWrite} consentGranted={consentGranted} sessions={sessions ?? []} />
+        </Card>
+      </div>
+
+      <div className="stack">
+        <Card title="模拟同意" id="consent-heading">
+          {consents ? <>
+            <p>当前记录：{consentText[consents.state]}</p>
+            {consents.records.length ? <ul className="list">{consents.records.map(row => <li key={row.id}>
+              <span className="main"><span>{consentText[row.decision]}</span>
+                <small>{formatDateTime(row.recorded_at)} · {row.document_version}{row.change_reason ? ` · ${row.change_reason}` : ""}</small></span>
+            </li>)}</ul> : null}
+            {canWrite && <ConsentForm participantId={participant.id} consentCount={consents.records.length} granted={consentGranted} />}
+          </> : <Notice tone="warn">同意记录暂不可用。</Notice>}
+        </Card>
+        <Card title="模拟筛查" id="screen-heading">
+          {screenings ? <>
+            <p><Badge tone={screenings.review_state === "not_assessed" ? "gray" : "amber"}>
+              <span role="status">{screenings.review_state === "not_assessed" ? "未评估" : "待复核"}</span></Badge></p>
+            {screenings.records.length ? <ul className="list">{screenings.records.map(row => <li key={row.id}>
+              <span>{row.item_code}：{answerText[row.answer]}</span></li>)}</ul> : null}
+            <p className="note">筛查记录不会自动得出“安全”或“可入组”结论。</p>
+            {canWrite && (consentGranted
+              ? <ScreeningForm participantId={participant.id} existingItemCodes={screenings.records.map(row => row.item_code)} />
+              : <p className="note">未记录有效的模拟同意，筛查录入已关闭。</p>)}
+          </> : <Notice tone="warn">筛查记录暂不可用；状态未知。</Notice>}
+        </Card>
+        {can.export(user.role) ? <Card title="编号化数据导出" id="export-heading">
+          <p className="note">导出此对象的结构化记录与全部修订版本（实时，非冻结快照）；不含自由文本与身份信息，附行数与 SHA-256。</p>
+          <a className="btn btn-secondary btn-block" href={`/api/v1/participants/${participant.id}/research-export.csv`}>下载编号化 CSV</a>
+        </Card> : null}
+      </div>
+    </div>
+  </AppShell>;
 }

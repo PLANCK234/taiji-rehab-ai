@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { demoError } from "../../../workspace/demo";
-import { connections, jointNames, savePose } from "../../../workspace/pose";
-import type { Point, PoseDetail, PoseFrame, PoseInput, PoseSummary } from "../../../workspace/pose";
-import { fileDurationMs, MAX_CAPTURE_FRAMES, MAX_CAPTURE_MS, sampleTimes, seekFrame } from "../../../workspace/pose-capture";
+import { demoError } from "../../../../lib/demo";
+import { connections, jointNames, savePose } from "../../../../lib/pose";
+import type { Point, PoseDetail, PoseFrame, PoseInput, PoseSummary } from "../../../../lib/pose";
+import { fileDurationMs, MAX_CAPTURE_FRAMES, MAX_CAPTURE_MS, sampleTimes, seekFrame } from "../../../../lib/pose-capture";
 import MotionEvidence from "./motion-evidence";
 import PoseReviewPanel from "./pose-review-panel";
 
@@ -233,59 +233,96 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
   }
 
   const frame = report?.input_data.frames[cursor];
+  const latestDecision = report?.reviews.at(-1)?.decision;
+  const posture = report?.result.posture;
+  const pct = (value: number | null | undefined) => value == null ? "未知" : `${value}%`;
+  const deg = (value: number | null | undefined) => value == null ? "未知" : `${value}°`;
+  const decisionText = !latestDecision ? "待人工审核" : latestDecision === "accepted_observations" ? "观察指标已复核"
+    : latestDecision === "modified_observations" ? "观察指标已修正复核" : latestDecision === "needs_retake" ? "复核要求重录" : "复核已拒绝";
+  const decisionTone = !latestDecision ? "badge-amber" : latestDecision.endsWith("observations") ? "badge-jade" : "badge-red";
   return <>
-    <section>
-      <h2>1. 视频与人体骨架</h2>
-      <p className="note">仅使用合成测试素材，不采集真实患者资料。姿态模型测量图像平面表现；低幅度、慢动作和坐位不会因幅度小自动判错。</p>
-      <label>任务姿势/辅助方式<select value={support} disabled={busy || hasPending} onChange={e => setSupport(e.target.value as PoseInput["support"])}>
-        <option value="unknown">未记录</option><option value="standing">站位</option><option value="seated">坐位</option><option value="supported">扶持/辅助</option>
-      </select></label>
-      <div className="pose-demo-actions">
-        <button type="button" disabled={busy || hasPending || !canWrite} onClick={() => void loadSample()}>加载合成样例</button>
-        <label>选择合成测试视频<input type="file" accept="video/*" disabled={busy || hasPending || !canWrite} onChange={e => loadFile(e.target.files?.[0])} /></label>
-        <button type="button" disabled={busy || hasPending || !canWrite} onClick={() => void loadCamera()}>打开测试摄像</button>
+    <section className="card" aria-labelledby="capture-heading">
+      <div className="card-head"><h2 id="capture-heading">1. 视频与人体骨架</h2><span className="badge badge-jade">本机推理 · 原视频不上传</span></div>
+      <div className="grid-2">
+        <div className="video-stage">
+          <video ref={video} muted playsInline controls={!busy && !running}
+            onLoadedData={() => setLoaded(true)} onError={() => { setLoaded(false); setStatus("视频无法解码，请更换浏览器支持的格式。"); }} />
+          <canvas ref={overlay} aria-label="实时识别骨架" />
+          {!loaded && !running && <div className="placeholder">选择右侧任一素材来源<br />建议全身入镜、固定机位</div>}
+        </div>
+        <div className="stack" style={{ gap: 14 }}>
+          <div className="field"><label htmlFor="pose-support">任务姿势/辅助方式</label>
+            <select id="pose-support" value={support} disabled={busy || hasPending} onChange={e => setSupport(e.target.value as PoseInput["support"])}>
+              <option value="unknown">未记录</option><option value="standing">站位</option><option value="seated">坐位</option><option value="supported">扶持/辅助</option>
+            </select></div>
+          <div className="source-options">
+            <button type="button" className="btn-secondary" disabled={busy || hasPending || !canWrite} onClick={() => void loadSample()}>加载合成样例</button>
+            <label className="source-option">选择合成测试视频<input type="file" accept="video/*" disabled={busy || hasPending || !canWrite} onChange={e => loadFile(e.target.files?.[0])} /></label>
+            <button type="button" className="btn-secondary" disabled={busy || hasPending || !canWrite} onClick={() => void loadCamera()}>打开测试摄像</button>
+          </div>
+          <div className="button-row">
+            <button type="button" disabled={busy || hasPending || !loaded || !canWrite} onClick={() => void start()}>开始AI识别并评估</button>
+            <button type="button" className="btn-secondary" disabled={!running} onClick={() => { active.current = false; }}>停止并分析</button>
+          </div>
+          <p role="status" aria-live="polite" className={`status-line${busy ? " busy" : ""}`}>{status}</p>
+          {hasPending && <div className="notice warn"><div>
+            <p>本次分析尚未保存，数据只在当前页面内，离开页面会丢失。</p>
+            <div className="button-row">
+              <button type="button" className="btn-sm" disabled={busy} onClick={() => void retrySave()}>重试保存本次分析</button>
+              <button type="button" className="btn-secondary btn-sm" disabled={busy} onClick={() => { pendingSubmission.current = null; setHasPending(false); setStatus("已放弃本次待保存数据。"); }}>放弃待保存数据</button>
+            </div>
+          </div></div>}
+          <p className="note">文件按 200 毫秒等间隔分析前 5 分钟；低幅度、慢动作和坐位不会因幅度小被判错。</p>
+        </div>
       </div>
-      <div style={{ position: "relative", maxWidth: 600 }}>
-        <video ref={video} muted playsInline controls={!busy} style={{ width: "100%", display: "block" }}
-          onLoadedData={() => setLoaded(true)} onError={() => { setLoaded(false); setStatus("视频无法解码，请更换浏览器支持的格式。"); }} />
-        <canvas ref={overlay} aria-label="实时识别骨架" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} />
-      </div>
-      <div className="pose-demo-actions">
-        <button type="button" disabled={busy || hasPending || !loaded || !canWrite} onClick={() => void start()}>开始AI识别并评估</button>
-        <button type="button" disabled={!running} onClick={() => { active.current = false; }}>停止并分析</button>
-      </div>
-      <p role="status" aria-live="polite">{status}</p>
-      {hasPending && <div><p>待保存数据仅在当前页面内，离开页面会丢失。</p>
-        <button type="button" disabled={busy} onClick={() => void retrySave()}>重试保存本次分析</button>
-        <button type="button" disabled={busy} onClick={() => { pendingSubmission.current = null; setHasPending(false); setStatus("已放弃本次待保存数据。"); }}>放弃待保存数据</button>
-      </div>}
     </section>
-    {report && <section>
-      <h2>2. AI 初评报告</h2>
+    {report && <section className="card" aria-labelledby="report-heading">
+      <div className="card-head">
+        <h2 id="report-heading">2. AI 初评报告</h2>
+        <span className={`badge ${decisionTone}`}>{decisionText}</span>
+      </div>
       <p>{report.result.status === "measured" ? "已取得可评估指标" : "无法评估，请重新取景或交人工评估"} · 采样 {report.result.sampled_frames} 帧 · 单人识别 {report.result.single_pose_frames} 帧 · {report.result.duration_seconds.toFixed(2)} 秒</p>
-      <p>算法：{report.algorithm_version} · {report.reviews.length === 0 ? "待人工审核" : report.reviews.at(-1)?.decision === "accepted_observations" ? "观察指标已复核" : report.reviews.at(-1)?.decision === "modified_observations" ? "观察指标已修正复核" : report.reviews.at(-1)?.decision === "needs_retake" ? "复核要求重录" : "复核已拒绝"}</p>
-      <table className="pose-metrics"><thead><tr><th>关节</th><th>角度中位数</th><th>活动幅度P5–P95</th><th>可见帧比例</th></tr></thead>
+      <p className="note">算法 {report.algorithm_version} · 模型 {report.input_data.model_version}</p>
+      {posture && <div style={{ margin: "14px 0" }}>
+        <h3>姿态与重心</h3>
+        <div className="metric-tiles">
+          <div className="metric-tile"><div className="label">躯干偏离竖直（中位数）</div><div className="value">{deg(posture.trunk_lean_median_deg)}</div><div className="hint">立身中正参考，越小越直</div></div>
+          <div className="metric-tile"><div className="label">躯干倾斜波动 P5–P95</div><div className="value">{deg(posture.trunk_lean_range_p05_p95_deg)}</div></div>
+          <div className="metric-tile"><div className="label">骨盆左右移动</div><div className="value">{pct(posture.pelvis_lateral_range_pct_torso)}</div><div className="hint">占躯干长度，反映重心转移</div></div>
+          <div className="metric-tile"><div className="label">骨盆上下起伏</div><div className="value">{pct(posture.pelvis_vertical_range_pct_torso)}</div><div className="hint">占躯干长度，反映升降</div></div>
+        </div>
+        {report.result.symmetry && <p className="note" style={{ marginTop: 10 }}>左右幅度差（左−右，平滑后）：{(["elbow", "shoulder", "knee"] as const).map(pair =>
+          `${{ elbow: "肘", shoulder: "肩", knee: "膝" }[pair]} ${deg(report.result.symmetry![pair].difference_deg)}`).join(" · ")}</p>}
+      </div>}
+      <div className="table-wrap"><table className="pose-metrics"><thead><tr><th>关节</th><th>角度中位数</th><th>活动幅度P5–P95</th><th>可见帧比例</th></tr></thead>
         <tbody>{Object.entries(report.result.metrics).map(([key, m]) => <tr key={key}>
           <th>{jointNames[key]}</th><td>{m.median_deg === null ? "不可评估" : `${m.median_deg}°`}</td>
           <td>{m.range_p05_p95_deg === null ? "不可评估" : `${m.range_p05_p95_deg}°`}</td>
           <td>{(m.coverage * 100).toFixed(0)}%</td>
-        </tr>)}</tbody></table>
-      <p className="note">幅度为图像平面角度变化，含模型抖动；静止时也可能非零。SPPB分数及康复阶段需结合已确认量表和专家规则，本报告不从动作幅度直接推断。</p>
+        </tr>)}</tbody></table></div>
+      <p className="note" style={{ marginTop: 10 }}>幅度为图像平面角度变化，含模型抖动，静止时也可能非零。SPPB 分数与康复阶段需结合已确认量表和专家规则，本报告不据此推断。</p>
       <MotionEvidence report={report} cursor={cursor} onCursorChange={setCursor} />
-      {frame && <><h3>关键点证据回放</h3><label>证据帧<input type="range" min={0} max={report.input_data.frames.length - 1} value={cursor} onChange={e => setCursor(Number(e.target.value))} /></label>
-        <p>时间：{(frame.timestamp_ms / 1000).toFixed(2)} 秒 · {frame.landmarks.length ? "单人关键点" : "缺失/多人，不补成正常"}</p>
-        <svg viewBox={`0 0 ${report.input_data.width} ${report.input_data.height}`} aria-label="已保存的骨架证据" role="img" style={{ maxWidth: 400, maxHeight: 400, width: "100%", background: "#17232a" }}>
+      {frame && <div className="motion-evidence">
+        <h3 style={{ margin: 0 }}>关键点证据回放</h3>
+        <label>证据帧<input type="range" min={0} max={report.input_data.frames.length - 1} value={cursor} onChange={e => setCursor(Number(e.target.value))} /></label>
+        <p className="note">时间 {(frame.timestamp_ms / 1000).toFixed(2)} 秒 · {frame.landmarks.length ? "单人关键点" : "缺失/多人，不补成正常"}</p>
+        <svg className="skeleton-svg" viewBox={`0 0 ${report.input_data.width} ${report.input_data.height}`} aria-label="已保存的骨架证据" role="img">
           {connections.map(([a, b]) => frame.landmarks[a]?.visibility >= .5 && frame.landmarks[b]?.visibility >= .5
-            ? <line key={`${a}-${b}`} x1={frame.landmarks[a].x * report.input_data.width} y1={frame.landmarks[a].y * report.input_data.height} x2={frame.landmarks[b].x * report.input_data.width} y2={frame.landmarks[b].y * report.input_data.height} stroke="#b4ffdf" strokeWidth={5} /> : null)}
-        </svg></>}
+            ? <line key={`${a}-${b}`} x1={frame.landmarks[a].x * report.input_data.width} y1={frame.landmarks[a].y * report.input_data.height} x2={frame.landmarks[b].x * report.input_data.width} y2={frame.landmarks[b].y * report.input_data.height} stroke="#7fe0bd" strokeWidth={5} strokeLinecap="round" /> : null)}
+          {frame.landmarks.map((point, index) => point.visibility >= .5 ? <circle key={index} cx={point.x * report.input_data.width} cy={point.y * report.input_data.height} r={4} fill="#f5f3ee" /> : null)}
+        </svg>
+      </div>}
       <PoseReviewPanel key={`${report.id}:${report.reviews.at(-1)?.revision_no ?? 0}`}
         report={report} canReview={canReview} busy={busy} onBusy={setBusy}
         onStatus={setStatus} onReload={() => openReport(report.id)} />
     </section>}
-    <section><h2>3. 已保存的评估</h2>
-      {history === null ? <p>历史读取失败，请确认后端已完成数据库迁移。</p> : history.length === 0 ? <p>暂无视频评估记录。</p>
-        : <ul>{history.map(h => <li key={h.id}><button type="button" disabled={busy} onClick={() => { void openReport(h.id).catch(e => setStatus(String(e))); }}>
-          {new Date(h.created_at).toLocaleString("zh-CN")} · {h.result.status === "measured" ? "有测量指标" : "不可评估"}</button></li>)}</ul>}
+    <section className="card" aria-labelledby="history-heading">
+      <div className="card-head"><h2 id="history-heading">3. 已保存的评估</h2></div>
+      {history === null ? <p className="notice warn">历史读取失败，请确认后端已完成数据库迁移。</p> : history.length === 0 ? <p className="note">暂无视频评估记录。</p>
+        : <ul className="list">{history.map(h => <li key={h.id}>
+          <span className="main"><strong>{new Date(h.created_at).toLocaleString("zh-CN", { hour12: false })}</strong><small>{h.algorithm_version} · 采样 {h.result.sampled_frames} 帧</small></span>
+          <button type="button" className="btn-secondary btn-sm" disabled={busy} onClick={() => { void openReport(h.id).catch(e => setStatus(String(e))); }}>
+            {h.result.status === "measured" ? "有测量指标" : "不可评估"} · 打开</button></li>)}</ul>}
     </section>
   </>;
 }
