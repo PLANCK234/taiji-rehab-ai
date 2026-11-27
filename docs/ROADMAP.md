@@ -1,5 +1,7 @@
 # Implementation roadmap / executable milestones
 
+2026-11-26 下一阶段：DEMO-V2-62 完成 PR #10 验收及合并 main `5ea8c44`；DEMO-V2-63 先独立实现 `sppb-measure-v1`，DEMO-V2-64 再接服务端持久化/逐项复核。评分表批准和人工确认→草稿→分级仍为独立环节；太极动作质量分不预置权重。参见 [测量验证](testing/SPPB_MEASURE_VALIDATION.md)。
+
 2026-11-26接续：独立工程任务`DEMO-V2-15`补原始/平滑信号、残差噪声、固定媒体时间采样、保存恢复与v1/v2兼容，未改变临床任务状态。11实体手机/真实多样化动作与12评分表仍待后续；最新验证见[STATUS](STATUS.md)与[ADR-0017](decisions/0017-pose-signal-and-retry.md)。
 
 同日`DEMO-V2-16`完成Next16.4.5修复补丁、全量/生产audit0与识别链路回归；不再因16.4.3提醒重复构建，后续仍优先11多场景/实体机及12专家评分表。

@@ -6,6 +6,8 @@
 
 DEMO-V2-62 DONE：五项 CI 成功、Docker 浏览器 **20 passed**（含固定 3000 端口回环登录）、隔离资源清理通过。见 [证据](testing/PR10-MERGE-VALIDATION.md)。
 
+DEMO-V2-63 DONE：独立 `sppb-measure-v1` 坐站候选用时及离线 CLI；15 项新增合成测试，后端全量 **110 passed / 6 skipped**、Ruff 通过。尚未接入页面、API 或评估草稿。见 [验证](testing/SPPB_MEASURE_VALIDATION.md)。
+
 ## 能做什么（合成数据 Demo）
 
 | 模块 | 状态 | 说明 |
@@ -23,7 +25,7 @@ DEMO-V2-62 DONE：五项 CI 成功、Docker 浏览器 **20 passed**（含固定 
 | 本地视频姿态实验室 | 开关启用 | `POSE_PROTOTYPE_ENABLED=true` 时出现；坐站计时对照（团队主分支） |
 | 微信小程序 | 准备中 | 设计令牌与页面映射见 [设计系统](product/DESIGN_SYSTEM.md)、[小程序方案](product/MINIPROGRAM_PLAN.md) |
 
-## 最近验证（2026-11-26，合入 main 后重跑）
+## 验证基线（2026-11-26，PR #10；本轮增量见上）
 
 - 后端：`uv run ruff check .` 通过；`uv run pytest` **95 passed / 6 opt-in skipped**；OpenAPI 快照已重新生成。
 - PostgreSQL 门禁 `scripts/run_eng04_integration.py`：临时库迁移 0001→0023 升→check→降→升及 PG 测试 **7 passed**（含 0019→0020 衔接）。

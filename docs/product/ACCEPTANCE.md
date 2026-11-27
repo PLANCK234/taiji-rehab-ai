@@ -1,5 +1,7 @@
 # Acceptance criteria and test matrix
 
+`AT-AI-MEASURE-01`（DEMO-V2-63）：独立五次坐站候选测量按已知合成轨迹复算自动/人工起点及第五次时刻，保留版本/参数/输入哈希；缺失、多人、支撑疑似及不足次数返回未知用时和具体原因；不产生量表分或分级。验收案例 SPPB-M-01..07 见 [验证记录](../testing/SPPB_MEASURE_VALIDATION.md)。该验收不包含浏览器、持久化、人体精度或临床计分。
+
 ## AI 视频评估新增验收规划（2026-11-26）
 
 `DEMO-V2-15`增加AT-AI-01/02/05的工程验收：已知轨迹信号保留与抖动抑制、固定媒体时间采样、丢响应后的幂等恢复、v1/v2可读和迁移保留。预设目标为AI-SIGNAL-01..03、AI-CAPTURE-02、AI-SAVE-02、AI-UPGRADE-02、AI-LEGACY-02，见[验证目标](../testing/AI_POSE_VALIDATION.md)。不将工程噪声参数作为医学界值。

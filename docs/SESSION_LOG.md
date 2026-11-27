@@ -795,3 +795,10 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 - 核对最新 HEAD 五项 CI 全绿；Docker 浏览器 20 项（含固定 3000 端口登录）通过，隔离资源清理通过。
 - 按用户 A0 授权及精确 HEAD 合并 PR #10：`5ea8c44`；新分支 `feat/sppb-measure-v1`。
 - 见 [证据](testing/PR10-MERGE-VALIDATION.md)，包含 PowerShell 输出包装的返回码限制；未更改共享数据库。下一任务 DEMO-V2-63。
+
+## 2026-11-26 DEMO-V2-63 / 坐站候选测量
+
+- 新增独立 `sppb-measure-v1`：髋高/膝角配对、自动/人工起点、第五次候选、手部代理、明确未知原因、参数及输入哈希；CLI 可复算。
+- 后端 Ruff、全量110 passed/6 opt-in skipped（含新增15项）通过；CLI子进程真实执行；初轮夹具失败及修正见[验证](testing/SPPB_MEASURE_VALIDATION.md)。
+- 无API/数据库/前端改动，无新迁移；未验证人体、老年人或实机，不产生SPPB分。ADR-0026、台账/追踪/交接已更新。
+- 当前分支 `feat/sppb-measure-v1`，基线main `5ea8c44`；下一任务DEMO-V2-64持久化/逐项复核。提交后推送功能分支并开草稿PR，实际结果以GitHub为准。

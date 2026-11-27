@@ -1,5 +1,9 @@
 # Requirements traceability
 
+| 新增验收 | 实现 | 验证 |
+|---|---|---|
+| AT-AI-MEASURE-01 / DEMO-V2-63 | `backend/app/sppb_measure.py`：独立坐站计时、未知原因、配置及输入哈希；离线 CLI | `backend/tests/test_sppb_measure.py`；[合成验证](testing/SPPB_MEASURE_VALIDATION.md)；无评分、API 或数据库行为变更 |
+
 DEMO-V2-62 / AT-DEMO-06：PR #10 五项 CI、Docker 回环登录及完整合成流程 20 项、隔离资源清理后合并；见 [证据](testing/PR10-MERGE-VALIDATION.md)。
 
 ## 2026-11-26 DEMO-V2-16 依赖补丁追踪
