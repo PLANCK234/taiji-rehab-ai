@@ -1,5 +1,7 @@
 # Requirements traceability
 
+DEMO-V2-62 / AT-DEMO-06：PR #10 五项 CI、Docker 回环登录及完整合成流程 20 项、隔离资源清理后合并；见 [证据](testing/PR10-MERGE-VALIDATION.md)。
+
 ## 2026-11-26 DEMO-V2-16 依赖补丁追踪
 
 | 范围 | 实现 | 证据 |

@@ -2,7 +2,9 @@
 
 > 本文件只记录**当前**状态。旧的逐任务验证日志：AI 姿态分支见 [STATUS_HISTORY](archive/STATUS_HISTORY.md)，团队主分支见 [STATUS_HISTORY_MAIN](archive/STATUS_HISTORY_MAIN.md)。
 
-更新：2026-11-26 · 分支 `feat/ux-refresh`（已合入 main `7ad8d64`） · 迁移头 `0023_pose_v3_free_text_reasons`
+更新：2026-11-26 · PR #10 已合并 main `5ea8c44`；新分支 `feat/sppb-measure-v1` · 迁移头 `0023_pose_v3_free_text_reasons`
+
+DEMO-V2-62 DONE：五项 CI 成功、Docker 浏览器 **20 passed**（含固定 3000 端口回环登录）、隔离资源清理通过。见 [证据](testing/PR10-MERGE-VALIDATION.md)。
 
 ## 能做什么（合成数据 Demo）
 
