@@ -3,11 +3,12 @@
 > These instructions apply to the whole repository. Read `docs/README.md` to find the authoritative detail; do not treat this file as a specification replacement.
 
 ## Mission and constraints
+- **2026-11-26 scope update:** the supplied CKLL-20260904 ethics document and the user's explicit authorization open development of clinical grading, dose/contraindication configuration, AI-driven plan decisions, and accuracy evaluation/publication tooling. Read `docs/product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md` and `docs/evidence/CKLL-20260904.md`. Do not repeatedly block these tasks on the old blanket statement that no ethics evidence exists. Missing numeric settings are configuration work, not a reason to stop the framework.
 - **Current engineering priority (DEMO-V2):** deliver a Chinese-first, interactive, PostgreSQL-backed researcher demo: login → coded participant → manual assessment → versioned demo grade → demo plan/action library → training run → observed feedback/completion. This is a product prototype, not a static mockup. Keep the existing clinical research roadmap and approval gates.
 - Demo output is `DEMO_RULE` / `DEMO_ONLY`, never an approved clinical prescription. `CLINICAL_RULE`, `MODEL_CANDIDATE`, and `HUMAN_CONFIRMATION` are distinct records and claims. An independent Demo task may proceed while formal clinical tasks remain blocked.
-- Build a Chinese-first Web platform with a staff research/clinical workspace and a separate patient portal. A synthetic self-scoped portal, non-actionable publication test card, and synthetic patient training/discomfort fact entry are implemented; clinician-confirmed plans, reviewed videos and real-patient access remain unapproved. No autonomous diagnosis or clinical prescription.
+- Build a Chinese-first staff platform and patient portal. Current runtime remains synthetic; approved-study clinical grading and AI plan automation are now authorized development targets. Develop automatic decisions within versioned expert-configurable rules, with staff override and attributable history; do not misrepresent existing Demo templates as clinical rules or claim that future capabilities are already deployed.
 - Follow `docs/product/PRD.md` and `docs/product/ACCEPTANCE.md`. When requirements disagree, document the conflict in `docs/OPEN_QUESTIONS.md` and ask the human owner before implementing a clinical rule.
-- Clinical advice, grades and model suggestions are **proposals** until explicitly approved by an authorized clinician; preserve prediction, confirmation and version separately.
+- Preserve prediction, human confirmation and rule/model versions separately. Expert policy-version approval and per-record staff override are distinct; the authorized automatic-plan mode must be implementable without requiring a fresh permission question for each development step.
 - Use synthetic fixtures only until ethics, consent, security review and hosting approvals are documented. Never upload identifiable health information to public LLMs.
 - Never invent clinical cutoffs, treatment dosages, efficacy claims, research approvals, published papers or model performance results.
 
@@ -24,6 +25,7 @@
 - Persist append-only history for measurements, grades, training feedback, data snapshots and model decisions; corrections must be attributable.
 
 ## Workflow for every task
+0. Every code, documentation and parameter update must be committed/pushed through a feature-branch PR, including document-only scope updates. The user's current instruction requires PR delivery, not a local-only handoff; preserve normal Git history and another developer's uncommitted files.
 1. Read the relevant spec, current code and nearest nested `AGENTS.md`; consult `docs/ROADMAP.md`.
 2. Describe the smallest shippable change, files touched, risk, tests and acceptance ID. Avoid unrelated rewrites.
 3. Implement with migrations, validation, authorization, tests, docs and audit changes where needed.
@@ -38,7 +40,7 @@
 - Commands are **targets**, not evidence that these scripts/files already exist. The first implementation phase creates and verifies them.
 
 ## Stop-and-escalate conditions
-- Any new clinical threshold, medical eligibility/contraindication, medication advice, use of identifiable images or third-party APIs, rules for data retention, model publication to clinical users, or changes to approved study protocol.
+- For the explicitly authorized clinical/AI work above, proceed with configuration, synthetic initialization, review/versioning and evaluation tasks. Seeded randomness may initialize model internals and simulation, but does not establish clinical cutoffs, doses, contraindications or measured accuracy. Escalate changes outside the documented study scope, medication advice, new identifiable-data transfers/third-party services, retention rules or deployment scope; do not infer those from the ethics letter alone.
 - Any data deletion, production migration or bulk export without an approved rollback/authorization plan.
 
 ## References

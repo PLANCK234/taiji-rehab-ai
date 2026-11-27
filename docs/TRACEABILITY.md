@@ -1,5 +1,7 @@
 # Requirements traceability
 
+AT-CLIN-DOC-01 / DEMO-V2-67：[伦理依据及公开副本](evidence/CKLL-20260904.md)、[临床AI待开发计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)、[ADR-0028](decisions/0028-authorized-clinical-ai-development.md)；AGENTS/PRD/范围/问题/任务/模型生命周期已同步。仅声明文档与证据检查，不复用旧单测数字冒充本轮新算法实现。
+
 AT-AI-MEASURE-03 / DEMO-V2-65：`frontend/lib/sppb.ts`、`ai-assessment/sppb-panel.tsx`与page/pose-client接线；纯逻辑/组件及实际浏览器见 [网页验收](testing/SPPB_UI_VALIDATION.md)；无新迁移或医学评分规则。
 
 AT-AI-MEASURE-02 / DEMO-V2-64：`sppb_api.py`、`sppb_schemas.py`、`sppb_review.py`、models与0024迁移；[接口/PG/浏览器证据](testing/SPPB_SERVICE_VALIDATION.md)，OpenAPI快照已更新；无临床计分。

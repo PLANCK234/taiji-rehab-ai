@@ -1,5 +1,11 @@
 # Offline optimization, evaluation and publication
 
+## 2026-11-26 已授权开发的回归优化
+
+研究伦理批件与用户授权已登记，模型初始化、训练结局回归、AI方案决策及准确率模块可以直接开发，见[任务68–71](../product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)。采用有seed的模型初始化（需要时）、固定基线/Ridge与候选比较、对象+时间隔离和训练集内预处理；保留标签时窗、计划与实际剂量差异。专家修改追加版本，自动决策使用生效策略版本，人员可覆盖/回滚；策略版本确认不等于每条输出必须重新获得开发许可。
+
+原“未提供伦理/专家记录”的开发阻断已更新；当前缺口是实现、配置、样本和实测报告。研究批准、具体参数、模型性能及临床效果分别登记。完整损失函数、下一周期方案优化、验证与对外展示设计在上述计划中，本文件既有A/B/C目标仍分别适用。
+
 ## Three different targets: never conflate
 - **A**: future *objective functional change* (e.g., next endpoint SPPB delta) under a defined protocol. Regression/outcome model; cannot casually infer causal effects of treatments.
 - **B**: *expert-confirmed adaptation category* or reviewed functional label. Agreement/decision-support classification, with explicit annotator protocol.

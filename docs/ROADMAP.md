@@ -1,5 +1,7 @@
 # Implementation roadmap / executable milestones
 
+最新优先级（2026-11-26用户授权）：67登记伦理批件/范围→68临床参数与专家调参→69AI分数驱动方案→70训练结局回归与71评测/对外展示。详见[待开发计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)；66的3D对照保留。S3-01由旧审批阻断改为可开发待实施，不变更既有Demo历史或自动打开运行环境。
+
 DEMO-V2-64完成0024坐站计时持久化及人工版本；65把测量/复核/恢复/分页接入现有AI页。后续优先66可选worldLandmarks/3D角度对照，降低图像平面视角限制；不把相对3D骨架坐标作为地面四米标定。评分表、临床阶段和人工SPPB草稿仍独立实现。
 
 2026-11-26 下一阶段：DEMO-V2-62 完成 PR #10 验收及合并 main `5ea8c44`；DEMO-V2-63 先独立实现 `sppb-measure-v1`，DEMO-V2-64 再接服务端持久化/逐项复核。评分表批准和人工确认→草稿→分级仍为独立环节；太极动作质量分不预置权重。参见 [测量验证](testing/SPPB_MEASURE_VALIDATION.md)。

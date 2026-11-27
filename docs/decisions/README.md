@@ -33,6 +33,8 @@ Current proposals:
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.
 
+- [ADR-0028](0028-authorized-clinical-ai-development.md): records the supplied CKLL-20260904 ethics letter and explicit user authorization; opens clinical configuration, AI plan decisions, seeded model initialization, regression optimization and measured-performance reporting development.
+
 - [ADR-0027](0027-persisted-sppb-timing-review.md): source-linked timing candidates and independent append-only human timing reviews; guarded rollback and paginated access.
 
 - [ADR-0026](0026-sppb-measurement-before-scoring.md): independent, reproducible sit-to-stand timing candidates before protocol scoring; no automatic grading.

@@ -5,12 +5,12 @@
 | 项目 | 当前状态 |
 |---|---|
 | Branch / HEAD | `feat/sppb-measure-v1`，基线为 PR #10 合并 main `5ea8c44`；以 `git log -1` 为准。 |
-| 最近独立任务 | DEMO-V2-64/65 DONE：0024及追加式计时复核接口已接AI网页；[接口](testing/SPPB_SERVICE_VALIDATION.md) / [网页](testing/SPPB_UI_VALIDATION.md)。 |
-| 验证 | 后端Ruff、125 passed/8 opt-in skipped；临时PG9项含并发/迁移；前端141项/lint/typecheck/生产构建、全套真实浏览器25项通过；1366/390截图亲检。 |
+| 最近独立任务 | DEMO-V2-67 DONE：记录CKLL-20260904及用户授权，新增[临床AI待开发计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)及68–71；[验收](testing/CLINICAL_SCOPE_VALIDATION.md)。公开副本遮盖电话，原件保留；64/65应用功能保持。 |
+| 验证 | 本轮仅文档/证据：PDF原件/副本哈希、页面视觉、文档链接及diff检查；应用125/8skip、PG9、前端141、浏览器25为上一检查点，本轮未重跑。 |
 | 当前缺口 | 小程序未建工程（需 Bearer 鉴权）；AI 无量表评分/阶段（Q-14/Q-15）；v3 指标无人体视频精度验证；实体手机未测；正式教学视频发布仍 BLOCKED。 |
-| 临床与数据阻断 | S3-01 BLOCKED（Q-03/Q-09）；真实数据、影像、部署审批均未记录；Research 默认拒绝。 |
-| 下一 Task ID | `DEMO-V2-66`：可选worldLandmarks/3D角度对照与2D兼容；SPPB评分配置及人工草稿仍后续独立登记；`DEMO-V2-60`保留小程序/Bearer任务。 |
-| 下一步文件 | `frontend/workers/pose-worker.js`、`frontend/lib/pose.ts`、`backend/app/pose_schemas.py`及版本化3D分析；不改写现有2D/sppb-measure-v1结果，不把3D相对坐标当作地面四米标定。 |
+| 临床与数据阻断 | 研究伦理及临床AI开发授权已记录，S3-01改为待实施；具体参数待专家调参，不阻断配置框架。真实数据接入和部署仍是未交付工程范围，运行开关本轮不变。 |
+| 下一 Task ID | `DEMO-V2-68`：临床分级/剂量/禁忌参数注册、版本及专家调参；随后69自动方案、70回归、71评测。66的3D对照保留，不是68前置。 |
+| 下一步文件 | `backend/app/`临床参数schema及版本存储、`frontend/`专家编辑、`ml/`seed/参数契约；按[待开发计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)先登记最小实施范围与验收。 |
 | 未提交/推送 | 64功能提交`8ef9f03`、65功能提交`22f9891`均已推送并更新[草稿 PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)标题/说明，尚未合并；最终HEAD与工作区以git log/status为准。0024仅在隔离测试库验证，共享数据库未升级。 |
 
 历史检查点见 [SESSION_LOG](SESSION_LOG.md)、[STATUS_HISTORY](archive/STATUS_HISTORY.md) 与团队 main 的 [HANDOFF 历史](archive/HANDOFF_HISTORY_MAIN.md)。

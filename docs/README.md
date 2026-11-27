@@ -9,6 +9,7 @@
 | Demo | [DEMO-V2 用户流程](product/DEMO_USER_FLOW.md) | 独立合成演示七步闭环与边界 |
 | 界面 | [设计系统](product/DESIGN_SYSTEM.md) / [小程序方案](product/MINIPROGRAM_PLAN.md) | 视觉令牌、组件、小程序页面映射与鉴权改造 |
 | AI 下一阶段 | [AI视频辅助评估方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md) | 手机视频、人体骨架、AI初评、人工审核与开发拆分（提案） |
+| 临床AI新授权 | [待开发计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md) / [伦理证据](evidence/CKLL-20260904.md) | 分级/剂量禁忌、AI自动方案、专家调参、训练结局回归及准确率评测展示；开发已授权 |
 | AI 已实现验证 | [姿态验证目标](testing/AI_POSE_VALIDATION.md) | 真实模型→关节指标→PostgreSQL→人工观察复核；合成样例，不含临床评分效度 |
 | 坐站测量 | [算法验证](testing/SPPB_MEASURE_VALIDATION.md) / [持久化复核](testing/SPPB_SERVICE_VALIDATION.md) / [网页操作](testing/SPPB_UI_VALIDATION.md) | AI候选计时、独立人工计时与分页历史；未接入量表分级 |
 | 依赖补丁 | [Next补丁验证](testing/DEPENDENCY_PATCH_VALIDATION.md) | 固定修复版本、审计快照与识别链路回归 |
