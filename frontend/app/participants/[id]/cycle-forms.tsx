@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { postIntake } from "../../workspace/intake";
-import { measurementText, type AssessmentSummary } from "../../workspace/assessments";
-import type { TrainingSession, TrainingTimeline } from "../../workspace/training";
+import { postIntake } from "../../../lib/intake";
+import { measurementText, type AssessmentSummary } from "../../../lib/assessments";
+import type { TrainingSession, TrainingTimeline } from "../../../lib/training";
 import {
   assessmentStateText, attendanceText, type SyntheticCycle, type VisitRevision,
-} from "../../workspace/cycles";
+} from "../../../lib/cycles";
 
 const completionText = {
   completed: "记录为完成", partial: "记录为部分完成",

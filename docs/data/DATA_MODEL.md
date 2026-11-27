@@ -1,5 +1,9 @@
 # Logical data model (initial proposal)
 
+2026-11-26 DEMO-V2-15：迁移`0021_pose_geometry_v2`仅将`ck_pose_algorithm`扩大为v1/v2，未改表/历史JSON。新分析的v2平滑/残差结果追加在原result中；旧记录、哈希、复核保留。若v2记录存在，downgrade0008会抛错并保留迁移状态，不能为回退而改写版本。临时数据库验证了带旧数据升级与拒绝破坏性回退；共享卷未操作。
+
+2026-11-26：增量迁移`0020_pose_analyses`新增`pose_analyses`（participant_id、input_data、input_sha256、algorithm_version、result、created_by/at）与`pose_reviews`（analysis_id、revision_no、decision、reason、recorded_by/at）。原AI输入/计算结果追加保存，人工复核独立版本；unique(analysis_id,revision_no)、revision_no>0、decision枚举由数据库约束。对象行锁串行化写入/审核，幂等沿用write_receipts。无原影像存储，无人工量表source更改，无级别/处方关联。迁移仅在独立测试库升降升验证，本机原有卷未迁移。
+
 Use UUID primary keys, UTC timestamps, stable `study_code`, explicit soft-delete/retention policy only after approval. The table below is a **logical target**. Migration `0002_auth_scope` implements users, studies, assignments, coded participants, sessions, rate limits and audit. Migration `0003_synthetic_intake` adds `write_receipts`, `consent_records` and `screening_records`. Migration `0004_manual_assessments` adds only synthetic manual-total assessment headers and append-only revision snapshots. No identity mapping, verified signature, eligibility, grade, recommendation or outcome fields exist yet.
 
 Migration `0005_training_observations` implements a **bounded D0 subset**: `training_sessions` records observed action/time/actual minutes/completion; `training_feedback_revisions` stores append-only missing or recorded feedback, RPE 6–20 where present, text observations and correction reason; `safety_events` stores unclassified factual reports independently of feedback. All three have actor/time and participant scope; none has cycle/rule/prescription/review state. The target rows below describe later full functionality and are not claims about the current physical schema. No existing training data is backfilled into future cycles automatically.

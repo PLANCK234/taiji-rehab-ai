@@ -18,6 +18,14 @@ test("unauthenticated synthetic workspace redirects to login", async ({ page }) 
   await expect(page).toHaveURL(/\/login$/);
 });
 
+test("local Demo login accepts the 127.0.0.1 browser origin", async ({ page }) => {
+  await page.goto("http://127.0.0.1:3000/login");
+  await page.getByLabel("邮箱").fill("demo-clinician-a@example.org");
+  await page.getByLabel("密码").fill(password);
+  await page.getByRole("button", { name: "登录" }).click();
+  await expect(page).toHaveURL(/\/workspace$/);
+});
+
 test("synthetic longitudinal enrollment, revisit, observed training and export persist", async ({ page }) => {
   await login(page, "demo-clinician-a@example.org");
   await expect(page.getByRole("region", { name: "已分配研究" })
@@ -25,14 +33,15 @@ test("synthetic longitudinal enrollment, revisit, observed training and export p
   await page.getByLabel("合成编号").fill("SYN-ENG04B-001");
   await page.getByRole("button", { name: "创建编号对象" }).click();
   await expect(page.getByRole("heading", { name: "SYN-ENG04B-001" })).toBeVisible();
-  await expect(page.getByRole("status").first()).toHaveText("未评估");
+  const screening = page.getByRole("region", { name: "模拟筛查" });
+  await expect(screening.getByRole("status")).toHaveText("未评估");
   await expect(page.getByText("未记录有效的模拟同意，筛查录入已关闭。")).toBeVisible();
   await expect(page.getByRole("button", { name: "创建评估草稿" })).toHaveCount(0);
 
   await page.getByRole("button", { name: "追加同意记录" }).click();
   await expect(page.getByText("当前记录：模拟同意已记录")).toBeVisible();
   await page.getByRole("button", { name: "追加筛查记录" }).click();
-  await expect(page.getByRole("status").first()).toHaveText("待复核");
+  await expect(screening.getByRole("status")).toHaveText("待复核");
   await expect(page.getByText("SYN-ITEM-01：未知")).toBeVisible();
 
   await page.getByRole("button", { name: "创建评估草稿" }).click();
@@ -47,11 +56,11 @@ test("synthetic longitudinal enrollment, revisit, observed training and export p
   await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
   await expect(page.getByText("功能等级：IV", { exact: false })).toBeVisible();
   await page.goto(baselineUrl);
-  await expect(page.getByText(/当前版本 3 ·已确认记录/)).toBeVisible();
+  await expect(page.getByText(/当前版本 3 · 已确认记录/)).toBeVisible();
   await page.reload();
   await expect(page.getByText("人工 SPPB 总分：0 分")).toBeVisible();
   await expect(page.getByRole("heading", { name: "版本时间线" })).toBeVisible();
-  await expect(page.locator("ol li")).toHaveCount(3);
+  await expect(page.getByRole("region", { name: "版本时间线" }).locator("li")).toHaveCount(3);
   await page.getByRole("link", { name: /返回编号对象/ }).click();
   await expect(page).toHaveURL(/\/participants\/[0-9a-f-]+$/);
   let table = page.getByRole("table", { name: "编号对象的人工 SPPB 总分基线与复评序列" });
@@ -70,7 +79,7 @@ test("synthetic longitudinal enrollment, revisit, observed training and export p
   await page.getByRole("button", { name: "确认当前记录" }).click();
   await expect(page.getByRole("heading", { name: "太极训练演示" })).toBeVisible();
   await page.goto(revisitUrl);
-  await expect(page.getByText(/当前版本 3 ·已确认记录/)).toBeVisible();
+  await expect(page.getByText(/当前版本 3 · 已确认记录/)).toBeVisible();
   await page.getByRole("link", { name: /返回编号对象/ }).click();
   await expect(page).toHaveURL(/\/participants\/[0-9a-f-]+$/);
   await page.reload();

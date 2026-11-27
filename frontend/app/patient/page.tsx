@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "../workspace/auth";
+import { getCurrentUser } from "../../lib/auth";
 import { FeedbackLeaveGuard, PatientLogoutButton, UnsavedFeedbackNotice } from "./feedback-leave-guard";
-import { getPatientReports } from "../workspace/patient-reports";
-import { roleLabel } from "../workspace/role-label";
+import { getPatientReports } from "../../lib/patient-reports";
+import { roleLabel } from "../../lib/role-label";
 import { readPatientHome } from "./home";
 import RetryPatientHomeButton from "./retry-button";
 import PatientTaskFeedback from "./task-feedback";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { postIntake } from "../../workspace/intake";
-import type { PatientReview } from "../../workspace/patient-reviews";
+import { postIntake } from "../../../lib/intake";
+import type { PatientReview } from "../../../lib/patient-reviews";
 
 const resultText = { reviewed: "已核对", unable: "无法判定" };
 

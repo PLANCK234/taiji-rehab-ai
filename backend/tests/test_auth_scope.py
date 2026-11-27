@@ -1019,3 +1019,40 @@ def test_validation_error_never_echoes_password(seeded_api) -> None:
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "INVALID_INPUT"
     assert "sensitive-synthetic-string" not in response.text
+
+
+def test_local_demo_loopback_origin_alias_and_research_boundary(seeded_api, monkeypatch) -> None:
+    client, _, _ = seeded_api
+    credentials = {"email": "clinician@example.org", "password": "synthetic-password-123"}
+    response = client.post(
+        "/api/v1/auth/login", json=credentials, headers={"Origin": "http://127.0.0.1:3000"}
+    )
+    assert response.status_code == 200
+    csrf = client.cookies.get("taiji_csrf")
+    assert (
+        client.post(
+            "/api/v1/auth/logout",
+            headers={"Origin": "http://127.0.0.1:3000", "X-CSRF-Token": csrf},
+        ).status_code
+        == 204
+    )
+    monkeypatch.setenv("APP_PUBLIC_URL", "http://127.0.0.1:3000")
+    assert (
+        client.post(
+            "/api/v1/auth/login", json=credentials, headers={"Origin": "http://localhost:3000"}
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            "/api/v1/auth/login", json=credentials, headers={"Origin": "http://localhost:3001"}
+        ).status_code
+        == 403
+    )
+    monkeypatch.setenv("APP_PROFILE", "research")
+    assert (
+        client.post(
+            "/api/v1/auth/login", json=credentials, headers={"Origin": "http://localhost:3000"}
+        ).status_code
+        == 403
+    )

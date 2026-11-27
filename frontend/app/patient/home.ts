@@ -1,4 +1,4 @@
-import type { PatientHome } from "../workspace/patient-publication";
+import type { PatientHome } from "../../lib/patient-publication";
 
 export type PatientHomeResult =
   | { kind: "ready"; home: PatientHome }

@@ -13,7 +13,6 @@ async function login(page: Page) {
 
 async function fillDemo(page: Page, code: string, score: number) {
   await page.getByLabel("合成编号").fill(code);
-  await page.getByLabel("创建后直接完成 Demo 基础评估").check();
   await page.getByLabel("人工 SPPB 总分（0–12；留空为未评估）").fill(String(score));
   await page.getByLabel("测量日期（北京时间）").fill("2026-10-30");
   await page.getByLabel("明确记录模拟同意（仅合成数据）").check();
@@ -54,26 +53,18 @@ test("DEMO-V2: quick assessment locates missing fields and saves an explicit zer
     if (["POST", "PUT"].includes(request.method())) writes.push(new URL(request.url()).pathname);
   });
   const create = page.getByRole("button", { name: "创建编号对象" });
-  const quick = page.getByLabel("创建后直接完成 Demo 基础评估");
   const score = page.getByLabel("人工 SPPB 总分（0–12；留空为未评估）");
   const date = page.getByLabel("测量日期（北京时间）");
   const consent = page.getByLabel("明确记录模拟同意（仅合成数据）");
   await page.getByLabel("合成编号").fill("SYN-DEMO-QUICK-ZERO");
-  await quick.check();
-  await create.click();
-  await expect(score).toBeFocused();
-  await expect(score).toHaveAccessibleDescription("请填写人工 SPPB 总分。");
-  await expect(date).toHaveAccessibleDescription("请选择测量日期。");
-  await expect(consent).toHaveAccessibleDescription("请勾选模拟同意。");
-  await quick.uncheck();
-  await expect(page.getByText("请填写人工 SPPB 总分。")).toHaveCount(0);
-  await quick.check();
-  await create.click();
-  await expect(score).toBeFocused();
+  // An entered score starts the one-step flow, which then needs a date and explicit consent.
   await score.fill("0");
-  await expect(score).not.toHaveAttribute("aria-invalid", "true");
+  await date.fill("");
   await create.click();
   await expect(date).toBeFocused();
+  await expect(date).toHaveAccessibleDescription("请选择测量日期。");
+  await expect(consent).toHaveAccessibleDescription("请勾选模拟同意。");
+  await expect(score).not.toHaveAttribute("aria-invalid", "true");
   await date.fill("2026-10-30");
   await create.click();
   await expect(consent).toBeFocused();
@@ -280,6 +271,7 @@ test("DEMO-V2: explicit stop keeps minutes and RPE unknown", async ({ page }) =>
   await expect(page.getByText("功能等级：I", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "开始训练" }).click();
   await page.getByRole("button", { name: "中止训练" }).click();
+  await page.getByRole("button", { name: "确认中止" }).click();
   await expect(page.getByText("本次演示训练已中止", { exact: false })).toBeVisible();
   await page.reload();
   await expect(page.getByText("本次演示训练已中止", { exact: false })).toBeVisible();

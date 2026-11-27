@@ -144,6 +144,46 @@
 - 后端 Ruff 通过、pytest 42 passed/4 opt-in skipped；OpenAPI 快照同步。临时 PostgreSQL 迁移升/降/升及原 API 5 passed。前端 Node 26 容器 lint/typecheck/21 tests/build 通过。完整浏览器链路 7 passed，含完成动作刷新持久化、旧业务和跨对象拒绝。
 - 本机既有合成卷备份后从 `0006` 增量迁移至 `0007_demo_completed_actions`；核对 head、原 4 个 `SYN-` 对象、12 条动作和新列。重建后 API ready、登录页均 200；Research 未启动。本次未推送/合并 main。下一 Task ID `REAL-01E0`。
 
+## 2026-11-01 北京时间 · DEMO-V2-08 本地回环登录修复
+
+- 从干净的 `037c60a` 检查实际路由、配置与本机账号。用户提供的 403/request_id 映射到 `login → check_origin`：容器 `APP_PUBLIC_URL=http://localhost:3000`，127 浏览器 Origin 在凭据校验前被拒；错误处理统一显示 FORBIDDEN。修复前用无效凭据复现 127→403、localhost→401、外部→403；3 个演示账号均启用。
+- 仅对已启用的合成本地/测试 Demo 的 HTTP 回环公开地址接受同端口别名。`require_csrf` 共用该检查；Research 准入、账号/限流、作用域和数据卷未改。修复后用实际账号经本机 Next→FastAPI 登录：127/localhost→200，外部→403。后端 Ruff、pytest 43 passed/4 skipped；临时 PostgreSQL/Next/Chromium 8 passed。仅重建本机 backend，无数据库迁移或数据重置。下个 Task ID 仍为 `REAL-01E0`。
+
+## 2026-11-26 · DEMO-V2-09 AI视频评估方案
+
+- 用户要求先全局看项目并写AI评估思路。从干净工作区、分支 `feat/real-01f0-coded-export` / `80993bf` 核查产品/验收/路线/交接/量表/架构/研究文档和实际人工评估、Demo规则、姿态SVG页面；未找到原量表附件或太极逐项评分表。
+- 新增AI方案与ADR-0015，规划手机采集、关键点模型、骨架回放、可解释指标、AI候选、工作人员/专家审核和阶段/计划关联；太极动作表现与量表分开。查阅MediaPipe官方Web文档核对关键点/视频能力，未安装或执行模型。
+- 同步PRD范围说明、索引、验收、任务09–14、路线、Q-14/15、状态与追踪/交接。业务代码、配置、数据库、模型与摄像未变更；既有任务状态保留。
+- 系统python不在PATH；改用 `backend/.venv/Scripts/python.exe scripts/check_handoff.py`，通过（49 task IDs、local links OK）；`git diff --check`通过。未执行业务/模型/手机测试。文档未提交，未推送或合并；下一任务 `DEMO-V2-10`，旧 `REAL-01E0` 保留。
+
+## 2026-11-26 · DEMO-V2-10/11 实际识别实施与验证
+
+- 用户要求直接设可验证目标并实现。新增pose输入/几何服务/API、0008两表、原始输入/版本/哈希/指标及独立追加观察复核；前端AI新入口、固定SDK/模型、classic Worker真实推理、合成视频/测试摄像、骨架、报告/证据与历史。原人工量表和旧SVG页保持原语义；未做临床评分、阶段或剂量。
+- 内置imagegen生成虚构年长人物图用于固定测试视频，已检查全身画面；素材保存于frontend/public/pose-fixtures/，完整提示与来源见AI_POSE_VALIDATION。仅合成素材，没有真人患者。几何单测覆盖慢速4°变化/坐位/镜像/宽高比/遮挡，视频静态抖动则明确记录为限制。
+- 执行后端Ruff/52 passed/5 opt-in skipped、独立PostgreSQL升降升/check与6 API、前端lint/typecheck/21 tests/build。最终真实Chrome模型→PostgreSQL→观察复核→刷新与旧Demo/训练 **8 passed (37.6s)**，runner退出0；exports/pose-browser-23fa682926/browser/有截图/last-run；包括空画面/缺模型/摄像拒绝/合成摄像流停止释放。
+- 保留失败：跨平台node_modules配置不匹配后备份到忽略exports目录再重装；Worker SDK.cjs MIME错误改.js；浏览器夹具需明确追加模拟同意（否则正确403）；本机Chrome替代未完成下载的Playwright浏览器；一次测试7通过后打印中文绝对路径退出1，已修复并最终退出0。Next构建安全提醒曾中断，重试可继续，未做依赖升级或关闭安全开关。
+- 所有迁移/种子仅在独立临时数据库；原共享卷未迁移/删除，测试容器与服务已停止。同步API/数据/产品/验收/ADR-0016及台账、状态、追踪、交接。任务10 DONE，11/13/14只完成所记子范围；下一任务11剩余实机与多场景验证，评分表依Q-14。检查点提交以本轮git log为准，无推送/合并。
+
+## 2026-11-26 · DEMO-V2-15 信号与恢复完善
+
+- 从干净f5b58d8接续。实现v2分段中位数/线性残差MAD，原始值与v1保留；曲线/骨架时刻联动；文件固定200ms媒体时间采样，每段新跟踪图；同键同输入重试，详情故障通过历史恢复。摘要不加载原点列/不返回series。新增0009只扩大版本约束，含v2拒绝降级。
+- 已知轨迹静态RMS0.771072°→0.481609°（37.54%）；4°慢变RMS0.086615°、范围3.42°；两周期8秒/周期的4°峰峰值RMS0.091788°、范围3.96°。只证明数值轨迹效果，不代表老年人群或视频精度。ADR-0017记录滤波损失短峰、曲率/漂移与噪声代理限制。
+- Ruff、后端59/6skip；独立PostgreSQL迁移/check/升降升及7场景，含真实旧快照升级、v2回退拒绝；前端lint/typecheck/25 tests/build；最终实际模型浏览器9通过(39.6s)，runner退出0。覆盖故意250ms慢分发、服务器提交成功后响应丢失、重试后详情503、历史恢复/提示清除、窄屏、旧Demo/训练。证据exports/pose-browser-34c0eb4513/browser/，已目视桌面/窄屏图表，修复字体缩放和关节换行。
+- 全部测试数据库为独立tmpfs，原共享卷不操作。Next旧版本构建安全提醒曾中断，按提示重试可继续；只读audit报告8项moderate，尚未改依赖。同步产品/API/数据/安全/验收/测试/状态/追踪/交接。任务15完成，下一仍为11实机/多场景，Q-14/15评分/阶段依赖不变。本地提交见git log，无推送/合并。
+
+## 2026-11-26 · DEMO-V2-16 Next修复补丁
+
+- 任务15先提交为`afd29c4`。复核npm audit与Next官方公告，7项Next和1项工具链moderate；固定Next/eslint-config-next16.4.5，重解析其依赖锁，无强制overrides/安全开关改动。React/TypeScript/姿态SDK模型与后端不变。
+- 全量/生产audit均0，原JSON在exports/pose-audit-{before,after,prod-after}.json；lint/typecheck/25 tests/build通过，补丁构建一次成功。真实模型→数据库→故障恢复/旧Demo训练9通过(40.2s)，runner退出0，证据exports/pose-browser-2692906a8a/browser/。不是临床精度验收。
+- 仅使用独立测试库，服务/容器已停止，无共享卷操作或生产发布。后端59/6skip与PostgreSQL7沿用15源码相同的证据，不宣称重跑。同步验证文档/任务/状态/追踪/交接；下一任务仍11实体机/多场景与Q-14评分表。本地补丁提交见git log，无推送/合并。
+
+## 2026-11-26 DEMO-V2-57/58/59（feat/ux-refresh，原记 17/18/19）
+
+- 先把 `feat/real-01f0-coded-export` 上未提交的逐项修正工作（0010、复核面板）在测试通过后提交为 `5875d96`，再开新分支。
+- 后端：更正原因改自由文本（0011 放宽列长）；动作库写入真实要领，种子可更新自有 DEMO_ONLY 行；Demo 训练记录用动作名命名；`pose-geometry-v3` 增加躯干倾斜、骨盆左右/上下移动、左右幅度差。
+- 前端：重组为 `lib/` + `components/`，统一 `lib/api.ts`；新中式设计系统与 AppShell；登录页服务状态与演示账号快填；一步建档；对象页流程进度与下一步；两步确认中止；删除旧 SVG 姿态演示页与模拟 API 测试。
+- 文档：STATUS 精简，历史移至 `docs/archive/`；新增设计系统、小程序方案、ADR-0025；删除过时 MANIFEST.json。
+- 验证：后端 77 passed/6 skip；PostgreSQL 7 passed；前端 28 tests；真实浏览器 12 passed；截图人工检查。
 ## 2026-11-05 北京时间 · DEMO-V2-08
 
 - 用户要求降低黑色界面的压抑感，并先为练习添加播放区域；暂无视频素材。独立分支 `codex/demo-light-video-slot` 从 `main` 的 `1fdd767` 开始。
@@ -741,3 +781,11 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 训练步骤接入团队已有摄像头任务，切步卸载释放；结束填写进入反馈。保留正式动作投影、主动关联/摘要确认、历史聚焦、医护复核；补充版本变化不继承旧摘要/关联、保留草稿和跨更正的原重试键。后端64测试及独立PostgreSQL迁移升/check/空库降/升通过，未碰现用0015数据库。首轮前端类型检查指出旧测试夹具缺新增字段，补齐后通过。前两轮浏览器各18/19通过，分别为新旧区域名称重叠和Next自带alert与表单alert定位重复，均限定范围修正，失败附件保留于忽略目录exports。最终结果见[合并证据](testing/PR9-MAIN-INTEGRATION.md)。
 
 最终本地验证：前端126项/lint/typecheck、生产构建、Chromium19项通过；后端64项及Ruff、临时库迁移检查通过。新增请求指纹同时随新建草稿保存，避免先更正另一条再返回丢失原重试键。实际PR及远端CI在推送后核实，不将本地通过冒充远端通过。
+
+## 2026-11-26 合入团队 main（7ad8d64）
+
+- 用户要求以本分支为准合并后提 PR。main 领先 116 个提交，37 个冲突文件。
+- 迁移：main 链 0008–0019 不变；姿态迁移改号 0020–0023 接在 0019 之后（单一 head），main 链上的现有库可直接 `upgrade head`。
+- 前端：main 新增共享模块移入 `lib/` 并统一重写导入；参与者页、工作台、登录、方案/训练页以本分支设计为准，保留 main 的患者发布、自报复核、周期、档案修订、人工观察、隐藏档案、重复编号跳转、北京时间测量日期、患者/管理员跳转、教学视频与姿态实验室入口。
+- 依赖：`@mediapipe/tasks-vision` 统一为 main 的 1.2.3；Next 保持 16.4.5；`prepare:pose` 同时准备 full（实验室）与 lite（AI 评估）模型。
+- 退出登录恢复“失败提示且不清除未保存提醒”的语义（main 测试）。ADR 改号 0025；姿态分支任务改号 DEMO-V2-49–61。

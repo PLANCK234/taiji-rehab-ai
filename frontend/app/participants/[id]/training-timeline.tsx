@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { TrainingTimeline } from "../../workspace/training";
+import type { TrainingTimeline } from "../../../lib/training";
 
 const completionText = {
   completed: "记录为完成", partial: "记录为部分完成",

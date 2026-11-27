@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import LogoutButton from "../workspace/logout-button";
+import LogoutButton from "../../components/logout-button";
 import styles from "./feedback-leave-guard.module.css";
 
 const LeaveContext = createContext<{

@@ -3,10 +3,10 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import PatientReportForm from "./report-form";
-import type { PatientReport } from "../workspace/patient-reports";
-import { postIntake } from "../workspace/intake";
+import type { PatientReport } from "../../lib/patient-reports";
+import { postIntake } from "../../lib/intake";
 
-vi.mock("../workspace/intake", () => ({ postIntake: vi.fn() }));
+vi.mock("../../lib/intake", () => ({ postIntake: vi.fn() }));
 const navigation = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: navigation.refresh }),

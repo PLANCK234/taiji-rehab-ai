@@ -17,6 +17,10 @@ Current proposals:
 - [ADR-0012](0012-training-observation-before-cycle.md): append-only observed activity and feedback before approved cycles/rules, without prescription or clinical triage.
 - [ADR-0013](0013-live-coded-demo-export.md): audited single-participant live Demo CSV, excluding identity and free text; not a frozen research snapshot.
 - [ADR-0014](0014-isolated-demo-rule-and-run.md): isolated `DEMO_ONLY` grade, catalog and persisted training run using existing observations/feedback.
+- [ADR-0015](0015-ai-video-assessment-proposal.md): proposed pose/geometry/candidate/review pipeline; separates Tai Chi performance from scale scoring; not implemented.
+- [ADR-0016](0016-local-pose-geometry-evidence.md): implemented local pose inference and server geometry evidence, independent append-only human observation review; no clinical scale/stage inference.
+- [ADR-0017](0017-pose-signal-and-retry.md): preserve raw v1/v2 evidence, segment smoothing/residual noise, media-time file sampling and idempotent save recovery.
+- [ADR-0025](0025-usable-demo-and-pose-v3.md): free-text correction reasons, one-step create form, real action guidance, pose-geometry-v3 posture/balance metrics, new design system; ADR-0008 preview shell removed.
 - [ADR-0015](0015-separate-patient-portal.md): separate planned patient portal with self-only access, clinician-published content and synthetic-first development.
 - [ADR-0016](0016-synthetic-patient-publication-card.md): append-only synthetic publish/withdraw test card without actionable plan or video content.
 - [ADR-0017](0017-synthetic-patient-self-report.md): separate append-only synthetic patient facts from staff observations, with explicit unknown states and no autonomous triage.

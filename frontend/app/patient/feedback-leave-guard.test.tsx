@@ -3,12 +3,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, expect, it, vi } from "vitest";
 import { FeedbackLeaveGuard, PatientLogoutButton, UnsavedFeedbackNotice } from "./feedback-leave-guard";
 import PatientReportForm from "./report-form";
-import { postIntake } from "../workspace/intake";
-import type { PatientReport } from "../workspace/patient-reports";
+import { postIntake } from "../../lib/intake";
+import type { PatientReport } from "../../lib/patient-reports";
 
 const navigation = vi.hoisted(() => ({ refresh: vi.fn(), replace: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
-vi.mock("../workspace/intake", () => ({ postIntake: vi.fn() }));
+vi.mock("../../lib/intake", () => ({ postIntake: vi.fn() }));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.mocked(postIntake).mockReset(); navigation.replace.mockReset(); document.cookie = "taiji_csrf=; max-age=0"; });
 const row: PatientReport = { publication_version: null, pose_summary: null, id: "revision-1", report_id: "report-1", participant_id: "synthetic-participant", revision_no: 1,
   observed_at: "2026-11-25T02:00:00Z", activity_state: "unknown", actual_minutes: null, discomfort_state: "unknown", discomfort_note: null,

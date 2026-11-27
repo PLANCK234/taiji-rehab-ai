@@ -1,5 +1,8 @@
 # Test strategy / quality gates
 
+DEMO-V2-15：`test_pose_signal.py`用已知真值/固定噪声种子测RMS与慢幅度保留；`test_pose_upgrade.py`在临时服务器内独立夹具库验证带旧记录升级和v2回退拒绝。前端增加采样计划/v1图表兼容测试；真实浏览器故意延迟Worker分发并中断已提交响应，分别检验固定采样和幂等重试。截图目视检查桌面/390px曲线与骨架。只有真实模型执行的浏览器证据才用于运行链路结论；不把数值轨迹误差称为人体识别精度。
+
+AI姿态实施增加[可验证目标](AI_POSE_VALIDATION.md)。后端`test_pose_analysis.py`覆盖已知角/慢小幅/坐位/宽高比/镜像/遮挡与时间；`test_pose_api.py`覆盖权限/幂等/保留AI原值/复核版本；`test_pose_postgres.py`进入独立迁移runner。`scripts/run_pose_browser.py`使用本机服务与tmpfs PostgreSQL执行真实Worker模型推理、合成静态视频、空画面、模型加载/摄像拒绝、持久化及旧Demo/训练回归；不是mock模型，也不是实体手机验证。
 `ENG-04I` checks the cumulative synthetic patient/staff branch on GitHub Actions without changing the CI workflow. The push run must match the intended commit and finish with backend, frontend, ML, docs and synthetic-browser jobs successful; browser logs must show the cleanup contract, 10 real Chromium cases and disposal of only the run's containers, network and images. A successful run skips the failure-artifact upload. This remains synthetic engineering evidence, not real-patient or clinical approval.
 
 `ENG-04J` updates CI Action runtimes to Node.js 24 while keeping the same five jobs and disabling `setup-node@v5` automatic package-manager caching to preserve the previous behavior. Accept a run only when its SHA matches the workflow change, all five jobs pass, the browser cleanup evidence is present, and no job log contains a Node.js 20 Action deprecation annotation. A green run skips `upload-artifact@v6`; `ENG-04K` separately checks that failure-only upload with a controlled synthetic probe and restores the green workflow. The unrelated frontend `punycode` warning does not satisfy or fail this runtime check.

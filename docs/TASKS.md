@@ -1,5 +1,6 @@
 # 任务台账
 
+> 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](archive/testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
 C-01 已实现实时检出调参与分层提示；下一步记录同一手机的侧身、外套、空画面表现。
 
 AT-PAT-02 合成动作多选：工作人员可在简化24式内独立选择、预览和发布。教学视频、实际训练指令和正式计划审批另行跟踪。
@@ -44,7 +45,7 @@ C-01 患者端合成联调已在隔离 Chromium 验证入口门禁、预览和�
 
 **C-01 实时骨架**：本地姿态实验室支持授权后选默认或后置摄像头，先预览取景，再启动实时识别、查看骨架和可见性提示，以及停止释放。浏览器已验证后置不可用时改选默认、窄屏竖向预览、拒绝后重试和取消后释放迟到的轨道。目标手机与浏览器确定后按[手机实测清单](testing/C-01-MOBILE-VALIDATION.md)验证，再接入患者训练步骤。C-02 的独立坐站对照继续由 S6-04 跟踪。
 
-> 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
+> 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](archive/testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
 
 状态仅使用 `NOT_STARTED`、`IN_PROGRESS`、`BLOCKED`、`IN_REVIEW`、`DONE`。`DONE` 必须附实际验证证据。临床与真实数据功能受 [待决问题](OPEN_QUESTIONS.md) 约束。
 
@@ -86,6 +87,28 @@ C-01 患者端合成联调已在隔离 Chromium 验证入口门禁、预览和�
 
 ## DEMO-V2 独立合成演示任务组（2026-10-31）
 
+### AI视频评估新增任务（2026-11-26）
+
+用户新增方向详见 [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)。以下任务不升级既有 S/REAL/ENG 完成状态。
+
+| Task ID | 目标 | 状态 | 最小修改范围 | 验收 / 证据 |
+|---|---|---|---|---|
+> 编号说明：AI 姿态分支与团队主分支曾各自使用 DEMO-V2-08–20。合并后姿态分支任务改记为 DEMO-V2-49–61（原 09→49 … 20→60，原登录回环修复 08→61）；旧提交与 [STATUS_HISTORY](archive/STATUS_HISTORY.md) 中保留原编号。
+
+| DEMO-V2-49 | 全局核查与AI视频评估方案 | DONE | docs方案、ADR-0015、索引/路线/交接 | AT-AI-DOC-01；实际代码核查、交接与diff检查，见STATUS |
+| DEMO-V2-50 | 合成关键点输入、指标、数据库报告与模型适配协议 | DONE | pose_analysis/api/schemas、0008迁移、契约/测试 | AT-AI-01；后端52 passed/5 skipped，独立PostgreSQL迁移/check/升降升+6 API通过；版本化原输入/指标/复核 |
+| DEMO-V2-51 | 姿态模型推理、样例和手机采集 | IN_PROGRESS | AI新页、Worker、本地模型资源、样例、E2E | AT-AI-02合成视频真实推理/失败分支通过；25/25帧单人关键点；实体手机性能/真实多样化动作未验 |
+| DEMO-V2-52 | 指定动作、版本化候选评分 | NOT_STARTED | backend/、报告页、评分配置 | AT-AI-03；依10/11及Q-14评分表，无表先报指标 |
+| DEMO-V2-53 | 人工审核/专家确认与计划关联 | IN_PROGRESS | pose_reviews、审核页、未来计划引用 | 已实现独立观察复核/原因/历史/并发拒绝；逐项量表修改、阶段/计划依12与Q-15，未完成 |
+| DEMO-V2-54 | 数据库/手机全流程与专家标注验证 | IN_PROGRESS | pose真实模型E2E、离线验证、文档 | 合成模型→PostgreSQL→复核→刷新与旧Demo/训练回归通过；实体机与专家标注精度未验，不能宣称临床准确率 |
+| DEMO-V2-55 | 信号抖动/慢小幅、固定文件采样、曲线与幂等重试 | DONE | pose v2、0009、采集/图表、回归与契约 | 静态数值RMS降低37.54%、慢变/两周期保留；59/6skip、PostgreSQL7、前端25、浏览器9通过；含详情故障恢复，见STATUS |
+| DEMO-V2-56 | Next修复补丁与识别链路回归 | DONE | frontend/package.json、pnpm锁、交接/验证 | 固定16.4.5；lint/typecheck/25测试/build/真实模型浏览器9通过；全量/生产audit均0；见STATUS |
+| DEMO-V2-57 | 姿态复核逐项人工修正 | DONE | 0010、pose_review、复核面板 | `modified_observations` + 逐项修正快照，AI 原值不变；后端/前端/浏览器测试通过 |
+| DEMO-V2-58 | 降低操作摩擦与界面重设计 | DONE | frontend 全部页面、lib/、components/、0011、种子动作 | ADR-0025；前端 28 单测、真实浏览器 12 passed；桌面/手机截图检查 |
+| DEMO-V2-59 | pose-geometry-v3 躯干与重心指标 | DONE | pose_analysis、0011、AI 报告页 | 已知几何单测（倾斜/骨盆归一化/缺失为 null）；PostgreSQL 7 passed；非临床评分 |
+| DEMO-V2-60 | 微信小程序 | NOT_STARTED | docs/product/MINIPROGRAM_PLAN.md、后端 Bearer 鉴权 | 先实现 token 鉴权 + ADR，再建 miniprogram/ 工程；HTTPS 部署依赖 Q-01/Q-10 |
+
+不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。当前分支 `feat/real-01f0-coded-export`，最新检查点以 Git 日志为准。
 不改变下方 REAL/ENG/S 状态；正式临床 S3-01 仍为 `BLOCKED`。`demo-rule-v1` 与 12 个动作均为 `DEMO_ONLY`。以下状态以实际 Git 分支和代码为准。
 
 | Task ID | 目标 | 状态 | 最小修改范围 | 验收 / 实测证据 |
@@ -98,6 +121,7 @@ C-01 患者端合成联调已在隔离 Chromium 验证入口门禁、预览和�
 | DEMO-V2-05 | 方案页、动作组合 | DONE | Demo API/Next 页面 | 数据库等级、刷新恢复、IV/缺失无自主组合；真实浏览器 |
 | DEMO-V2-06 | 12 条动作库、搜索/筛选/详情 | DONE | 种子、API、页面 | 幂等种子；真实 Chromium 卡片操作 |
 | DEMO-V2-07 | 训练状态、反馈、兼容与交接 | DONE | `demo_runs`、原训练/反馈、`0006`/`0007` 增量迁移、E2E/文档 | 后端 42 passed/4 opt-in skipped、临时 PostgreSQL 5 API、浏览器 7 passed；本机 `0007`、旧对象 4 条保留、动作 12 条；完成动作独立保存 |
+| DEMO-V2-61 | 本地双回环地址登录 403 修复 | DONE | `backend/app/api.py`、登录 API/Chromium 回归、交接文档 | AT-DEMO-06；真实登录 API 127/localhost 均 200、外部来源 403；后端 43 passed/4 skipped、浏览器 8 passed；Research 门禁保持 |
 | DEMO-V2-08 | 明亮配色与练习视频区域 | DONE | 前端全局样式、动作详情/训练页视频区域、组件测试 | 2026-11-05：隔离 Docker 构建、lint、typecheck、23 项前端测试通过；浏览器登录页视觉核对。本机登录来源运行配置由临时外链改回 `127.0.0.1:3000`，错误测试账号 401、异源 403、ready 200。视频尚无素材，明确显示待添加；AT-DEMO-07 |
 | DEMO-V2-09 | 临时外网演示入口与本机登录共存 | DONE | `backend/app/api.py`、认证测试、`infra/compose.yaml`、本机运行配置 | 2026-11-05：后端 43 passed/4 skipped、Ruff/Compose config 通过。原隧道 QUIC 超时导致 1033，已改用 HTTP/2 新隧道；新外网 `/login` 200，外网/本机无效测试凭据均 401，ready 200。无真实密码跨网测试；临时域名不保证持续可用 |
 

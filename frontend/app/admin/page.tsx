@@ -1,9 +1,9 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "../workspace/auth";
-import LogoutButton from "../workspace/logout-button";
+import { getCurrentUser } from "../../lib/auth";
+import LogoutButton from "../../components/logout-button";
 import StaffConsole from "./staff-console";
-import { roleLabel } from "../workspace/role-label";
+import { roleLabel } from "../../lib/role-label";
 
 export const dynamic = "force-dynamic";
 

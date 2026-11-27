@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { postIntake } from "../../workspace/intake";
-import type { PatientPublication, PublicationReadiness, SyntheticCardOption } from "../../workspace/patient-publication";
+import { postIntake } from "../../../lib/intake";
+import type { PatientPublication, PublicationReadiness, SyntheticCardOption } from "../../../lib/patient-publication";
 
 type Operation = "publish" | "withdraw";
 type PublicationAttempt = {

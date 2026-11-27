@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPoseFrame, JOINT_DEFINITIONS, liveFraming, type JointName } from "./pose-analysis";
 import { createLandmarker, drawSkeleton } from "./pose-rendering";
 import type { LiveSummary } from "./live-pose-summary";
-import type { PatientPoseCounts } from "../../../workspace/patient-reports";
+import type { PatientPoseCounts } from "../../../../lib/patient-reports";
 
 const joints = Object.keys(JOINT_DEFINITIONS) as JointName[];
 const framingMessages = {

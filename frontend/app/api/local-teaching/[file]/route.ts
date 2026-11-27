@@ -2,7 +2,7 @@ import { createReadStream } from "node:fs";
 import { realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { getCurrentUser } from "../../../workspace/auth";
+import { getCurrentUser } from "../../../../lib/auth";
 import { readPatientHome } from "../../../patient/home";
 import { localTeachingVideos } from "../../../patient/local-teaching-server";
 import { videoRange } from "../../../patient/local-teaching";

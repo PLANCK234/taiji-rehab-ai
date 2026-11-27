@@ -1,5 +1,9 @@
 # Data dictionary and missingness
 
+**DEMO-V2-19增补**：pose-geometry-v3 追加 `posture`（躯干偏离竖直角度、骨盆左右/上下移动占躯干长度%）与 `symmetry`（左右平滑幅度差，度）；均为图像平面描述量，缺失为 null。`assessment_revisions.change_reason` 列宽 64→240（迁移 0011）。
+
+**DEMO-V2-15增补**：pose-geometry-v2保留v1原始角度/范围，追加`series.smoothed_angles`和各关节`smoothed_range_p05_p95_deg`（度）、`noise_sigma_deg`（度，高频残差代理）、`noise_residual_count`与`variation_status`。残差不足7个则噪声null；missing处原始/平滑均null，不把0°和未知混淆。`signal_processing`记录时间窗/分段/阈值；状态“高于残差”不等于真实动作或达标。v1没有这些字段时显示旧版未计算，不能展示为0。原始输入与旧结果不重算；列表仅摘要、完整证据在详情。
+
 | Variable | Type / unit | Source | Missingness / cautions |
 |---|---|---|---|
 | study_code | string | registration | no name/phone in general exports |
@@ -15,7 +19,7 @@
 | screening_record.item_code | `SYN-` code | synthetic staff entry | placeholder only; no clinical question or required set approved |
 | screening_record.answer | yes/no/unknown | synthetic staff entry | unknown is explicit; no answer implies not assessed |
 | screening.review_state | not_assessed/needs_review | API projection | never safe/eligible; even all answered remains needs_review |
-| intake.change_reason | `SYN-` code | synthetic staff entry | required for later consent records or same-item screening corrections |
+| intake / assessment change_reason | free text ≤240（ADR-0025；不进入 CSV 导出） | staff entry | required for later consent records or same-item screening corrections |
 | assessment.visit_kind | baseline/revisit | synthetic staff entry | visit label only; no approved visit schedule inferred |
 | assessment.protocol_version | `SYN-MANUAL-V1` | assessment API | synthetic marker, not a signed measurement SOP |
 | assessment_revision.state | draft/confirmed | assessment API | confirmation is staff record review, not a clinical grade or completed measurement when missing |
@@ -78,6 +82,11 @@ REAL-01F4 扩展：`record_type=synthetic_consent_record` 逐条导出模拟决�
 ## DEMO-V2 专用字段
 
 `demo_participant_profiles.age/sex/needs_assistance/note` 为可选虚构展示资料，`null` 为未知；不映射真实身份。`demo_grade_results.functional_grade` 为 `I|II|III|IV|UNASSESSED`，`demo_training_mode` 独立且 IV/UNASSESSED 为空；`rule_version=demo-rule-v1`、`evidence.marker=DEMO_RULE` 及 `assessment_revision_id` 记录依据。`demo_actions.marker=DEMO_ONLY`，不含临床剂量；`demo_runs.status` 为 in_progress/paused/awaiting_feedback/completed/stopped，`current_index` 为浏览进度，`completed_action_ids` 为实际完成动作的可空独立记录，`training_session_id` 关联原有观察。计划动作或浏览进度不得充当实际完成动作。`actual_minutes` 和 RPE 未记录均为 null，绝不默认为 0。
+# 视频姿态数据增补（2026-11-26）
+
+`pose_analyses.input_data`保存合成来源、固定模型版本/SHA-256、视频宽高、姿势/辅助方式和0起单调时间戳的33点序列；空序列为无人体/多人。坐标是模型估计，`visibility`是点可见性，不是临床置信概率。`result.metrics`的median_deg与range_p05_p95_deg为图像平面角度（度），coverage为有效帧/全部采样帧，observed_seconds不跨缺帧或>1秒间隔。少于3帧可用值为null，静态抖动可能产生非零范围；不解释为正常值/疾病程度。
+
+`pose_reviews.decision`为accepted_observations/needs_retake/rejected，reason必填，revision_no递增；接受观察不等于量表确认或处方发布。原人工assessment_revisions与DEMO_RULE分级含义保持原样。详见[API](../api/API_CONTRACT.md)、[ADR-0016](../decisions/0016-local-pose-geometry-evidence.md)。
 
 ## A-02 复核字段
 

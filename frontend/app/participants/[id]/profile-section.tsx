@@ -2,7 +2,7 @@
 
 import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DemoProfileHistory, DemoProfileRevision, intakeError, postIntake } from "../../workspace/intake";
+import { DemoProfileHistory, DemoProfileRevision, intakeError, postIntake } from "../../../lib/intake";
 
 const sexText = { female: "女", male: "男", other: "其他", unknown: "未知" };
 

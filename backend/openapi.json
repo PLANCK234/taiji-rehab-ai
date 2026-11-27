@@ -414,8 +414,7 @@
           "change_reason": {
             "anyOf": [
               {
-                "maxLength": 64,
-                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "maxLength": 240,
                 "type": "string"
               },
               {
@@ -1390,8 +1389,7 @@
           "change_reason": {
             "anyOf": [
               {
-                "maxLength": 64,
-                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "maxLength": 240,
                 "type": "string"
               },
               {
@@ -1970,6 +1968,450 @@
         "title": "PatientReportWrite",
         "type": "object"
       },
+      "PoseAnalysisView": {
+        "properties": {
+          "algorithm_version": {
+            "title": "Algorithm Version",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_sha256": {
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "algorithm_version",
+          "input_sha256",
+          "result",
+          "created_at"
+        ],
+        "title": "PoseAnalysisView",
+        "type": "object"
+      },
+      "PoseDetail": {
+        "properties": {
+          "algorithm_version": {
+            "title": "Algorithm Version",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "human_confirmation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PoseHumanConfirmation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_data": {
+            "$ref": "#/components/schemas/PoseInput"
+          },
+          "input_sha256": {
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "participant_id": {
+            "format": "uuid",
+            "title": "Participant Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/PoseReviewView"
+            },
+            "title": "Reviews",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "participant_id",
+          "algorithm_version",
+          "input_sha256",
+          "result",
+          "created_at",
+          "input_data",
+          "reviews",
+          "human_confirmation"
+        ],
+        "title": "PoseDetail",
+        "type": "object"
+      },
+      "PoseFrame": {
+        "additionalProperties": false,
+        "properties": {
+          "landmarks": {
+            "items": {
+              "$ref": "#/components/schemas/PosePoint"
+            },
+            "maxItems": 33,
+            "title": "Landmarks",
+            "type": "array"
+          },
+          "pose_count": {
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Pose Count",
+            "type": "integer"
+          },
+          "timestamp_ms": {
+            "maximum": 300000.0,
+            "minimum": 0.0,
+            "title": "Timestamp Ms",
+            "type": "number"
+          }
+        },
+        "required": [
+          "timestamp_ms",
+          "landmarks",
+          "pose_count"
+        ],
+        "title": "PoseFrame",
+        "type": "object"
+      },
+      "PoseHumanConfirmation": {
+        "properties": {
+          "decision": {
+            "enum": [
+              "accepted_observations",
+              "modified_observations"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "evidence_type": {
+            "const": "HUMAN_CONFIRMATION",
+            "default": "HUMAN_CONFIRMATION",
+            "title": "Evidence Type",
+            "type": "string"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "title": "Metrics",
+            "type": "object"
+          },
+          "review_id": {
+            "format": "uuid",
+            "title": "Review Id",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "review_id",
+          "revision_no",
+          "decision",
+          "metrics"
+        ],
+        "title": "PoseHumanConfirmation",
+        "type": "object"
+      },
+      "PoseInput": {
+        "additionalProperties": false,
+        "properties": {
+          "frames": {
+            "items": {
+              "$ref": "#/components/schemas/PoseFrame"
+            },
+            "maxItems": 1800,
+            "minItems": 3,
+            "title": "Frames",
+            "type": "array"
+          },
+          "height": {
+            "maximum": 7680.0,
+            "minimum": 16.0,
+            "title": "Height",
+            "type": "integer"
+          },
+          "model_sha256": {
+            "const": "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
+            "title": "Model Sha256",
+            "type": "string"
+          },
+          "model_version": {
+            "const": "mediapipe-pose-lite-float16-v1",
+            "title": "Model Version",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "synthetic_video",
+              "synthetic_camera"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "support": {
+            "enum": [
+              "unknown",
+              "standing",
+              "seated",
+              "supported"
+            ],
+            "title": "Support",
+            "type": "string"
+          },
+          "width": {
+            "maximum": 7680.0,
+            "minimum": 16.0,
+            "title": "Width",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source",
+          "model_version",
+          "model_sha256",
+          "width",
+          "height",
+          "support",
+          "frames"
+        ],
+        "title": "PoseInput",
+        "type": "object"
+      },
+      "PoseMetricCorrection": {
+        "additionalProperties": false,
+        "properties": {
+          "joint": {
+            "enum": [
+              "left_elbow",
+              "right_elbow",
+              "left_shoulder",
+              "right_shoulder",
+              "left_knee",
+              "right_knee"
+            ],
+            "title": "Joint",
+            "type": "string"
+          },
+          "metric": {
+            "enum": [
+              "median_deg",
+              "range_p05_p95_deg"
+            ],
+            "title": "Metric",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "validity": {
+            "enum": [
+              "valid",
+              "missing"
+            ],
+            "title": "Validity",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "joint",
+          "metric",
+          "validity",
+          "value",
+          "reason"
+        ],
+        "title": "PoseMetricCorrection",
+        "type": "object"
+      },
+      "PosePoint": {
+        "additionalProperties": false,
+        "properties": {
+          "visibility": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Visibility",
+            "type": "number"
+          },
+          "x": {
+            "maximum": 3.0,
+            "minimum": -2.0,
+            "title": "X",
+            "type": "number"
+          },
+          "y": {
+            "maximum": 3.0,
+            "minimum": -2.0,
+            "title": "Y",
+            "type": "number"
+          },
+          "z": {
+            "maximum": 10.0,
+            "minimum": -10.0,
+            "title": "Z",
+            "type": "number"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "z",
+          "visibility"
+        ],
+        "title": "PosePoint",
+        "type": "object"
+      },
+      "PoseReviewInput": {
+        "additionalProperties": false,
+        "properties": {
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/PoseMetricCorrection"
+            },
+            "maxItems": 12,
+            "title": "Corrections",
+            "type": "array"
+          },
+          "decision": {
+            "enum": [
+              "accepted_observations",
+              "modified_observations",
+              "needs_retake",
+              "rejected"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "decision",
+          "reason"
+        ],
+        "title": "PoseReviewInput",
+        "type": "object"
+      },
+      "PoseReviewView": {
+        "properties": {
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/PoseMetricCorrection"
+            },
+            "title": "Corrections",
+            "type": "array"
+          },
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "revision_no",
+          "decision",
+          "reason",
+          "recorded_by",
+          "recorded_at",
+          "corrections"
+        ],
+        "title": "PoseReviewView",
+        "type": "object"
+      },
       "PublicationAction": {
         "properties": {
           "code": {
@@ -2337,8 +2779,7 @@
           "change_reason": {
             "anyOf": [
               {
-                "maxLength": 64,
-                "pattern": "^SYN-[A-Z0-9_-]{3,60}$",
+                "maxLength": 240,
                 "type": "string"
               },
               {
@@ -5437,6 +5878,110 @@
         "summary": "Staff Reports"
       }
     },
+    "/api/v1/participants/{participant_id}/pose-analyses": {
+      "get": {
+        "operationId": "list_analyses_api_v1_participants__participant_id__pose_analyses_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PoseAnalysisView"
+                  },
+                  "title": "Response List Analyses Api V1 Participants  Participant Id  Pose Analyses Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Analyses"
+      },
+      "post": {
+        "operationId": "create_analysis_api_v1_participants__participant_id__pose_analyses_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoseAnalysisView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Analysis"
+      }
+    },
     "/api/v1/participants/{participant_id}/research-export.csv": {
       "get": {
         "operationId": "export_participant_demo_api_v1_participants__participant_id__research_export_csv_get",
@@ -5973,6 +6518,108 @@
           }
         },
         "summary": "Revise Report"
+      }
+    },
+    "/api/v1/pose-analyses/{analysis_id}": {
+      "get": {
+        "operationId": "get_analysis_api_v1_pose_analyses__analysis_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "analysis_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Analysis Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoseDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Analysis"
+      }
+    },
+    "/api/v1/pose-analyses/{analysis_id}/reviews": {
+      "post": {
+        "operationId": "review_analysis_api_v1_pose_analyses__analysis_id__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "analysis_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Analysis Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoseReviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoseReviewView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Analysis"
       }
     },
     "/api/v1/studies": {

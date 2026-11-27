@@ -1,6 +1,6 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
-import { postIntake } from "../../workspace/intake";
+import { postIntake } from "../../../lib/intake";
 
 type Snapshot = { metric_code: string; raw_value: string | null; unit: string; validity: string; missing_reason: string | null; performed_at: string | null; side: string; context_note: string | null; expected_revision: number; change_reason: string | null };
 type Row = { id: string; observation_id: string; revision_no: number; snapshot: Snapshot; recorded_by: string; recorded_at: string };

@@ -1,5 +1,7 @@
 # Security, privacy and clinical safety requirements
 
+DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页面即丢失，不写localStorage或持久缓存；界面允许重试/明确放弃，并禁止待保存时重新采集覆盖。服务器继续校验对象权限/同意/CSRF/幂等，客户端状态不代替授权。已提交但响应丢失可用同键恢复；历史摘要不含原始关键点或逐帧series，详情仍受同一权限保护。
+
 ## Core protection
 1. Individual accounts for research staff and, in Demo only, a synthetic patient; secure session cookie (HttpOnly, Secure, SameSite), CSRF protection, rate-limited login, password hash with proven scheme and proper secrets rotation.
 2. RBAC **and** participant/study scope checked by backend for each endpoint, CSV export, image read and model report.
@@ -12,6 +14,7 @@
 
 ## Implemented S1 synthetic-only boundary
 
+- Staff passwords use Argon2 via `pwdlib`; 32-byte opaque session tokens are hashed in PostgreSQL. Sessions expire after eight hours and are revoked on logout. Cookies are HttpOnly/Strict; `Secure` and `__Host-` prefix apply outside local/test HTTP. Logout requires a matching CSRF header and cookie; browser login origins are checked. In synthetic local/test Demo only, an HTTP loopback `APP_PUBLIC_URL` allows its same-port `localhost`/`127.0.0.1` counterpart; other origins and Research retain the configured-origin check.
 `DEMO-V2-11` adds only a synthetic patient account bound to one `SYN-` participant. The separate `/patient` page reads the own code from an audited Demo-only API. Staff study/object lists, object detail, export and Demo plan routes reject the patient role on the server. An assigned clinician can revoke the binding with CSRF; all active sessions are revoked and the retained binding cannot be reactivated by the seed. This is not a real patient identity, consent, release approval, or permission to expose clinical advice.
 
 `DEMO-V2-12` adds a fixed, non-actionable synthetic test card, never a clinical plan. Publication requires clinician role, study/object assignment, active binding, current simulated consent, CSRF, idempotency key and expected version; withdrawal appends a new event and remains available after consent changes. Patient reads recheck binding, latest event and consent. The server never accepts plan text, action/dose or video URL from this route; no reviewed video is stored or served.
@@ -80,3 +83,6 @@ REAL-01B0 display profile revisions use the existing server-side staff role, stu
 
 ## Deployment gate (must sign off)
 Approved protocol/ethics, purpose and consent language, legal retention, data-controller and hosting jurisdiction, access roster, incident response ownership, image policy, backup/restore test, dependency and vulnerability review. Product claims and potential medical-device status require institutional/regulatory review; this document does not certify compliance.
+# 合成视频识别增补（2026-11-26）
+
+新入口`/participants/{id}/ai-assessment`仅合成测试；与旧pose-demo的无采集SVG边界分开。摄像/文件解码及模型推理在浏览器本机，Worker按需加载本站固定版本资源。网络仅提交受控大小的关键点结构，不提交原视频；无远程推理API。退出/停止释放媒体轨道，卸载清理Worker与对象URL。关键点、指标与审核依然属于受保护对象数据，每条读写/复核走服务端RBAC和参与者范围、写操作CSRF/幂等/模拟同意，保留审计。客户端声明source与hash不是素材真实性或真实患者同意的证明；真实患者准入没有因此开放。手机安全上下文/实体机权限仍待验证。

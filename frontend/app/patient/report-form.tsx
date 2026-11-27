@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { postIntake } from "../workspace/intake";
-import { activityText, discomfortText, poseCountsText, type PatientPoseCounts, type PatientReport } from "../workspace/patient-reports";
+import { postIntake } from "../../lib/intake";
+import { activityText, discomfortText, poseCountsText, type PatientPoseCounts, type PatientReport } from "../../lib/patient-reports";
 import RetryPatientHomeButton from "./retry-button";
 import { useFeedbackLeaveWarning } from "./feedback-leave-guard";
 

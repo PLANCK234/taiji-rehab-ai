@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import PatientTaskFeedback from "./task-feedback";
 import { FeedbackLeaveGuard, UnsavedFeedbackNotice } from "./feedback-leave-guard";
-import type { PatientPoseCounts } from "../workspace/patient-reports";
+import type { PatientPoseCounts } from "../../lib/patient-reports";
 
 const camera = vi.hoisted(() => ({ release: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));

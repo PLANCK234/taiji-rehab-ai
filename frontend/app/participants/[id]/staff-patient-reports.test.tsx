@@ -2,8 +2,8 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import type { PatientReport } from "../../workspace/patient-reports";
-import type { PatientReview } from "../../workspace/patient-reviews";
+import type { PatientReport } from "../../../lib/patient-reports";
+import type { PatientReview } from "../../../lib/patient-reviews";
 import StaffPatientReports from "./staff-patient-reports";
 
 afterEach(cleanup);

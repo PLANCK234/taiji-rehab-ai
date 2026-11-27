@@ -1,5 +1,38 @@
 # Requirements traceability
 
+## 2026-11-26 DEMO-V2-16 依赖补丁追踪
+
+| 范围 | 实现 | 证据 |
+|---|---|---|
+| 构建/识别链路回归 | frontend/package.json及pnpm锁的Next/eslint-config-next16.4.5 | [验证记录](testing/DEPENDENCY_PATCH_VALIDATION.md)：audit全量/生产均0，lint/typecheck/25 tests/build通过；真实Worker模型/数据库/旧Demo/训练9通过(40.2s)，exports/pose-browser-2692906a8a/browser/ |
+
+## 2026-11-26 DEMO-V2-15 信号与采集完善
+
+| 验收 | 实现 | 证据/限制 |
+|---|---|---|
+| AI-SIGNAL-01..04 | `pose_analysis.py` v2，分段中位数/线性残差MAD，原始序列保留 | `test_pose_signal.py`固定种子：静态RMS降低37.54%，带噪4°慢变RMS0.086615°；两周期轨迹RMS0.091788°，范围3.96°；缺失/时间缺口不跨越。数值验证，不是人体精度 |
+| AI-CAPTURE-02 / AI-SAVE-02 | `pose-capture.ts`、采集页、可传固定幂等键的writeDemo/savePose | `pose.real.ts`实际模型+250ms故意慢分发仍200ms时间点、提交响应丢失后恢复无重复、随后详情503恢复与提示清除；390px截图/曲线；最终9通过(39.6s)，exports/pose-browser-34c0eb4513/browser/ |
+| AI-UPGRADE-02 / AI-LEGACY-02 | `0021_pose_geometry_v2`、v1函数/结果保留、摘要列表与图表兼容 | `test_pose_upgrade.py`带旧数据升级/存在v2拒绝回退；`test_pose_postgres.py`重开v1/v2；API完整详情/摘要区分；后端59/6skip，独立PostgreSQL7通过，前端25测试通过 |
+
+预设目标见[验证](testing/AI_POSE_VALIDATION.md)，取舍见[ADR-0017](decisions/0017-pose-signal-and-retry.md)。实体手机、真实连续太极与专家评分仍未验。
+
+## 2026-11-26 真实AI姿态实施追踪
+
+| 范围 | 实现 | 执行证据与未验范围 |
+|---|---|---|
+| DEMO-V2-10 / AT-AI-01 | `backend/app/pose_analysis.py`、`pose_schemas.py`、`pose_api.py`、`0020_pose_analyses`，原始输入/指标与独立复核表 | `test_pose_analysis.py`、`test_pose_api.py`、`test_pose_postgres.py`；后端52/5skipped、独立PostgreSQL升降升/check与6 API通过 |
+| DEMO-V2-11 / AT-AI-02子范围 | `frontend/workers/pose-worker.js`、固定SDK与模型锁、prepare-pose、新AI页面、合成素材 | `frontend/e2e/pose.real.ts`实际模型，`run_pose_browser.py`；`exports/pose-browser-23fa682926/browser/pose-report.png`与.last-run.json；最终8场景通过，含合成摄像流停止/释放；曾25/25采样帧单人检测；无实体手机或人群准确率证据 |
+| DEMO-V2-13/14子范围 / AT-AI-04/05 partial | 原AI结果不覆盖、观察复核独立修订、历史骨架回放 | 浏览器确认/刷新、API幂等/并发/越权、空画面拒绝有效确认及旧Demo/训练回归；逐项量表评分、最终阶段/计划及专家标注验证未实现 |
+
+完整预设目标、复现命令及限制见[验证](testing/AI_POSE_VALIDATION.md)，设计取舍见[ADR-0016](decisions/0016-local-pose-geometry-evidence.md)。
+
+## 2026-11-26 AI视频评估设计追踪
+
+| 范围 | 文档 | 证据与边界 |
+|---|---|---|
+| DEMO-V2-09 / AT-AI-DOC-01 | [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)、[ADR-0015](decisions/0015-ai-video-assessment-proposal.md)、[任务](TASKS.md)、[Q-14/15](OPEN_QUESTIONS.md) | 已读人工评估、Demo规则、姿态SVG代码并核对官方模型文档；handoff与diff检查通过。仅设计交付，不代表量表/真实识别或模型准确率验收。 |
+
+> 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](archive/testing/S6-01-REMOTE-RECONCILIATION.md)。
 AT-POSE-01 实时识别优化由 `pose-analysis.test.ts` 验证侧身单侧可见、部分出框及未检出分类，由 `patient.real.ts` 验证无人画面提示并继续完成自报。
 
 AT-PAT-02 简化24式多选由 `patient.real.ts` 验证，覆盖 24 项清单、双选回显、撤回及历史反馈；`publication-controls.test.tsx` 验证当前任务置顶、历史默认折叠及最近十条分页。
@@ -78,7 +111,7 @@ S6-04 的离线工程切片见 `ml/sit_to_stand.py` 和 `ml/tests/test_sit_to_st
 
 S6-04 的 AT-POSE-01 单样本时间对照复用现有 10 Hz 导出。先以 0.1 秒间隔审看视频并记录直立过渡，再在目视划定的窗口抽取右髋和右膝角峰。五个区间、取峰规则及失败模式见[本机验证报告](testing/S6-04-5STS-LOCAL-VALIDATION.md)。独立计次和事件计时仍待验证。
 
-> 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](testing/S6-01-REMOTE-RECONCILIATION.md)。
+> 本分支证据只对应 `a69aac8` 上的本地合成预览版本，不适用于远端 `1f1d977` 的不同页面及新增工程功能。见[远端差异](archive/testing/S6-01-REMOTE-RECONCILIATION.md)。
 
 S6-03 对 AT-POSE-01：设计见 [姿态原型](product/POSE_PROTOTYPE.md) 和 [ADR-0023](decisions/0023-browser-local-pose-prototype.md)；实现为 `frontend/app/participants/[id]/pose-lab/`、固定模型/复制脚本、CSP 与功能开关。`pose-analysis.test.ts`、`pose-video-lab.test.tsx` 验证角度/未知/导出与文件门禁；`frontend/e2e/pose-lab.real.ts` 在隔离 PostgreSQL→FastAPI→Next→Chromium 用生成的合成素材录制短 WebM，至少一帧实际返回 33 点、技术结果/JSON 可用且分析无非 GET 请求。前端 lint/typecheck/build/47 tests，完整浏览器 11 passed，资源清理成功。仅工程可行性，不覆盖真实影像授权、持久化、五次坐站/SPPB/太极评分或临床验证。
 
@@ -173,6 +206,7 @@ DEMO-V2-16A 对 AT-PAT-02 只有[工程契约](product/SYNTHETIC_VIDEO_REVIEW_CO
 | AT-DEMO-01/02 | [流程](product/DEMO_USER_FLOW.md)、`backend/app/demo_rule.py`、`backend/app/assessment_api.py`、`frontend/app/workspace/create-participant-form.tsx`、`frontend/app/participants/[id]/demo/` | `backend/tests/test_demo_rule.py` 与 `test_manual_assessments.py`；`frontend/e2e/demo-v2.real.ts` 8→II、5→III、重开；只供合成展示 |
 | AT-DEMO-03 | `backend/app/seed_demo_actions.py`、`backend/app/demo_api.py`、方案页 | 12 条本地幂等种子；Chromium 搜索/等级筛选/详情弹窗；无医学照片 |
 | AT-DEMO-04/05 | `backend/alembic/versions/0006_demo_v2.py`、`0007_demo_completed_actions.py`、`demo_runs`、原 `training_sessions`/`training_feedback_revisions`、训练页 | PostgreSQL 浏览器开始/暂停/继续/结束/实际完成动作/RPE/完成/刷新与中止未知值 7 passed；API 无反馈拒绝完成、完成动作校验与重复提交；后端 42 passed/4 skipped |
+| AT-DEMO-06 | 原认证/作用域/审计、迁移、`backend/openapi.json`；DEMO-V2-08 `backend/app/api.py:check_origin` | `backend/tests/test_auth_scope.py` 校验两个本地同端口回环来源、异端口/外部拒绝和 Research 配置；真实登录 API 两来源 200、外部 403；Chromium 8 passed 含 127 登录与原越权流程。真实数据/临床审批不在本验收 |
 | AT-DEMO-06 | 原认证/作用域/审计、迁移、`backend/openapi.json` | 临时 PostgreSQL 升/降/升与旧 API 5 项、原浏览器越权与旧流程；真实数据/临床审批不在本验收 |
 | AT-DEMO-07 | `frontend/app/style.css`、`frontend/app/participants/[id]/demo/demo-video.tsx`、方案动作详情与训练页 | `demo-video.test.tsx` 验证无素材占位与本地素材播放控件；隔离 Docker 前端 lint/typecheck/23 tests/build；浏览器登录页视觉核对。尚无实际视频素材，未验收真实视频播放 |
 | DEMO-V2-09 本机与临时外网登录来源 | `backend/app/api.py`、`infra/compose.yaml` | 后端 pytest 43 passed/4 opt-in skipped（含 `test_auth_scope.py` 11 passed）；Ruff 与 Compose config；临时外网登录页 200，外网/本机无效凭据 401，ready 200。未用有效密码做外网验收；非 local/test 不接受额外本机来源 |

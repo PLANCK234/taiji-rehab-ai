@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { postIntake } from "../workspace/intake";
-import { roleLabel } from "../workspace/role-label";
+import { postIntake } from "../../lib/intake";
+import { roleLabel } from "../../lib/role-label";
 
 type ScopeItem = { id: string; code: string; study_id?: string };
 type Staff = { id: string; email: string; role: string; is_active: boolean; study_ids: string[]; participant_ids: string[] };

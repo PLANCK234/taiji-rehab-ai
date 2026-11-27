@@ -12,6 +12,7 @@ from sqlalchemy import (
     Index,
     String,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
@@ -21,6 +22,53 @@ from app.db import Base
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+class PoseAnalysis(Base):
+    __tablename__ = "pose_analyses"
+    __table_args__ = (
+        CheckConstraint(
+            "algorithm_version IN ('pose-geometry-v1','pose-geometry-v2','pose-geometry-v3')",
+            name="ck_pose_algorithm",
+        ),
+        Index("ix_pose_participant_created", "participant_id", "created_at"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("participants.id"))
+    input_data: Mapped[dict] = mapped_column(JSON, nullable=False)
+    input_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    algorithm_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    result: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class PoseReview(Base):
+    __tablename__ = "pose_reviews"
+    __table_args__ = (
+        UniqueConstraint("analysis_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_pose_review_revision"),
+        CheckConstraint(
+            "decision IN ('accepted_observations','modified_observations',"
+            "'needs_retake','rejected')",
+            name="ck_pose_review_decision",
+        ),
+        CheckConstraint(
+            "(decision = 'modified_observations' AND json_array_length(corrections) > 0) OR "
+            "(decision <> 'modified_observations' AND json_array_length(corrections) = 0)",
+            name="ck_pose_review_corrections",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    analysis_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("pose_analyses.id"))
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    decision: Mapped[str] = mapped_column(String(32), nullable=False)
+    reason: Mapped[str] = mapped_column(String(1000), nullable=False)
+    corrections: Mapped[list] = mapped_column(
+        JSON, nullable=False, default=list, server_default=text("'[]'"),
+    )
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class User(Base):
@@ -444,7 +492,7 @@ class AssessmentRevision(Base):
     missing_reason: Mapped[str | None] = mapped_column(String(32))
     performed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     source: Mapped[str] = mapped_column(String(32), nullable=False)
-    change_reason: Mapped[str | None] = mapped_column(String(64))
+    change_reason: Mapped[str | None] = mapped_column(String(240))
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 

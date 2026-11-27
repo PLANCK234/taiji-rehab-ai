@@ -1,4 +1,4 @@
-import type { DemoAction } from "../../../workspace/demo";
+import type { DemoAction } from "../../../../lib/demo";
 
 // Add only reviewed, locally hosted Demo videos here when the owner supplies them.
 const VIDEO_SOURCES: Readonly<Record<string, string>> = {};

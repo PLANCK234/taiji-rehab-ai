@@ -5,7 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { GET } from "./route";
 
 const mocks = vi.hoisted(() => ({ user: vi.fn(), home: vi.fn(), videos: vi.fn() }));
-vi.mock("../../../workspace/auth", () => ({ getCurrentUser: mocks.user }));
+vi.mock("../../../../lib/auth", () => ({ getCurrentUser: mocks.user }));
 vi.mock("../../../patient/home", () => ({ readPatientHome: mocks.home }));
 vi.mock("../../../patient/local-teaching-server", () => ({ localTeachingVideos: mocks.videos }));
 let directory: string;

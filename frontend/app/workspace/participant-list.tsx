@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRef, useState, useSyncExternalStore } from "react";
-import type { AssignedStudy } from "./auth";
-import type { CodedParticipant } from "./intake";
-import type { DemoPlan } from "./demo";
+import { Badge } from "../../components/ui";
+import type { AssignedStudy } from "../../lib/auth";
+import { gradeNames, runStatusNames, type DemoPlan } from "../../lib/demo";
+import type { CodedParticipant } from "../../lib/intake";
 
 const preferenceChanged = "taiji-hidden-participants-changed";
 
@@ -34,11 +35,9 @@ function hiddenIds(value: string): Set<string> {
   }
 }
 
+/** Hiding is a per-account browser preference only; nothing is deleted on the server. */
 export default function ParticipantList({ accountId, participants, plans, studies }: {
-  accountId: string;
-  participants: CodedParticipant[];
-  plans: Record<string, DemoPlan | null>;
-  studies: AssignedStudy[];
+  accountId: string; participants: CodedParticipant[]; plans: Record<string, DemoPlan | null>; studies: AssignedStudy[];
 }) {
   const [search, setSearch] = useState("");
   const [showHidden, setShowHidden] = useState(false);
@@ -48,11 +47,11 @@ export default function ParticipantList({ accountId, participants, plans, studie
   const key = `taiji:workspace:hidden-participants:${accountId}`;
   const stored = useSyncExternalStore(subscribe, () => readPreference(key), () => "[]");
   const hidden = hiddenIds(stored);
-  const hiddenCount = participants.filter((item) => hidden.has(item.id)).length;
-  const studyById = new Map(studies.map((study) => [study.id, study.code]));
+  const hiddenCount = participants.filter(item => hidden.has(item.id)).length;
+  const studyById = new Map(studies.map(study => [study.id, study.code]));
   const query = search.trim().toLowerCase();
-  const list = participants.filter((item) => hidden.has(item.id) === showHidden);
-  const filtered = list.filter((item) => item.study_code.toLowerCase().includes(query));
+  const list = participants.filter(item => hidden.has(item.id) === showHidden);
+  const filtered = list.filter(item => item.study_code.toLowerCase().includes(query));
 
   function changeVisibility(id: string) {
     const next = hiddenIds(readPreference(key));
@@ -70,35 +69,42 @@ export default function ParticipantList({ accountId, participants, plans, studie
   }
 
   return <>
-    <label htmlFor="participant-search">搜索研究编号</label>
-    <input ref={searchInput} id="participant-search" type="search" value={search}
-      onChange={(event) => setSearch(event.target.value)} placeholder="输入完整或部分 SYN- 编号" />
-    {search ? <button type="button" className="text-button" onClick={() => {
-      setSearch("");
-      searchInput.current?.focus();
-    }}>清除编号搜索</button> : null}
-    <button ref={viewButton} type="button" className="text-button" onClick={() => {
-      setShowHidden(!showHidden);
-      setError("");
-    }}>{showHidden ? "返回显示中的档案" : `查看已隐藏（${hiddenCount}）`}</button>
-    {error && <p role="alert">{error}</p>}
-    <p role="status">{query
-      ? filtered.length ? `找到 ${filtered.length} 个编号对象。` : "没有匹配的编号对象。"
-      : showHidden ? `已隐藏 ${hiddenCount} 个编号对象。`
-        : `显示 ${list.length} 个已分配编号对象。`}</p>
-    {filtered.length ? <ul className="participant-list">{filtered.map((item) => {
-      const grade = plans[item.id]?.grade;
+    <div className="row" style={{ marginBottom: 12, flexWrap: "nowrap" }}>
+      <label htmlFor="participant-search" className="sr-only">搜索研究编号或演示名称</label>
+      <input ref={searchInput} id="participant-search" type="search" value={search}
+        onChange={event => setSearch(event.target.value)} placeholder="搜索 SYN- 编号…" />
+      {search ? <button type="button" className="btn-ghost btn-sm" onClick={() => { setSearch(""); searchInput.current?.focus(); }}>清除编号搜索</button> : null}
+    </div>
+    <div className="row between" style={{ marginBottom: 12 }}>
+      <p role="status" className="note" style={{ margin: 0 }}>{query
+        ? filtered.length ? `找到 ${filtered.length} 个编号对象。` : "没有匹配的编号对象。"
+        : showHidden ? `已隐藏 ${hiddenCount} 个编号对象。` : `显示 ${list.length} 个已分配编号对象。`}</p>
+      <button ref={viewButton} type="button" className="btn-ghost btn-sm" onClick={() => { setShowHidden(!showHidden); setError(""); }}>
+        {showHidden ? "返回显示中的档案" : `查看已隐藏（${hiddenCount}）`}
+      </button>
+    </div>
+    {error && <p className="form-error" role="alert">{error}</p>}
+    {filtered.length ? <ul className="participant-list">{filtered.map(item => {
+      const plan = plans[item.id];
+      const grade = plan?.grade;
+      const code = grade?.functional_grade;
+      const graded = code && code !== "UNASSESSED";
       return <li key={item.id}>
-        <span>
-          <strong><Link href={`/participants/${item.id}`}>{item.study_code}</Link></strong>
-          <small>{studyById.get(item.study_id) ?? "所属研究暂不可用"}</small>
-          <small>{grade ? `${grade.functional_grade} 级 · ${grade.rule_version}` : "尚无 Demo 分级"}</small>
-        </span>
-        <div className="button-row">
-          <Link href={grade ? `/participants/${item.id}/demo` : `/participants/${item.id}`}>
-            {grade ? "打开方案 →" : "打开评估 →"}
+        <span className={`grade-seal${graded ? "" : " muted"}`} aria-hidden="true">{graded ? code : "—"}</span>
+        <div className="grow">
+          <Link className="code" href={`/participants/${item.id}`}>{item.study_code}</Link>
+          <div className="meta">
+            <span className="hint">{studyById.get(item.study_id) ?? "所属研究暂不可用"}</span>
+            {grade ? <Badge tone={graded ? "jade" : "gray"}>{gradeNames[grade.functional_grade]}</Badge>
+              : <Badge tone="amber">待评估</Badge>}
+            {plan?.current_run && <Badge tone="blue">训练{runStatusNames[plan.current_run.status]}</Badge>}
+          </div>
+        </div>
+        <div className="row" style={{ gap: 6, flexWrap: "nowrap" }}>
+          <Link className="btn btn-secondary btn-sm" href={grade ? `/participants/${item.id}/demo` : `/participants/${item.id}`}>
+            {grade ? "打开方案 →" : "去评估 →"}
           </Link>
-          <button type="button" className="text-button" onClick={() => changeVisibility(item.id)}>
+          <button type="button" className="btn-ghost btn-sm" onClick={() => changeVisibility(item.id)}>
             {showHidden ? "恢复显示" : "隐藏"}
           </button>
         </div>

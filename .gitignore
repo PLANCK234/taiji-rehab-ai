@@ -22,3 +22,4 @@ uploads/
 exports/
 model-artifacts/
 frontend/public/pose-assets/
+.ruff_cache/

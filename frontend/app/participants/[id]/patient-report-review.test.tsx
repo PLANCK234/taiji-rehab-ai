@@ -3,10 +3,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { useState } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import PatientReportReview from "./patient-report-review";
-import { postIntake } from "../../workspace/intake";
-import type { PatientReview } from "../../workspace/patient-reviews";
+import { postIntake } from "../../../lib/intake";
+import type { PatientReview } from "../../../lib/patient-reviews";
 
-vi.mock("../../workspace/intake", () => ({ postIntake: vi.fn() }));
+vi.mock("../../../lib/intake", () => ({ postIntake: vi.fn() }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
 const review = {

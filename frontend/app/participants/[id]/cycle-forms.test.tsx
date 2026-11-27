@@ -2,8 +2,8 @@
 
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
-import type { SyntheticCycle } from "../../workspace/cycles";
-import type { TrainingTimeline } from "../../workspace/training";
+import type { SyntheticCycle } from "../../../lib/cycles";
+import type { TrainingTimeline } from "../../../lib/training";
 import CycleForms from "./cycle-forms";
 
 afterEach(cleanup);

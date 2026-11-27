@@ -3,9 +3,9 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import PublicationControls from "./publication-controls";
-import { postIntake } from "../../workspace/intake";
+import { postIntake } from "../../../lib/intake";
 
-vi.mock("../../workspace/intake", () => ({ postIntake: vi.fn() }));
+vi.mock("../../../lib/intake", () => ({ postIntake: vi.fn() }));
 
 beforeEach(() => vi.mocked(postIntake).mockReset());
 afterEach(cleanup);

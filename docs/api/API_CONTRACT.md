@@ -1,5 +1,20 @@
 # REST API contract (proposed /api/v1)
 
+## 2026-11-26 已实现的合成视频姿态分析
+
+**DEMO-V2-19/ADR-0018增补**：新建分析使用`pose-geometry-v3`（v1/v2 原样保留）。`result.posture`：`trunk_lean_median_deg`、`trunk_lean_range_p05_p95_deg`、`trunk_lean_variation_status`、`pelvis_lateral_range_pct_torso`、`pelvis_vertical_range_pct_torso`（占中位躯干长度%）、`valid_frames`、`coverage`、`reason`；`result.symmetry.{elbow,shoulder,knee}`：`left_range_deg`、`right_range_deg`、`difference_deg`（左−右，平滑幅度）；`series[].angles.trunk_lean`。关键点不足时为 null。所有 `change_reason` 改为自由文本（去空白，≤240，空白=未填），不再要求 `SYN-` 代码。
+
+**DEMO-V2-15增补**：新建分析使用`pose-geometry-v2`，旧v1结果不重算。原metrics字段保留，新增`smoothed_range_p05_p95_deg`、`noise_sigma_deg`、`noise_residual_count`、`variation_status`（insufficient_data/within_residual_noise/above_residual_noise）；`series`新增逐帧`smoothed_angles`，缺失仍为null。`signal_processing`保存参数与方法。仅高频残差代理，不是临床置信度。列表仍返回最近50条，但仅摘要（不返回series、不加载原关键点列）；GET详情返回原输入、完整series及复核。客户端提交失败使用同一Idempotency-Key重试；不同输入复用键仍409。字段与原量表/阶段不混用，详见[ADR-0017](../decisions/0017-pose-signal-and-retry.md)。
+
+| 路径 | 行为 |
+|---|---|
+| GET/POST `/api/v1/participants/{id}/pose-analyses` | 授权列表（最近50条）/幂等创建；POST仅clinician/research_assistant，需当前模拟同意、CSRF、Idempotency-Key |
+| GET `/api/v1/pose-analyses/{id}` | 授权详情：原关键点输入、服务器指标、输入SHA-256、算法/模型版本及人工复核历史 |
+| POST `/api/v1/pose-analyses/{id}/reviews` | clinician/clinical_approver追加观察复核；需同意、CSRF、幂等；expected_revision过期409；无指标不可accepted_observations |
+
+`PoseInput`仅接受`synthetic_video/synthetic_camera`，模型版本`mediapipe-pose-lite-float16-v1`及固定哈希；width/height、support、3–1800帧。每帧时间从0起严格递增、≤300000ms；landmarks恰33个或空，点包含有限x/y/z/visibility；pose_count为0/1/2，只有单人帧携带关键点，多人不选择第一个人。输入坐标域见OpenAPI；画面外/低可见点不计算角度。原视频不在请求中。
+
+`result`由服务端`pose-geometry-v1`计算，包含六关节角度中位数、P5–P95范围、有效覆盖/观察时间、逐帧角度及measured/not_assessable。角度为空不会转零。模型/算法版本、marker=DEMO_ONLY、evidence_type=MODEL_CANDIDATE保留；clinical_score与rehabilitation_stage为null。复核只确认观察指标，不发布分级或治疗建议。无修改/删除原分析接口；重跑使用新记录。详见[验证](../testing/AI_POSE_VALIDATION.md)。
 合成卡片选项提供 `SYN-24-01` 至 `SYN-24-24`。发布可提交 1–24 个互异的 `action_codes`，需确认选择，不能同时提交旧卡片代码。服务端按套路顺序保存动作编号与标题快照，通过 `actions` 返回；旧请求和旧记录仍兼容。[动作目录依据](https://tyxy.yau.edu.cn/__local/F/30/A4/06C022E94C47A353D1926073185_0B9FAB4F_1A977B.pdf?e=.pdf)
 
 新建任务关联的合成自报可带 `pose_summary`。仅接受三个整数计数 `sample_count`、`detected_count`、`framing_check_pass_count`；总采样大于零，取景通过数不大于检出数，检出数不大于总数。自报视图返回可空摘要；修订保留首次提交摘要。该字段不接收画面、逐帧内容、评分或角度。
@@ -12,6 +27,8 @@
 
 | Implemented path | Behavior |
 |---|---|
+| POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure. Origin must match `APP_PUBLIC_URL`; only synthetic local/test Demo with an HTTP loopback URL also accepts the same-port `localhost`/`127.0.0.1` alias. Other origins are 403 before credential checking. |
+| GET `/api/v1/auth/me` | Current staff ID, email, role; 401 if absent/expired/revoked |
 | POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure |
 | GET `/api/v1/auth/me` | Current account ID, email, role; 401 if absent/expired/revoked |
 | POST `/api/v1/auth/logout` | Requires matching CSRF header and cookie; revokes session |

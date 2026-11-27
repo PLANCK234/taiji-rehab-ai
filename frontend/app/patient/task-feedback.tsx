@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import PoseCamera from "../participants/[id]/pose-lab/pose-camera";
-import type { PatientPoseCounts, PatientReport } from "../workspace/patient-reports";
+import type { PatientPoseCounts, PatientReport } from "../../lib/patient-reports";
 import PatientReportForm from "./report-form";
 import PatientJourney from "./journey";
 import type { LocalTeachingVideo } from "./local-teaching";

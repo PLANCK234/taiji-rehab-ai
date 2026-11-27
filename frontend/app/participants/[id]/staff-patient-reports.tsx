@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { activityText, discomfortText, poseCountsText, type PatientReport } from "../../workspace/patient-reports";
-import type { PatientReview } from "../../workspace/patient-reviews";
+import { activityText, discomfortText, poseCountsText, type PatientReport } from "../../../lib/patient-reports";
+import type { PatientReview } from "../../../lib/patient-reviews";
 import PatientReportReview from "./patient-report-review";
 
 const beijingDate = new Intl.DateTimeFormat("sv-SE", {

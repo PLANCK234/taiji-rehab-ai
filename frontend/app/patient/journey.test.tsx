@@ -4,9 +4,9 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import PatientJourney from "./journey";
 import PatientReportForm from "./report-form";
-import { postIntake } from "../workspace/intake";
+import { postIntake } from "../../lib/intake";
 
-vi.mock("../workspace/intake", () => ({ postIntake: vi.fn() }));
+vi.mock("../../lib/intake", () => ({ postIntake: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 

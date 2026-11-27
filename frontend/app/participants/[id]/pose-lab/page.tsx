@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "../../../workspace/auth";
-import { getParticipant } from "../../../workspace/intake";
+import { getCurrentUser } from "../../../../lib/auth";
+import { getParticipant } from "../../../../lib/intake";
 import PoseVideoLab from "./pose-video-lab";
 import PoseCamera from "./pose-camera";
 import LivePoseSummaryReview from "./live-pose-summary-review";
