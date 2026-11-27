@@ -14,6 +14,7 @@
 | 人工评估 | 草稿 / 确认 / 追加更正，零分、缺失、无效严格区分 |
 | 太极训练 | 12 个动作（含要领与步骤），按等级自动组合；开始/暂停/继续/结束/反馈，刷新可恢复 |
 | AI 动作分析 | 浏览器本地 MediaPipe 识别 33 关键点（原视频不上传）；后端 `pose-geometry-v3` 计算关节角度、躯干倾斜、骨盆重心移动、左右差；工作人员可逐项修正复核 |
+| 五次坐站计时 | AI评估页打开已存骨架→生成候选用时→人工核对起止、修正/重测；AI与人工值分存，支持重试恢复和分页历史；不自动换算SPPB分 |
 | 数据导出 | 单对象编号化 CSV，不含身份与自由文本，附 SHA-256 |
 | 患者端 | 患者账号四步流程：查看已发布训练卡片与教学视频、本机摄像预览、提交自报反馈；医护端复核 |
 | 管理与周期 | `/admin` 人员授权；合成训练周期与访视；训练时间线 |
@@ -34,7 +35,7 @@ Start-Process http://localhost:3000
 演示账号（密码为 `.env` 中的 `DEMO_PASSWORD`，登录页可一键填入邮箱）：
 `demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，患者端 `demo-patient@example.org`。
 
-- 已有数据库：先备份，再执行 `alembic upgrade head`（当前头 `0023`）；重跑 `seed_demo_actions` 会更新动作要领文本。不要删除数据卷。
+- 已有数据库：先备份，再执行 `alembic upgrade head`（当前头 `0024`；新增坐站测量/复核表，有证据时拒绝回退）；本轮仅迁移隔离测试库，共享库未升级。重跑 `seed_demo_actions` 会更新动作要领文本。不要删除数据卷。
 - 忘记演示密码：在 `.env` 写新密码并临时设置 `RESET_DEMO_PASSWORD=true` 后重跑 `seed_demo`。
 - 可选复评夹具：`python -m app.seed_reassessment_demo`。
 

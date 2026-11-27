@@ -7,11 +7,14 @@ import type { Point, PoseDetail, PoseFrame, PoseInput, PoseSummary } from "../..
 import { fileDurationMs, MAX_CAPTURE_FRAMES, MAX_CAPTURE_MS, sampleTimes, seekFrame } from "../../../../lib/pose-capture";
 import MotionEvidence from "./motion-evidence";
 import PoseReviewPanel from "./pose-review-panel";
+import SppbPanel from "./sppb-panel";
+import type { TimingPage } from "../../../../lib/sppb";
 
 type Reply = { id: number; ready?: boolean; error?: string; landmarks?: Point[]; pose_count?: number };
 
-export default function PoseClient({ participantId, initialHistory, canWrite, canReview }: {
+export default function PoseClient({ participantId, initialHistory, initialMeasurements, canWrite, canReview }: {
   participantId: string; initialHistory: PoseSummary[] | null; canWrite: boolean; canReview: boolean;
+  initialMeasurements: TimingPage | null;
 }) {
   const video = useRef<HTMLVideoElement>(null), overlay = useRef<HTMLCanvasElement>(null);
   const worker = useRef<Worker | null>(null), stream = useRef<MediaStream | null>(null);
@@ -324,5 +327,7 @@ export default function PoseClient({ participantId, initialHistory, canWrite, ca
           <button type="button" className="btn-secondary btn-sm" disabled={busy} onClick={() => { void openReport(h.id).catch(e => setStatus(String(e))); }}>
             {h.result.status === "measured" ? "有测量指标" : "不可评估"} · 打开</button></li>)}</ul>}
     </section>
+    <SppbPanel participantId={participantId} source={report} initialPage={initialMeasurements}
+      canWrite={canWrite} canReview={canReview} busy={busy} onBusy={setBusy} onOpenSource={openReport} />
   </>;
 }

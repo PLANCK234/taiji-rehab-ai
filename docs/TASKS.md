@@ -7,7 +7,8 @@
 | DEMO-V2-62 | A0：核对并合并 PR #10，补 Docker 浏览器验收 | PR #10 最新提交全部 CI 通过；用户交接授权合并 | DONE | 五项 CI 成功；Docker 浏览器 20 项通过，含固定 3000 端口登录及清理；按精确 HEAD 合并为 `5ea8c44`。见 [证据](testing/PR10-MERGE-VALIDATION.md)；无业务或迁移变更 |
 | DEMO-V2-63 | A：后端五次坐站候选测量算法 | 已有本地坐站实验算法；合成关键点 | DONE | AT-AI-MEASURE-01；独立算法/CLI，自动及人工起点、第五次候选计时、未知原因、参数和哈希；15 项新增合成案例随全量后端 **110 passed / 6 skipped**，Ruff 通过。无 API/迁移/分级变更。见 [验证](testing/SPPB_MEASURE_VALIDATION.md) |
 | DEMO-V2-64 | 坐站候选测量持久化及逐项人工复核接口 | DEMO-V2-63；现有授权/同意/审计框架 | DONE | AT-AI-MEASURE-02：0024新表、OpenAPI、权限/同意/CSRF/幂等/并发、未知/分页/原值保留；Ruff、后端125/8skip、PG9、浏览器HTTP1及前端lint/typecheck/生产构建通过。见[证据](testing/SPPB_SERVICE_VALIDATION.md)；共享库未迁移 |
-| DEMO-V2-65 | AI评估页坐站测量及人工复核面板 | DEMO-V2-64 | IN_PROGRESS | `frontend/lib/sppb.ts`、ai-assessment面板及组件/E2E测试；AT-AI-MEASURE-03：已有骨架测量、人工起点、AI/人工结果分开、复核理由和历史、错误重试、分页及刷新；lint/typecheck/test/build，桌面1366/手机390截图与浏览器实测；无临床计分 |
+| DEMO-V2-65 | AI评估页坐站测量及人工复核面板 | DEMO-V2-64 | DONE | AT-AI-MEASURE-03：已有骨架测量、人工起点、独立人工结果/历史、失败恢复、409和分页；前端lint/typecheck、141项测试、生产构建、全套真实浏览器25项通过；1366/390截图亲检、无溢出、按钮≥44px。见[证据](testing/SPPB_UI_VALIDATION.md)；无临床计分 |
+| DEMO-V2-66 | 可选worldLandmarks及3D角度对照 | 当前MediaPipe Worker/既有2D版本与验证链 | NOT_STARTED | 扩展带版本的可选33点世界坐标输入并向后兼容；保留旧2D报告及缺失语义；仅3D角度对照，不推断地面距离或医学分；已知旋转/缺失单测与真实模型浏览器验证，必要时新增迁移，不改0024历史 |
 
 > 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](archive/testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
 C-01 已实现实时检出调参与分层提示；下一步记录同一手机的侧身、外套、空画面表现。

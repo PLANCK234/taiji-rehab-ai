@@ -7,6 +7,7 @@ import { Crumbs, FlowSteps, Notice, PageHeader } from "../../../../components/ui
 import { can, getCurrentUser } from "../../../../lib/auth";
 import { getConsentHistory, getParticipant } from "../../../../lib/intake";
 import { getPoseHistory } from "../../../../lib/pose";
+import { getTimingPage } from "../../../../lib/sppb";
 import PoseClient from "./pose-client";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,9 @@ export default async function AiAssessmentPage({ params }: { params: Promise<{ i
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookie);
   if (!participant) notFound();
-  const [history, consent] = await Promise.all([getPoseHistory(id, cookie), getConsentHistory(id, cookie)]);
+  const [history, consent, measurements] = await Promise.all([
+    getPoseHistory(id, cookie), getConsentHistory(id, cookie), getTimingPage(id, cookie),
+  ]);
   const granted = consent?.state === "granted";
   return <AppShell user={user}>
     <Crumbs items={[{ href: "/workspace", label: "研究工作台" }, { href: `/participants/${id}`, label: participant.study_code }, { label: "AI 动作评估" }]} />
@@ -35,6 +38,7 @@ export default async function AiAssessmentPage({ params }: { params: Promise<{ i
     {!granted && <div style={{ marginBottom: 18 }}><Notice tone="warn">请先返回编号对象记录有效的模拟同意，再进行采集。</Notice></div>}
     <div className="stack">
       <PoseClient participantId={id} initialHistory={history}
+        initialMeasurements={measurements}
         canWrite={granted && can.write(user.role)} canReview={can.review(user.role)} />
     </div>
   </AppShell>;

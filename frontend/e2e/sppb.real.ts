@@ -37,6 +37,7 @@ async function request(page: Page, path: string, body?: object, key = crypto.ran
 }
 
 test("saved pose yields durable SPPB candidate and append-only human timing through actual browser HTTP", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.goto("/login");
   await page.getByLabel("邮箱").fill("demo-clinician-a@example.org");
   await page.getByLabel("密码").fill(process.env.E2E_PASSWORD!);
@@ -89,4 +90,62 @@ test("saved pose yields durable SPPB candidate and append-only human timing thro
   expect(current.value.human_confirmation).toBeNull();
   expect(current.value.reviews).toHaveLength(2);
   expect((await request(page, `${path}?offset=1&limit=1`)).value.items).toEqual([]);
+
+  // Product UI: select the saved skeleton, specify a genuine zero start, retry a
+  // lost response, review, and reopen. All data still comes from actual PG APIs.
+  await page.goto(`/participants/${participantId}/ai-assessment`);
+  await page.getByRole("button", { name: /有测量指标 · 打开/ }).click();
+  const panel = page.getByRole("region", { name: "4. 五次坐站候选测量" });
+  await panel.getByLabel("指定人工起点").check();
+  await panel.getByLabel("人工起点（秒）").fill("0");
+  drop = true;
+  await panel.getByRole("button", { name: "生成坐站候选测量" }).click();
+  await expect(panel.getByRole("alert")).toContainText("提交结果暂无法确认");
+  await expect(panel.getByLabel("人工起点（秒）")).toHaveValue("0");
+  const uiSavedResponse = page.waitForResponse(response => response.url().endsWith("/sppb-measurements") && response.request().method() === "POST");
+  await panel.getByRole("button", { name: "生成坐站候选测量" }).click();
+  const uiSaved = await (await uiSavedResponse).json();
+  await expect(panel.getByText(/共 2 条/)).toBeVisible();
+  await panel.getByLabel("坐站复核结论").selectOption("modified_timing");
+  await panel.getByLabel("修正起点（秒）").fill("0");
+  await panel.getByLabel("第五次站起时刻（秒）").fill("10");
+  await panel.getByLabel("坐站复核说明").fill("网页核对起点和第五次站起");
+  await panel.getByRole("button", { name: "保存坐站人工复核" }).click();
+  await expect(panel.getByText("人工版本 1")).toBeVisible();
+  const values = panel.getByRole("region", { name: "当前坐站测量" });
+  await expect(values.getByText("10.6 秒", { exact: true })).toBeVisible();
+  await expect(values.getByText("10 秒", { exact: true })).toBeVisible();
+
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: `${process.env.E2E_OUTPUT_DIR}/sppb-desktop.png`, fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  for (const button of await panel.getByRole("button").all()) {
+    expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  }
+  expect((await panel.locator("label.check").boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: `${process.env.E2E_OUTPUT_DIR}/sppb-mobile.png`, fullPage: true });
+  await page.reload();
+  await panel.getByRole("button", { name: "打开坐站测量" }).first().click();
+  await expect(panel.getByText("人工版本 1")).toBeVisible();
+  await expect(panel.getByLabel("修正起点（秒）")).toHaveValue("0");
+  // Another reviewer saves while this screen remains on revision 1.
+  expect((await request(page, `/sppb-measurements/${uiSaved.id}/reviews`, { expected_revision: 1,
+    decision: "needs_retake", reason: "另一复核者要求重测" })).status).toBe(201);
+  await panel.getByLabel("坐站复核说明").fill("保留当前输入并核对冲突");
+  await panel.getByRole("button", { name: "保存坐站人工复核" }).click();
+  await expect(panel.getByRole("alert")).toContainText("记录版本已变化");
+  await expect(panel.getByLabel("坐站复核说明")).toHaveValue("保留当前输入并核对冲突");
+  await panel.getByRole("button", { name: "刷新坐站记录" }).click();
+  await expect(panel.getByText("计时版本 2 · 要求重测")).toBeVisible();
+  await expect(panel.getByText("尚无当前有效确认")).toBeVisible();
+  for (let i = 0; i < 4; i++) expect((await request(page, path, payload)).status).toBe(201);
+  await panel.getByRole("button", { name: "刷新坐站历史" }).click();
+  await expect(panel.getByText(/共 6 条 · 当前 1–5/)).toBeVisible();
+  await panel.getByRole("button", { name: "下一页坐站记录" }).click();
+  await expect(panel.getByText(/共 6 条 · 当前 6–6/)).toBeVisible();
+  await panel.getByRole("button", { name: "上一页坐站记录" }).click();
+  await expect(panel.getByText(/共 6 条 · 当前 1–5/)).toBeVisible();
 });

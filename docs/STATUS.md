@@ -4,11 +4,7 @@
 
 更新：2026-11-26 · PR #10 已合并 main `5ea8c44`；分支 `feat/sppb-measure-v1` · 迁移头 `0024_sppb_measurements`（只在隔离测试库应用）
 
-DEMO-V2-64 DONE：候选/人工计时独立持久化、分页、权限/重试/并发和回退保护。后端Ruff、125 passed/8 skipped、隔离PG 9 passed、真实浏览器HTTP 1 passed、前端lint/typecheck及生产构建通过。见 [证据](testing/SPPB_SERVICE_VALIDATION.md)。下一步网页面板。
-
-DEMO-V2-62 DONE：五项 CI 成功、Docker 浏览器 **20 passed**（含固定 3000 端口回环登录）、隔离资源清理通过。见 [证据](testing/PR10-MERGE-VALIDATION.md)。
-
-DEMO-V2-63 DONE：独立 `sppb-measure-v1` 坐站候选用时及离线 CLI；15 项新增合成测试，后端全量 **110 passed / 6 skipped**、Ruff 通过。尚未接入页面、API 或评估草稿。见 [验证](testing/SPPB_MEASURE_VALIDATION.md)。功能提交 `be8fbb5` 已推送，已创建 [草稿 PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)；该增量尚未合并，新 CI 结果待远端完成。
+DEMO-V2-64/65 DONE：AI页可从已存骨架生成五次坐站候选用时，人工指定起点、修正/重测并保留独立版本；含数据库持久化、分页、失败重试和冲突恢复。[接口证据](testing/SPPB_SERVICE_VALIDATION.md) / [网页证据](testing/SPPB_UI_VALIDATION.md)。[PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)仍为草稿，尚未合并；新提交CI不以旧基线代替。没有量表分或评估草稿副作用。
 
 ## 能做什么（合成数据 Demo）
 
@@ -22,17 +18,18 @@ DEMO-V2-63 DONE：独立 `sppb-measure-v1` 坐站候选用时及离线 CLI；15 
 | 训练观察 / 反馈 / 事件 | DONE | 追加版本，缺失不当作 0；事件可在反馈前单独报告 |
 | 编号化 CSV 导出 | DONE | 单对象实时导出，不含自由文本与身份信息，附 SHA-256 |
 | AI 视频动作评估 | DONE（工程） | 浏览器本地 MediaPipe 33 点 → 后端 `pose-geometry-v3`：6 关节角度/幅度、平滑与噪声、**躯干倾斜、骨盆左右/上下移动、左右幅度差** → 人工复核（可逐项修正） |
+| 五次坐站候选计时 | DONE（合成） | 已存骨架→候选计时→人工起止复核；AI/人工分存，支持分页/刷新/失败重试；不自动换算SPPB分 |
 | 患者端（四步流程） | DONE（合成） | 患者账号、发布卡片与教学视频、本机摄像预览、自报反馈与离开保护（团队主分支） |
 | 医护发布 / 自报复核 / 周期 / 人员管理 | DONE（合成） | 合成卡片发布与撤回、患者自报复核、训练时间线与合成周期、`/admin` 人员授权（团队主分支） |
 | 本地视频姿态实验室 | 开关启用 | `POSE_PROTOTYPE_ENABLED=true` 时出现；坐站计时对照（团队主分支） |
 | 微信小程序 | 准备中 | 设计令牌与页面映射见 [设计系统](product/DESIGN_SYSTEM.md)、[小程序方案](product/MINIPROGRAM_PLAN.md) |
 
-## 验证基线（2026-11-26，PR #10；本轮增量见上）
+## 最近验证（2026-11-26，本地）
 
-- 后端：`uv run ruff check .` 通过；`uv run pytest` **95 passed / 6 opt-in skipped**；OpenAPI 快照已重新生成。
-- PostgreSQL 门禁 `scripts/run_eng04_integration.py`：临时库迁移 0001→0023 升→check→降→升及 PG 测试 **7 passed**（含 0019→0020 衔接）。
-- 前端：lint、typecheck 通过；单元测试 **133 passed**（34 个文件，含 main 的患者端/实验室/发布测试）。
-- 真实浏览器 `scripts/run_pose_browser.py`（真实模型 → Next 生产构建 → FastAPI → 临时 PostgreSQL，`SEED_DEMO_ADMIN`/`POSE_PROTOTYPE_ENABLED` 开启）：全部 `*.real.ts` **24 passed**；仅排除需要固定 3000 端口的 127.0.0.1 登录用例（该用例由 Docker 版 `run_eng04b_browser.py` 覆盖，本轮未运行）。
+- 后端Ruff通过，pytest **125 passed / 8 opt-in skipped**；OpenAPI快照已生成。
+- 隔离PostgreSQL迁移0001→0024升/check/空库降/升、带旧数据升级及拒绝破坏性回退；PG测试 **9 passed**，含真实并发201/409。
+- 前端lint/typecheck通过，**141 tests / 36 files**；Next生产构建通过。
+- 全套真实浏览器 **25 passed**，含模型识别、旧训练/患者流程和坐站网页；1366/390截图已查看，无横向溢出，本面板按钮≥44px。固定3000端口127登录用例沿用[A0 Docker证据](testing/PR10-MERGE-VALIDATION.md)，本轮未重复。
 - 本机 Chrome 运行需设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`；单独跑某个用例可设 `E2E_SPECS="demo-v2.real.ts"`。远端 CI 尚未运行。
 
 ## 未完成 / 阻断

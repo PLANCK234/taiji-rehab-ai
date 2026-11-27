@@ -1,5 +1,7 @@
 # Requirements traceability
 
+AT-AI-MEASURE-03 / DEMO-V2-65：`frontend/lib/sppb.ts`、`ai-assessment/sppb-panel.tsx`与page/pose-client接线；纯逻辑/组件及实际浏览器见 [网页验收](testing/SPPB_UI_VALIDATION.md)；无新迁移或医学评分规则。
+
 AT-AI-MEASURE-02 / DEMO-V2-64：`sppb_api.py`、`sppb_schemas.py`、`sppb_review.py`、models与0024迁移；[接口/PG/浏览器证据](testing/SPPB_SERVICE_VALIDATION.md)，OpenAPI快照已更新；无临床计分。
 
 | 新增验收 | 实现 | 验证 |
