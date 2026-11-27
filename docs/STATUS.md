@@ -6,7 +6,7 @@
 
 本轮67 DONE：已记录[伦理批件CKLL-20260904与用户授权](evidence/CKLL-20260904.md)，将临床分级、剂量/禁忌、AI自动方案及准确率模块列为已授权待开发；固定seed初始化、专家调参和训练结局回归见[计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)。本轮文档/公开副本已做页内容/哈希/视觉、143任务ID/链接及diff检查，见[验收](testing/CLINICAL_SCOPE_VALIDATION.md)；无API/数据库/运行开关或临床数值变更。
 
-DEMO-V2-64/65 DONE：AI页可从已存骨架生成五次坐站候选用时，人工指定起点、修正/重测并保留独立版本；含数据库持久化、分页、失败重试和冲突恢复。[接口证据](testing/SPPB_SERVICE_VALIDATION.md) / [网页证据](testing/SPPB_UI_VALIDATION.md)。[PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)仍为草稿，尚未合并；新提交CI不以旧基线代替。没有量表分或评估草稿副作用。
+DEMO-V2-64/65 DONE：AI页可从已存骨架生成五次坐站候选用时，人工指定起点、修正/重测并保留独立版本；含数据库持久化、分页、失败重试和冲突恢复。[接口证据](testing/SPPB_SERVICE_VALIDATION.md) / [网页证据](testing/SPPB_UI_VALIDATION.md)。[PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)现已含67范围更新并转为可审核，尚未合并；新提交CI不以旧基线代替。现有运行没有量表分或评估草稿副作用。
 
 ## 能做什么（合成数据 Demo）
 
