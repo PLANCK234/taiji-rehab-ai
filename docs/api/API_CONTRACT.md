@@ -15,6 +15,13 @@
 `PoseInput`仅接受`synthetic_video/synthetic_camera`，模型版本`mediapipe-pose-lite-float16-v1`及固定哈希；width/height、support、3–1800帧。每帧时间从0起严格递增、≤300000ms；landmarks恰33个或空，点包含有限x/y/z/visibility；pose_count为0/1/2，只有单人帧携带关键点，多人不选择第一个人。输入坐标域见OpenAPI；画面外/低可见点不计算角度。原视频不在请求中。
 
 `result`由服务端`pose-geometry-v1`计算，包含六关节角度中位数、P5–P95范围、有效覆盖/观察时间、逐帧角度及measured/not_assessable。角度为空不会转零。模型/算法版本、marker=DEMO_ONLY、evidence_type=MODEL_CANDIDATE保留；clinical_score与rehabilitation_stage为null。复核只确认观察指标，不发布分级或治疗建议。无修改/删除原分析接口；重跑使用新记录。详见[验证](../testing/AI_POSE_VALIDATION.md)。
+合成卡片选项提供 `SYN-24-01` 至 `SYN-24-24`。发布可提交 1–24 个互异的 `action_codes`，需确认选择，不能同时提交旧卡片代码。服务端按套路顺序保存动作编号与标题快照，通过 `actions` 返回；旧请求和旧记录仍兼容。[动作目录依据](https://tyxy.yau.edu.cn/__local/F/30/A4/06C022E94C47A353D1926073185_0B9FAB4F_1A977B.pdf?e=.pdf)
+
+新建任务关联的合成自报可带 `pose_summary`。仅接受三个整数计数 `sample_count`、`detected_count`、`framing_check_pass_count`；总采样大于零，取景通过数不大于检出数，检出数不大于总数。自报视图返回可空摘要；修订保留首次提交摘要。该字段不接收画面、逐帧内容、评分或角度。
+
+合成患者新增自报时可传可选的 `publication_version`。服务端在本人作用域检查该版本为当前有效发布，撤回或替换后以 409 拒绝新关联。自报返回可空的 `publication_version`；已有记录保持空值，更正沿用原关联。
+
+合成患者卡片选项响应在 `code`、`title` 之外返回 `message`，供获分配医护预览；其正文与患者投影由同一服务端常量生成。响应增量字段不改变发布请求。
 
 **Status**: Sprint 1 implements authentication, coded reads and synthetic intake; S2-01 adds synthetic manual SPPB total assessment entry, and ENG-02A adds a read-only trend projection. Other routes remain design proposals. `GET /health` (`{"status":"ok"}`) and DB `GET /ready` (`{"status":"ready"}` or 503) are public. Implemented business routes are prefixed `/api/v1`; use JSON, UUIDs, server-side session/RBAC/study/participant scope. All require authentication except login. Error format is in [ERRORS.md](ERRORS.md).
 
@@ -22,6 +29,8 @@
 |---|---|
 | POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure. Origin must match `APP_PUBLIC_URL`; only synthetic local/test Demo with an HTTP loopback URL also accepts the same-port `localhost`/`127.0.0.1` alias. Other origins are 403 before credential checking. |
 | GET `/api/v1/auth/me` | Current staff ID, email, role; 401 if absent/expired/revoked |
+| POST `/api/v1/auth/login` | Validates email/password, rate limits, issues opaque HttpOnly session and readable CSRF cookie; generic failure |
+| GET `/api/v1/auth/me` | Current account ID, email, role; 401 if absent/expired/revoked |
 | POST `/api/v1/auth/logout` | Requires matching CSRF header and cookie; revokes session |
 | GET `/api/v1/studies` | Lists only assigned synthetic study codes |
 | GET `/api/v1/participants/{id}` | Returns code only when role, study assignment and participant assignment all permit it; otherwise 403 |
@@ -39,9 +48,31 @@
 | GET `/api/v1/training-sessions/{id}` | Scoped, audited observation detail |
 | GET/PUT `/api/v1/training-sessions/{id}/feedback` | Ordered append-only feedback history / expected-revision write; first revision 0, later corrections require reason; missing vs recorded mutually exclusive |
 | GET/POST `/api/v1/participants/{id}/safety-events` | Scoped list / independent idempotent fact report, possible before feedback; no clinical severity, escalation SLA or notification |
-| GET `/api/v1/participants/{id}/research-export.csv` | Audited, single-object live Demo CSV for existing read roles only; all assessment/feedback revisions, training sessions and event existence, no identity/free text; response has `X-Row-Count`, `X-Content-SHA256`, `X-Export-Mode: live-demo` and `Cache-Control: no-store` |
+| GET `/api/v1/participants/{id}/research-export.csv` | Audited, single-object live Demo CSV for existing read roles only; all synthetic consent/screening records, assessment/manual-observation/feedback/visit/patient-report revisions, synthetic cycle containers, training sessions and event existence, no identity/free text; patient role denied; response has `X-Row-Count`, `X-Content-SHA256`, `X-Export-Mode: live-demo` and `Cache-Control: no-store` |
+| GET `/api/v1/participants/{id}/training-timeline` | Assigned staff only; ordered observed sessions with time, completion state, actual minutes and latest feedback state/RPE; absent or missing feedback keeps RPE null; no plan denominator, completion rate, free text or clinical inference; audited, no-store |
+| GET `/api/v1/patient/me` | Demo-only patient role with active binding; returns own synthetic `study_code` and optional current non-actionable publication card; 403 when no active self binding, 401 when session is invalid; audit; no staff data, Demo plan or clinical advice |
+| POST `/api/v1/participants/{id}/demo-patient-binding/revoke` | Assigned clinician with CSRF revokes the active synthetic patient binding and its active sessions; audited; 404 if no active binding |
+| GET `/api/v1/participants/{id}/demo-patient-publications` | Assigned staff reads append-only synthetic publication/withdrawal versions; patient role denied |
+| POST `/api/v1/participants/{id}/demo-patient-publications` | Assigned clinician only; fixed non-actionable card, `publish|withdraw`, `expected_version`, literal synthetic acknowledgement, CSRF and idempotency key; no client plan/video content accepted |
+| GET `/api/v1/participants/{id}/demo-patient-publication-readiness` | Demo-only, assigned clinician and `SYN-` object; audited, no-store `{simulated_consent_granted,active_patient_binding,can_publish}` snapshot for UI guidance; POST rechecks all gates |
 
-These are synthetic-only demo routes. All intake and assessment writes require a matching `X-CSRF-Token` and `Idempotency-Key` (16–128 ASCII letters/digits/`._-`). Repeating a key with the same body returns the same record; using it with another body returns 409. Corrections append a record and require a `SYN-` change reason. Consent `granted` is only a simulated staff entry, not a verified signature or ethics approval. Screening returns `not_assessed` with no entries and `needs_review` with any entries; it never concludes safe/eligible. S6-01 adds only the server-guarded Next page `/participants/{id}/pose-demo` with a browser-local synthetic SVG preview; photo collection stays unavailable even when `photo_scope=true`, and there is no image API. Assessments accept only `baseline`/`revisit`, manual `sppb_total` in points, and protocol marker `SYN-MANUAL-V1`. Valid values are integer 0–12 plus timezone-aware `performed_at`; missing is null value plus reason and no measurement time; invalid can retain a raw value with a reason. An initial unrecorded draft cannot be confirmed. Measurement corrections need a `SYN-` reason. The expected revision yields 409 on stale writes, and all revisions retain actor and UTC time. There is no item scoring, grade, eligibility or advice endpoint. No identity mapping, real patient creation or export endpoint exists. See generated [OpenAPI](../../backend/openapi.json).
+`DEMO-V2-11` adds one seed-only synthetic patient binding and an independent `/patient` page. Patient role is denied staff study/object lists, object reads, exports and Demo plan routes by backend role checks. Revoked bindings are never silently reactivated by seed. There is no patient self-registration, real identity binding or published clinical plan/video. `DEMO-V2-13` later adds synthetic patient fact-report writing; see its separate contract below.
+
+`DEMO-V2-12` adds only a versioned `SYNTHETIC_PROCESS_ONLY` test card. The patient response contains `{study_code, publication}`; `publication` is null unless the latest event is `published` and current simulated consent is granted. The card contains version, state, fixed non-actionable message and `video_status=awaiting_review`; it contains no action list, dose, video URL or clinician-confirmed plan. Publishing requires an active binding and current simulated consent; withdrawing remains possible after consent changes. A stale `expected_version` returns 409. See [ADR-0016](../decisions/0016-synthetic-patient-publication-card.md).
+
+`DEMO-V2-15` adds assigned-clinician `GET /api/v1/participants/{id}/demo-patient-card-options` with two fixed non-actionable `{code,title}` choices. `POST .../demo-patient-publications` optionally accepts a whitelisted `card_code` and requires `selection_confirmed=true` when a code is selected; the original no-code request retains the legacy fixed-card behavior. Unknown codes, extra training/video fields and selected cards without confirmation return 422. Publication/history/patient-home views include nullable `card_code` and the immutable event `card_title`; old rows display the legacy title. A withdrawal carries forward the prior card snapshot. No video URL or clinical content is accepted. See [ADR-0022](../decisions/0022-selectable-synthetic-patient-cards.md).
+
+`DEMO-V2-17` adds a read-only publication readiness snapshot for an assigned clinician. The three booleans describe only current simulated consent and active synthetic patient binding; `can_publish` is their conjunction, not a clinical approval or guarantee of a future POST. The UI distinguishes a failed read from a false prerequisite and offers a full-page recheck after recording consent. Publish still rechecks the original server-side gates; withdrawal remains available when the prerequisites are false.
+
+`DEMO-V2-13` adds synthetic-only `GET/POST /api/v1/patient/reports`, `POST /api/v1/patient/reports/{report_id}` and assigned-staff `GET /api/v1/participants/{id}/patient-reports`. Reads return all revisions (empty means unknown). Writes require active patient binding, current simulated consent, CSRF, idempotency key and `expected_revision` (0 for new, current revision for correction); a correction needs a `SYN-` reason, stale versions return 409. The body has `observed_at` (timezone-aware), `activity_state=performed|not_performed|unknown`, optional `actual_minutes` only when performed, `discomfort_state=reported|none|unknown`, and `discomfort_note` only when reported. Responses include `report_id`, revision, actor and timestamps. No completion, risk category, notification or clinical action is inferred. See generated [OpenAPI](../../backend/openapi.json) and [ADR-0017](../decisions/0017-synthetic-patient-self-report.md).
+
+`REAL-01E0` adds assigned-staff `GET/POST /api/v1/participants/{id}/cycles` and `POST /api/v1/cycles/{cycle_id}/visits[/{visit_id}]`. Create/revise writes require current simulated consent, CSRF, idempotency key, expected revision and synthetic correction reason. Link IDs are checked against the same participant. GET returns every visit revision under each manually named cycle; no visit date, protocol schedule or outcome is inferred. The object page uses this API and reloads from PostgreSQL. See generated [OpenAPI](../../backend/openapi.json) and [ADR-0018](../decisions/0018-manual-synthetic-cycle-grouping.md).
+
+`ENG-02C` adds no API route or schema. The object page joins the existing participant-scoped cycle links with the separately authorized `training-timeline` response to show each linked observed session's current state, actual minutes and latest feedback/RPE. If the timeline is unavailable or a linked ID is missing, the page reports unavailable detail rather than inventing an observation. Prior visit revisions remain in the cycle response; this join is not a frozen visit-time result.
+
+`REAL-01B0` keeps `GET/POST /api/v1/participants/{id}/demo-profile` for current display fields and initial create. New `GET /api/v1/participants/{id}/demo-profile/revisions` returns `{participant_id,current_revision,records}` (empty records means unrecorded, a failed read is not empty). `POST .../demo-profile/revisions` submits a full age/sex/assistance/note snapshot plus `expected_revision` and a `SYN-` `change_reason`; it requires the existing staff write scope, CSRF and idempotency key. Stale/unchanged writes return 409. Old initial rows without creator metadata appear as `legacy_initial` with null actor/time; new writes carry actor/time. The existing initial row is never updated. See [ADR-0020](../decisions/0020-synthetic-profile-revisions.md).
+
+These are synthetic-only demo routes. All intake and assessment writes require a matching `X-CSRF-Token` and `Idempotency-Key` (16–128 ASCII letters/digits/`._-`). Repeating a key with the same body returns the same record; using it with another body returns 409. Corrections append a record and require a `SYN-` change reason. Consent `granted` is only a simulated staff entry, not a verified signature or ethics approval. Screening returns `not_assessed` with no entries and `needs_review` with any entries; it never concludes safe/eligible. S6-01 adds only the server-guarded Next page `/participants/{id}/pose-demo` with a browser-local synthetic SVG preview; photo collection stays unavailable even when `photo_scope=true`, and there is no image API. Assessments accept only `baseline`/`revisit`, manual `sppb_total` in points, and protocol marker `SYN-MANUAL-V1`. Valid values are integer 0–12 plus timezone-aware `performed_at`; missing is null value plus reason and no measurement time; invalid can retain a raw value with a reason. An initial unrecorded draft cannot be confirmed. Measurement corrections need a `SYN-` reason. The expected revision yields 409 on stale writes, and all revisions retain actor and UTC time. There is no clinical item scoring, eligibility or advice endpoint. No identity mapping or real patient creation exists; the separate single-object Demo CSV route above does not authorize real-data export. See generated [OpenAPI](../../backend/openapi.json).
 
 ENG-02A trend response is `{participant_id, entries}` ordered by assessment `created_at` and ID. Each entry has `assessment_id`, `visit_kind`, `created_at`, `current` (latest revision, including a pending draft) and `latest_confirmed` (most recent confirmed revision or `null`). The UI charts only `latest_confirmed` with `validity=valid` and non-null total; a later draft is shown separately. Missing, invalid and unconfirmed entries have no plotted value. This is descriptive history without a cycle schedule, clinical grade, efficacy label or result aggregation. A failed read is not an empty `entries` array.
 
@@ -97,6 +128,10 @@ Session POST: `{"session_at":"2026-10-01T01:30:00Z","action_label":"SYN-OBSERVED
 - 401 no login, 403 out of scope, 422 invalid/unknown medical input, 409 conflict, 423 locked snapshot, 503 dependency unavailable.
 - Audit actor, timestamp, object version and reason for clinical modifications and exports.
 
+## Synthetic staff administration (REAL-01A engineering subset)
+
+Only an authenticated `admin` in the Demo profile may call `GET /api/v1/admin/scope` and `GET /api/v1/admin/staff`. These return synthetic study/object codes and synthetic staff role, active state and assignment IDs; they do not return passwords. `POST /api/v1/admin/staff` creates a `demo-…@example.org` staff account (clinician, clinical approver, research assistant or analyst). `POST /api/v1/admin/staff/{id}` changes role or active state with `expected_role` and `expected_active`. `POST /api/v1/admin/staff/{id}/assignments` grants/revokes a `SYN-` study or object with `expected_assigned`. Object grant requires study grant. Study revoke also removes its object grants. All writes require CSRF and `Idempotency-Key`; stale state is 409. Deactivation and role change revoke sessions. Real identities, patient/admin creation and Research import are unavailable. See [ADR-0019](../decisions/0019-opt-in-synthetic-staff-admin.md).
+
 ## API documentation generation
 Once backend exists, commit its OpenAPI spec export and compare to this contract in CI. Amend this file deliberately whenever a public endpoint changes.
 
@@ -117,3 +152,38 @@ All endpoints use the existing staff session and server-side study/participant s
 | `POST /api/v1/demo-runs/{runId}/stop` | `{}`; persists `stopped` plus interrupted observation with unknown actual minutes; feedback/event can be added through existing endpoints |
 
 Assessment confirmation (`POST /assessments/{id}/confirm`) additionally persists one `demo_grade_results` per confirmed revision. Existing assessment/training response shapes and endpoints remain valid. The generated OpenAPI snapshot is `backend/openapi.json`.
+
+REAL-01C1 Demo 合成子集：GET/POST `/api/v1/participants/{id}/manual-observations`，POST `.../{observation_id}` 追加更正。快照含固定指标/单位、十进制字符串、有效性/缺失原因、时间/侧别/说明，服务端记录来源/操作者/时间；更正需预期版本与 SYN 原因。当前模拟同意、对象范围、CSRF 和幂等必需；不触发 SPPB 分级。REAL-01F1 已将结构化观察及修订纳入单对象 Demo CSV，说明文字仍排除；真实数据与临床使用未批准。
+
+## 2026-11-25 DEMO-V2-44 页面组织说明
+
+患者四步导航仅改变展示，不新增端点、字段或授权。`GET /patient/me` 与现有患者自报接口继续按服务端本人范围执行；步骤切换不调用训练或写入接口。反馈仍为独立事实记录，不得假定已有任务/训练会话关联。
+
+## DEMO-V2-45 本机试播媒体（Next.js路由）
+
+`GET /api/local-teaching/{file}`：仅显式开启的本机试播；`file` 必须是清单内 `teaching-NN.mp4` 或 `.jpg`。每次验证患者会话和当前本人绑定（后台Demo边界仍生效），不检查正式发布，因为这是独立的本机开发素材试播，不得作为正式发布接口使用。默认关闭404、未登录401、非患者/绑定失效403、服务不可用503、文件或路径不可用404、无效字节区间416。支持200/206与Content-Range，private/no-store，防止目录穿越与越界符号链接；无上传和写入接口。
+
+## DEMO-V2-46 本机摄像头准备
+
+不增加后端API、媒体上传或数据字段。浏览器仅在用户点击后调用getUserMedia({audio:false,video:...})，流停留在video.srcObject和组件内存，不进入训练/反馈请求、日志或持久化。本人页面原服务端授权不变。切步/页面退出/标签隐藏停止所有轨道。后续训练/C组复用前仍需约定流所有权与任务/会话标识，不能将预览状态当成训练完成。
+
+## DEMO-V2-47 反馈客户端失败处理
+
+无端点/字段/授权变更。postIntake增加可选AbortSignal，既有调用行为不变；患者表单在15秒后停止等待，不能据此判断服务器是否提交。同内容重试保持原Idempotency-Key和请求体；内容改变或用户明确采用新更正版本才使用新键。409需重新读取并明确选择最新版本后再以新expected_revision提交；不自动重写或提交。客户端草稿和幂等键仅在当前页面内保留，不能承诺跨刷新重试去重。
+
+## DEMO-V2-43 离开保护说明
+
+不增加端点或字段。LogoutButton接受可选客户端确认/成功回调，仅患者页配置未保存保护：取消确认时不发送POST /auth/logout，退出失败保留保护，成功响应后解除再跳转登录。工作人员原调用行为不变。草稿只留当前组件状态，确认离开不等于服务器取消已发出的保存请求，原请求幂等和超时不确定性语义保持不变。
+
+## A-02 合成反馈复核（0018）
+
+- `GET /api/v1/participants/{participant_id}/patient-report-reviews`：READ_ROLES + study/object scope，返回全部复核历史；失败不能当作空列表。
+- `POST` 同路径：clinician / research_assistant，Demo、SYN 编号、当前模拟同意、CSRF、Idempotency-Key、对象锁；只允许已关联发布的当前反馈修订。
+- 输入：`report_revision_id` UUID、`expected_review_no` 非负严格整数、`result=reviewed|unable`、`note` 去首尾空白后 1–500 字；拒绝额外字段。
+- 输出：id、report_revision_id、review_no、result、note、recorded_by UUID、recorded_at UTC。新建返回 201；相同幂等请求返回原记录；键复用不同内容、复核版本变化、旧反馈修订或无任务关联返回 409；无权限/跨对象返回 403；格式错误 422。
+- 源反馈与复核共享对象写锁；先校验权限，再检查幂等收据，再检查当前版本，已提交操作可在反馈更正后安全重试。撤回发布不抹去既有事实，仍可复核当前反馈；模拟同意撤回后只读。
+- 无更新/删除路由，不修改患者事实或分析；不返回给患者、不进入既有 CSV 自由文本导出；审计只记操作与编码对象。
+
+## DEMO-V2-48 合并后的患者客户端
+
+此前“四步未关联任务”的描述仅对应旧检查点。现沿用团队0016/0017的 `publication_version` / `pose_summary` 与0018医护复核合同，无新增后端端点或字段。关联和摘要均需主动确认；发布版改变后旧摘要失效、关联需重选。请求体实际改变时更换幂等键，未改内容的失败重试保持原键，包括暂去更正其他记录再返回。摄像头位于第三步，切步/标签隐藏/页面退出释放；计数不代表训练完成、评分或安全结论。

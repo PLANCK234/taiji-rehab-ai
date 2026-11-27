@@ -12,11 +12,11 @@
 
 后端Ruff、pytest **59 passed / 6 opt-in skipped**；独立PostgreSQL迁移/check/升降升及新旧API/带旧数据升级/危险回退拒绝 **7 passed**。前端lint/typecheck/**25 tests**与生产build通过。最终真实模型浏览器 **9 passed (39.6s)**，脚本退出0，证据`exports/pose-browser-34c0eb4513/browser/`；涵盖故意250ms慢分发的固定采样、提交成功但响应丢失后同键恢复、随后详情503时从历史恢复且清除过期失败提示、390px窄屏、曲线/骨架与旧Demo/训练。桌面/窄屏截图已查看，修复窄屏图表标签过小与关节名换行。任务15的工程出口已验证。
 
-迁移`0009_pose_geometry_v2`仅扩大版本约束，旧数据不改；v2存在时降级0008拒绝并保留两条测试记录。所有迁移/种子在独立tmpfs测试服务器及其夹具库，未动共享卷。`pnpm audit --json`只读复核仍报告现有依赖8项moderate；Next16.4.3构建提醒曾中断，重试可继续，未关闭安全开关、未自动升级依赖。下一步仍是11实体手机/多场景与Q-14专家评分表，不将本次参数冒充医学标准。决策见[ADR-0017](../decisions/0017-pose-signal-and-retry.md)。
+迁移`0021_pose_geometry_v2`仅扩大版本约束，旧数据不改；v2存在时降级0008拒绝并保留两条测试记录。所有迁移/种子在独立tmpfs测试服务器及其夹具库，未动共享卷。`pnpm audit --json`只读复核仍报告现有依赖8项moderate；Next16.4.3构建提醒曾中断，重试可继续，未关闭安全开关、未自动升级依赖。下一步仍是11实体手机/多场景与Q-14专家评分表，不将本次参数冒充医学标准。决策见[ADR-0017](../decisions/0017-pose-signal-and-retry.md)。
 
 ## 2026-11-26 DEMO-V2-10/11 真实姿态模型与证据闭环
 
-已实现新入口`/participants/{id}/ai-assessment`：合成视频/测试摄像、本机Worker内MediaPipe Pose Lite真实推理、33点连线、后端六关节角度/幅度/覆盖/时间指标、PostgreSQL原输入/结果/版本、临床角色追加观察复核及骨架证据刷新恢复。原视频不上传；不伪造SPPB/康复阶段/处方。`0008_pose_analyses`只增两张表，未迁移或删除原本机共享卷。
+已实现新入口`/participants/{id}/ai-assessment`：合成视频/测试摄像、本机Worker内MediaPipe Pose Lite真实推理、33点连线、后端六关节角度/幅度/覆盖/时间指标、PostgreSQL原输入/结果/版本、临床角色追加观察复核及骨架证据刷新恢复。原视频不上传；不伪造SPPB/康复阶段/处方。`0020_pose_analyses`只增两张表，未迁移或删除原本机共享卷。
 
 已执行：后端Ruff与pytest **52 passed / 5 opt-in skipped**；`scripts/run_eng04_integration.py`独立tmpfs PostgreSQL迁移/check/降/升及新旧API **6 passed**；前端lint/typecheck/**21 tests**通过，Next生产构建通过。真实Chrome→Worker模型→Next→FastAPI→PostgreSQL→人工观察复核最终浏览器套件 **8 passed (37.6s)**、脚本退出0，证据`exports/pose-browser-23fa682926/browser/pose-report.png`和`.last-run.json`。合成静态视频曾25/25帧检出33关键点；空画面无分值、不可接受有效观察；摄像拒绝、模型缺失与旧Demo/训练回归通过。另用合成像素替代摄像硬件输入，实际模型推理、停止后轨道释放及保存报告通过；这不代表实体手机通过。
 

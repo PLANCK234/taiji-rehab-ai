@@ -15,10 +15,7 @@ export function getAssignedStudies(cookieHeader: string, fetcher: typeof fetch =
   return apiGet<AssignedStudy[]>("/studies", cookieHeader, fetcher, baseUrl);
 }
 
-export const roleNames: Record<string, string> = {
-  clinician: "临床医生", clinical_approver: "临床审核人", research_assistant: "研究助理",
-  analyst: "数据分析员", admin: "管理员",
-};
+export { roleLabel } from "./role-label";
 
 /** UI hints only; the API enforces every permission again on the server. */
 export const can = {

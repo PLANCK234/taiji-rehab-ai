@@ -7,6 +7,7 @@ import { Notice } from "../../../../../../components/ui";
 import { demoError, runStatusNames, writeDemo, type DemoAction, type DemoRun } from "../../../../../../lib/demo";
 import { formatDateTime } from "../../../../../../lib/format";
 import FeedbackForm from "../../../training/[sessionId]/feedback-form";
+import DemoVideo from "../../demo-video";
 
 function elapsedMinutes(startedAt: string) {
   return Math.min(1440, Math.max(1, Math.round((Date.now() - new Date(startedAt).getTime()) / 60_000)));
@@ -55,6 +56,7 @@ export default function RunClient({ run, actions, feedbackCount, canWrite }: {
         <div className="progress" style={{ marginTop: 12 }} aria-hidden="true"><span style={{ width: `${percent}%` }} /></div>
         <h2>{current?.name ?? "动作资料暂不可用"}</h2>
         <p style={{ color: "#dbe9e3" }}>{current?.explanation}</p>
+        {current && <DemoVideo action={current} />}
         {current && live && <ol className="run-steps">{current.steps.map((text, index) => <li key={index}>{text}</li>)}</ol>}
         {canWrite && live && <div className="button-row" style={{ marginTop: 18 }}>
           <button type="button" className="btn-secondary" disabled={pending || run.current_index === 0 || run.status !== "in_progress"} onClick={() => step("previous")}>上一动作</button>

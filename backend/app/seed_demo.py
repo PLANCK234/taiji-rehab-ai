@@ -1,4 +1,4 @@
-"""Idempotent synthetic-only staff and coded-record seed for local demos."""
+"""Idempotent synthetic-only accounts and coded-record seed for local demos."""
 
 import os
 
@@ -8,16 +8,31 @@ from sqlalchemy.orm import Session
 from app.db import get_engine
 from app.models import (
     AuditEvent,
+    DemoPatientBinding,
     LoginSession,
     Participant,
     ParticipantAssignment,
     Study,
     StudyAssignment,
+    SyntheticStaffChange,
     User,
     utc_now,
 )
 from app.runtime import demo_enabled
 from app.security import password_hash
+
+
+def revoked(db: Session, user_id, scope_id, scope: str) -> bool:
+    latest = db.scalar(
+        select(SyntheticStaffChange)
+        .where(
+            SyntheticStaffChange.target_user_id == user_id,
+            SyntheticStaffChange.scope_id == scope_id,
+            SyntheticStaffChange.action.in_((f"{scope}_grant", f"{scope}_revoke")),
+        )
+        .order_by(SyntheticStaffChange.recorded_at.desc(), SyntheticStaffChange.id.desc())
+    )
+    return latest is not None and latest.action == f"{scope}_revoke"
 
 
 def main() -> None:
@@ -38,11 +53,15 @@ def main() -> None:
             studies[code] = row
 
         users = {}
-        for email, role in (
+        seed_users = [
             ("demo-clinician-a@example.org", "clinician"),
             ("demo-clinician-b@example.org", "clinician"),
             ("demo-analyst@example.org", "analyst"),
-        ):
+            ("demo-patient@example.org", "patient"),
+        ]
+        if os.environ.get("SEED_DEMO_ADMIN") == "true":
+            seed_users.append(("demo-admin@example.org", "admin"))
+        for email, role in seed_users:
             row = db.scalar(select(User).where(User.email == email))
             if row is None:
                 row = User(email=email, role=role, password_hash=password_hash.hash(password))
@@ -99,7 +118,9 @@ def main() -> None:
             ("demo-analyst@example.org", "SYN-STUDY-A"),
         ):
             user, study = users[email], studies[study_key]
-            if db.get(StudyAssignment, (user.id, study.id)) is None:
+            if db.get(StudyAssignment, (user.id, study.id)) is None and not revoked(
+                db, user.id, study.id, "study"
+            ):
                 db.add(StudyAssignment(user_id=user.id, study_id=study.id))
 
         for email, code in (
@@ -107,8 +128,25 @@ def main() -> None:
             ("demo-clinician-b@example.org", "SYN-002"),
         ):
             user, participant = users[email], participants[code]
-            if db.get(ParticipantAssignment, (user.id, participant.id)) is None:
+            if (
+                db.get(ParticipantAssignment, (user.id, participant.id)) is None
+                and not revoked(db, user.id, participant.id, "participant")
+                and db.get(StudyAssignment, (user.id, participant.study_id)) is not None
+            ):
                 db.add(ParticipantAssignment(user_id=user.id, participant_id=participant.id))
+        patient, participant = users["demo-patient@example.org"], participants["SYN-001"]
+        binding = db.get(DemoPatientBinding, patient.id)
+        if binding is None:
+            existing = db.scalar(
+                select(DemoPatientBinding).where(
+                    DemoPatientBinding.participant_id == participant.id
+                )
+            )
+            if existing is not None:
+                raise RuntimeError("synthetic participant already bound to another patient account")
+            db.add(DemoPatientBinding(user_id=patient.id, participant_id=participant.id))
+        elif binding.participant_id != participant.id:
+            raise RuntimeError("existing demo patient binding differs; refusing to overwrite")
     print("SYNTHETIC demo accounts and coded records are ready")
 
 

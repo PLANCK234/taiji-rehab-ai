@@ -14,6 +14,45 @@ FRONTEND = ROOT / "frontend"
 PASSWORD = "synthetic-eng04b-browser-only"
 
 
+def record_failure_summary(artifacts: Path, stage: str, error: BaseException) -> None:
+    """Keep a synthetic-only diagnostic even when Playwright never started."""
+    try:
+        with (artifacts / "failure.txt").open("a", encoding="utf-8") as summary:
+            summary.write(f"stage: {stage}\nerror_type: {type(error).__name__}\n")
+    except OSError:
+        error.add_note("could not save synthetic failure summary")
+
+
+def cleanup_resources(names: list[str], network: str | None, images: list[str]) -> None:
+    """Remove and verify only the disposable resources created by this run."""
+    errors: list[str] = []
+    for name in reversed(names):
+        subprocess.run(["docker", "stop", name], check=False, capture_output=True)
+    if network is not None:
+        subprocess.run(["docker", "network", "rm", network], check=False, capture_output=True)
+    for image in reversed(images):
+        subprocess.run(["docker", "image", "rm", image], check=False, capture_output=True)
+
+    for kind, command, expected in (
+        ("container", ["docker", "ps", "-a", "--format", "{{.Names}}"], names),
+        ("network", ["docker", "network", "ls", "--format", "{{.Name}}"], [network] if network else []),
+        ("image", ["docker", "image", "ls", "--format", "{{.Repository}}:{{.Tag}}"], images),
+    ):
+        if not expected:
+            continue
+        result = subprocess.run(command, check=False, capture_output=True, text=True)
+        if result.returncode:
+            errors.append(f"{kind} verification failed: docker unavailable")
+            continue
+        remaining = set(result.stdout.splitlines()).intersection(expected)
+        if remaining:
+            errors.append(f"{kind} still exists: {', '.join(sorted(remaining))}")
+
+    if errors:
+        raise RuntimeError("ENG-04B cleanup failed: " + "; ".join(errors))
+    print("ENG-04B cleanup OK: disposable containers, network and images absent")
+
+
 def main() -> None:
     run_id = uuid.uuid4().hex[:12]
     network = f"taiji-eng04b-{run_id}"
@@ -31,16 +70,24 @@ def main() -> None:
         frontend_port = free_port()
     database_url = f"postgresql+psycopg://taiji:{PASSWORD}@db:5432/taiji_eng04b"
     artifacts = ROOT / "exports" / f"eng04b-{run_id}"
+    artifacts_created = False
+    stage = "prepare artifacts"
     try:
+        artifacts.mkdir(parents=True, exist_ok=False)
+        artifacts_created = True
+        stage = "build backend image"
         docker("build", "-t", backend_image, str(BACKEND))
         images.append(backend_image)
+        stage = "build frontend image"
         docker("build", "-t", frontend_image, str(FRONTEND))
         images.append(frontend_image)
+        stage = "build browser runner image"
         docker(
             "build", "-f", str(FRONTEND / "Dockerfile.e2e-real"),
             "-t", runner_image, str(FRONTEND),
         )
         images.append(runner_image)
+        stage = "start disposable database"
         docker("network", "create", network, capture=True)
         network_created = True
         docker(
@@ -64,11 +111,15 @@ def main() -> None:
             "run", "--rm", "--network", network,
             "-e", f"DATABASE_URL={database_url}", "-e", "APP_ENV=local",
             "-e", "ALLOW_SYNTHETIC_ONLY=true", "-e", f"DEMO_PASSWORD={PASSWORD}",
+            "-e", "SEED_DEMO_ADMIN=true",
             backend_image,
         ]
+        stage = "migrate disposable database"
         docker(*common, "uv", "run", "--no-dev", "alembic", "upgrade", "head")
+        stage = "seed synthetic data"
         docker(*common, "uv", "run", "--no-dev", "python", "-m", "app.seed_demo")
         docker(*common, "uv", "run", "--no-dev", "python", "-m", "app.seed_demo_actions")
+        stage = "start API"
         docker(
             "run", "--rm", "-d", "--name", backend, "--network", network,
             "--network-alias", "backend", "-p", f"127.0.0.1:{backend_port}:8000",
@@ -80,15 +131,17 @@ def main() -> None:
         )
         names.append(backend)
         wait_ready(f"http://127.0.0.1:{backend_port}/ready")
+        stage = "start frontend"
         docker(
             "run", "--rm", "-d", "--name", frontend, "--network", network,
             "--network-alias", "frontend", "-p", f"127.0.0.1:{frontend_port}:3000",
             "-e", "API_INTERNAL_URL=http://backend:8000", "-e", "HOSTNAME=0.0.0.0",
+            "-e", "POSE_PROTOTYPE_ENABLED=true",
             frontend_image, capture=True,
         )
         names.append(frontend)
         wait_ready(f"http://127.0.0.1:{frontend_port}/login")
-        artifacts.mkdir(parents=True, exist_ok=False)
+        stage = "run synthetic Chromium suite"
         docker(
             "run", "--rm", "--network", f"container:{frontend}",
             "--mount", f"type=bind,source={artifacts},target=/artifacts",
@@ -97,16 +150,22 @@ def main() -> None:
             runner_image,
         )
         print("ENG-04B browser OK: synthetic PostgreSQL → FastAPI → Next → Chromium")
-    except (OSError, RuntimeError, subprocess.CalledProcessError):
+    except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
+        if artifacts_created:
+            record_failure_summary(artifacts, stage, error)
         print(f"ENG-04B failure artifacts, if any: {artifacts}", file=sys.stderr)
         raise
     finally:
-        for name in reversed(names):
-            subprocess.run(["docker", "stop", name], check=False, capture_output=True)
-        if network_created:
-            subprocess.run(["docker", "network", "rm", network], check=False, capture_output=True)
-        for image in reversed(images):
-            subprocess.run(["docker", "image", "rm", image], check=False, capture_output=True)
+        pending = sys.exc_info()[1]
+        try:
+            cleanup_resources(names, network if network_created else None, images)
+        except (OSError, RuntimeError) as cleanup_error:
+            if artifacts_created:
+                record_failure_summary(artifacts, "cleanup disposable resources", cleanup_error)
+            if pending is not None:
+                pending.add_note(str(cleanup_error))
+            else:
+                raise
 
 
 if __name__ == "__main__":

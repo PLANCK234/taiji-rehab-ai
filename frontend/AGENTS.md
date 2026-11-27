@@ -8,5 +8,6 @@
 
 ## DEMO-V2 interface
 - Follow `docs/product/DESIGN_SYSTEM.md` (新中式: paper background, ink text, jade primary, vermilion only for grade seals/danger). Use the CSS tokens and `components/ui.tsx`; no heavy UI dependencies. Keep layouts mobile-first (44px targets) so they map to the WeChat mini-program. Every page should tell the user the next step; show unknown states explicitly.
+- Use one calm, light visual language across login, workspace and Demo training: warm off-white surfaces, dark green text, restrained sage accents, generous spacing, clear focus states, responsive desktop-to-mobile layout. Avoid dense HIS tables, colorful badges and decorative animation. Reuse existing components and avoid heavy styling dependencies.
 - Create participant → assessment; confirmed valid assessment → fetch server Demo grade → plan. Existing participant with grade opens plan; otherwise opens assessment. Plan has current mode/actions and a searchable, filterable action library with working details dialog.
 - Training start, pause, resume, end, feedback and completion must use API responses and recover after refresh. Keep errors/unknown states explicit. Lint, typecheck, component tests, build and browser E2E are the target completion gates.

@@ -394,3 +394,46 @@ thead th { white-space: nowrap; }
 @media (max-width: 720px) {
   form > button:not(.btn-block), .pose-review-panel > button { justify-self: stretch; }
 }
+
+/* ----- Components merged from main (pose lab, teaching video, patient flow) ----- */
+main section:not([class]) { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px 24px; box-shadow: var(--shadow); min-width: 0; }
+main section:not([class]) section:not([class]) { box-shadow: none; background: var(--surface-2); padding: 16px; margin-top: 14px; }
+main > section:not([class]) + section:not([class]) { margin-top: 18px; }
+.hero-card { background: linear-gradient(150deg, var(--jade-soft), var(--surface) 75%); }
+.field-error { color: var(--vermilion); }
+@media (max-width: 720px) { main section:not([class]) { padding: 18px 16px; border-radius: 16px; } }
+.form-page { max-width: 500px; margin: 8vh auto; }
+.quick-intake-fields { display: grid; gap: 12px; min-width: 0; border: 0; margin: 0; padding: 0; }
+.taiji-action-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 8px 16px; }
+.demo-video-frame { aspect-ratio: 16 / 9; margin-top: 16px; border: 1px dashed #a9c6ae; border-radius: 16px; overflow: hidden; background: #eaf3ea; }
+.demo-video-frame video { display: block; width: 100%; height: 100%; background: #14261d; object-fit: contain; }
+.demo-video-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 22px; color: #365c46; }
+.demo-video-empty strong { font-size: 1.05rem; }
+.demo-video-empty span:last-child { font-size: .88rem; }
+.demo-video-icon { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; background: #d4e9d8; color: #236448; font-size: 1.2rem; }
+.pose-video-stage { position: relative; width: 100%; aspect-ratio: 16 / 9; margin: 18px 0; overflow: hidden; border-radius: 16px; background: #14261d; }
+.pose-video-stage video, .pose-video-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.pose-video-stage canvas { pointer-events: none; }
+.pose-camera-portrait { aspect-ratio: 3 / 4; max-width: 420px; margin-inline: auto; }
+.pose-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.annotation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+.annotation-grid label { display: grid; gap: 8px; }
+.annotation-grid .annotation-note { grid-column: 1 / -1; }
+.trajectory-chart svg { display: block; width: 100%; height: auto; max-height: 520px; border: 1px solid #d7e3d8; border-radius: 14px; }
+.angle-time-chart { margin: 14px 0 24px; }
+.angle-time-chart svg text { fill: #3f5148; font-size: 13px; }
+.angle-time-chart .angle-time-cursor { stroke: #c65b3c; stroke-width: 2; stroke-dasharray: 5 4; }
+.angle-time-chart .angle-time-cursor-label { fill: #9c3f29; font-weight: 700; }
+.angle-time-chart .angle-time-annotation line { stroke: #7357a6; stroke-width: 1.5; stroke-dasharray: 2 4; }
+.angle-time-chart .angle-time-annotation circle { fill: #7357a6; }
+.angle-time-chart .angle-time-candidate { fill: #266467; }
+.angle-time-controls { display: grid; gap: 8px; margin: -10px 0 24px; }
+.angle-time-controls input { width: 100%; }
+.angle-time-annotation-buttons { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.annotation-import-preview { margin: 12px 0; padding: 14px 16px; border: 1px solid #b8cbbd; border-radius: 14px; background: #f2f7f1; }
+.annotation-import-preview p { margin: 0 0 8px; }
+.trajectory-legend { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 10px; }
+.trajectory-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.trajectory-legend i { display: inline-block; width: 18px; height: 4px; border-radius: 4px; }
+progress { width: 100%; height: 12px; accent-color: #286c51; }
+@media (max-width: 800px) { main { margin: 0 auto; padding: 20px; } .demo-layout, .filter-row, .pose-summary-grid, .annotation-grid { grid-template-columns: 1fr; } .annotation-grid .annotation-note { grid-column: auto; } .action-grid { grid-template-columns: 1fr; } section { padding: 20px; } }

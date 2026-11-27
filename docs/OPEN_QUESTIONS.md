@@ -21,6 +21,8 @@
 | Q-15 | “康复阶段”是否区别于I–IV功能等级？阶段映射、动作/计划模板、专家审核角色是什么？ | 康复专家 / 项目负责人 | 阶段/计划字段和审核流程可先做；无定义显示待评，不自行确定治疗剂量 |
 
 2026-11-26：用户提出 AI 视频识别与先AI后人工评估的新方向，见 [方案](product/AI_VIDEO_ASSESSMENT_PROPOSAL.md)。与旧 PRD 的“仅姿态壳”存在范围变化，本轮登记设计提案；未实施新的医学规则。Q-14/Q-15 不阻塞独立合成工程；Q-01/Q-10 仍用于决定真实患者影像接入，不能把将来专家背书记作已完成签核。
+| Q-14 | 患者账号怎样与本人研究编号可靠绑定？谁创建/撤销账号，退出研究后访问如何处理？ | PI / 隐私负责人 / 医院 IT | 仅可用合成账号开发患者入口；不得开放真实患者登录 |
+| Q-15 | 哪些计划字段和视频经谁审核后可发布给患者？如何撤回、替换版本并通知？ | 临床负责人 / PI | 患者端不得展示 `DEMO_ONLY` 草案为正式训练计划；视频继续待添加 |
 
 **Decision closure template**: date; question ID; signed decision; authority; scope; rule/protocol version; evidence URL/file; impacted tests; effective date. No closed state without evidence.
 

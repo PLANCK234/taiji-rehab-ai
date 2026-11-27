@@ -20,6 +20,18 @@ Current proposals:
 - [ADR-0015](0015-ai-video-assessment-proposal.md): proposed pose/geometry/candidate/review pipeline; separates Tai Chi performance from scale scoring; not implemented.
 - [ADR-0016](0016-local-pose-geometry-evidence.md): implemented local pose inference and server geometry evidence, independent append-only human observation review; no clinical scale/stage inference.
 - [ADR-0017](0017-pose-signal-and-retry.md): preserve raw v1/v2 evidence, segment smoothing/residual noise, media-time file sampling and idempotent save recovery.
-- [ADR-0018](0018-usable-demo-and-pose-v3.md): free-text correction reasons, one-step create form, real action guidance, pose-geometry-v3 posture/balance metrics, new design system; ADR-0008 preview shell removed.
+- [ADR-0025](0025-usable-demo-and-pose-v3.md): free-text correction reasons, one-step create form, real action guidance, pose-geometry-v3 posture/balance metrics, new design system; ADR-0008 preview shell removed.
+- [ADR-0015](0015-separate-patient-portal.md): separate planned patient portal with self-only access, clinician-published content and synthetic-first development.
+- [ADR-0016](0016-synthetic-patient-publication-card.md): append-only synthetic publish/withdraw test card without actionable plan or video content.
+- [ADR-0017](0017-synthetic-patient-self-report.md): separate append-only synthetic patient facts from staff observations, with explicit unknown states and no autonomous triage.
+- [ADR-0018](0018-manual-synthetic-cycle-grouping.md): manual synthetic cycle/visit grouping of existing observations without an approved schedule or outcome inference.
+- [ADR-0019](0019-opt-in-synthetic-staff-admin.md): opt-in synthetic staff administration with append-only changes and seed-safe revocation.
+- [ADR-0020](0020-synthetic-profile-revisions.md): append-only synthetic display profile corrections with explicit unknown legacy attribution.
+- [ADR-0021](0021-observed-training-timeline-no-rate.md): scoped synthetic training observation sequence with latest feedback and no invented completion rate.
+- [ADR-0022](0022-selectable-synthetic-patient-cards.md): two fixed non-actionable card choices with explicit demo confirmation and append-only selected-title snapshots; no clinical or video approval.
+- [ADR-0023](0023-browser-local-pose-prototype.md): feature-gated, browser-local video pose and descriptive kinematics prototype with no upload, persistence or clinical scoring.
 
 These are engineering **proposals**, pending team acceptance; not signed hospital governance decisions.
+
+- [ADR-0024](0024-synthetic-feedback-review.md): exact-revision, append-only nonclinical staff reviews; source feedback and pose counts remain unchanged.
+- [ADR-0024 本地 Demo 自动备份](0024-local-demo-backup.md)

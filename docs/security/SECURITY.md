@@ -3,7 +3,7 @@
 DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页面即丢失，不写localStorage或持久缓存；界面允许重试/明确放弃，并禁止待保存时重新采集覆盖。服务器继续校验对象权限/同意/CSRF/幂等，客户端状态不代替授权。已提交但响应丢失可用同键恢复；历史摘要不含原始关键点或逐帧series，详情仍受同一权限保护。
 
 ## Core protection
-1. Human-only accounts for research staff; secure session cookie (HttpOnly, Secure, SameSite), CSRF protection, rate-limited login, password hash with proven scheme and proper secrets rotation.
+1. Individual accounts for research staff and, in Demo only, a synthetic patient; secure session cookie (HttpOnly, Secure, SameSite), CSRF protection, rate-limited login, password hash with proven scheme and proper secrets rotation.
 2. RBAC **and** participant/study scope checked by backend for each endpoint, CSV export, image read and model report.
 3. Separate encrypted identity mapping from coded research records. Minimize collection; do not log secrets, full symptoms/free text, images or identities.
 4. HTTPS everywhere; encrypted at rest/backup per institution requirements; private Postgres and object store; expiring authorized downloads and export audit.
@@ -15,6 +15,19 @@ DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页
 ## Implemented S1 synthetic-only boundary
 
 - Staff passwords use Argon2 via `pwdlib`; 32-byte opaque session tokens are hashed in PostgreSQL. Sessions expire after eight hours and are revoked on logout. Cookies are HttpOnly/Strict; `Secure` and `__Host-` prefix apply outside local/test HTTP. Logout requires a matching CSRF header and cookie; browser login origins are checked. In synthetic local/test Demo only, an HTTP loopback `APP_PUBLIC_URL` allows its same-port `localhost`/`127.0.0.1` counterpart; other origins and Research retain the configured-origin check.
+`DEMO-V2-11` adds only a synthetic patient account bound to one `SYN-` participant. The separate `/patient` page reads the own code from an audited Demo-only API. Staff study/object lists, object detail, export and Demo plan routes reject the patient role on the server. An assigned clinician can revoke the binding with CSRF; all active sessions are revoked and the retained binding cannot be reactivated by the seed. This is not a real patient identity, consent, release approval, or permission to expose clinical advice.
+
+`DEMO-V2-12` adds a fixed, non-actionable synthetic test card, never a clinical plan. Publication requires clinician role, study/object assignment, active binding, current simulated consent, CSRF, idempotency key and expected version; withdrawal appends a new event and remains available after consent changes. Patient reads recheck binding, latest event and consent. The server never accepts plan text, action/dose or video URL from this route; no reviewed video is stored or served.
+
+`DEMO-V2-15` permits only two server-listed synthetic card codes and explicit demo-selection confirmation. Card-option reads require an assigned clinician; publish retains the original consent/binding/version/scope gates. The request rejects extra fields, including video URLs or plan text. The patient sees only the selected fixed title and non-actionable message for the current published version; no video is loaded. This is not clinical review or permission to use real patients.
+
+`DEMO-V2-17` exposes only boolean publication prerequisites to the assigned clinician, with participant scope, audit and `no-store`. Patients, analysts and unassigned staff cannot query them. The UI disables new publication when the snapshot is false or unavailable, but the POST independently rechecks authorization, consent and binding so a stale page cannot publish. This is a synthetic workflow hint, not eligibility or clinical clearance.
+
+`DEMO-V2-13` adds patient-authored synthetic facts in a separate append-only revision table. Patient read/write rechecks active binding; writes additionally require current simulated consent, CSRF, idempotency key and expected revision. Staff read requires study and participant assignment; patient role cannot call staff records. A consent withdrawal stops new collection but retained history remains readable while the binding is active; revoked sessions and bindings block patient reads. Discomfort text is limited to 500 characters and excluded from the existing coded CSV; the UI and API do not classify urgency or promise monitoring/response. Real-patient use remains closed under Q-04/Q-07/Q-14.
+
+`REAL-01E0` manual cycles are Demo-only: every read and write checks staff role plus study and participant assignment. New writes require current simulated consent, CSRF, idempotency key and participant row lock; each referenced assessment and training observation must belong to that same participant. Visit corrections append versions with a synthetic reason and expected revision. They do not reclassify source observations or publish a protocol schedule.
+
+- Staff passwords use Argon2 via `pwdlib`; 32-byte opaque session tokens are hashed in PostgreSQL. Sessions expire after eight hours and are revoked on logout. Cookies are HttpOnly/Strict; `Secure` and `__Host-` prefix apply outside local/test HTTP. Logout requires a matching CSRF header and cookie; browser login origins are checked.
 - Login failures are limited per HMAC-hashed email/client-host key in a 15-minute window. Audit events record login, logout and coded-record read outcomes without credentials, raw email/IP or clinical data.
 - Coded participant reads require an allowed role, study assignment **and** explicit participant assignment. Unknown and unassigned IDs both return 403. The admin and analyst roles have no individual participant read permission.
 - `ALLOW_SYNTHETIC_ONLY=true` and `APP_ENV=local`/`test` are required for protected database routes. Seed creation additionally requires `APP_ENV=local` and an explicit local password. No real data or production permission is implied. Export and identity mapping remain unavailable.
@@ -23,6 +36,7 @@ DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页
 
 - Coded creation accepts only `SYN-` codes, checks role and study assignment, then atomically assigns the creator. List/detail and all consent/screening routes require server-side study **and** object assignment. Writes additionally require CSRF and an idempotency key; audit records permitted and denied operations without form contents.
 - Consent and screening entries append revisions with staff actor and UTC time. Subsequent consent entries and same-item screening corrections require a synthetic reason code. Without the latest simulated `granted` consent, screening writes return 403. Absent screening returns `not_assessed`; any entries return `needs_review`, never a safety or enrollment clearance.
+- REAL-01F4 adds these synthetic intake entries to the existing audited, participant-scoped live Demo CSV. It exports codes, explicit states, source, actor UUID and record time; correction reasons and signatures stay out. Consent withdrawal preserves earlier history but continues to block new screening writes. Patient and out-of-scope staff remain unable to download; no real-data export is authorized.
 - No name/contact fields, verified signature, clinical screening questions, identity mapping, file storage or image upload endpoint is implemented. A recorded photo scope does not enable upload. Q-01/Q-07/Q-10 remain unresolved; no real data collection is authorized.
 
 ## S2-01 synthetic assessment boundary
@@ -31,7 +45,7 @@ DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页
 - Clinician and research assistant can create/revise manual total drafts; clinician and clinical approver can confirm a recorded draft. Every measurement or confirmation appends an attributable snapshot. A correction after a recorded value requires a `SYN-` reason. Audit records allow/deny outcomes without raw values.
 - `SYN-MANUAL-V1` is a synthetic engineering marker. No approved SPPB item algorithm, grading, safety determination or treatment recommendation is inferred from a total; no real-data use is authorized. Downgrade `0004_manual_assessments` removes tables and is rehearsed only on a disposable empty database.
 - REAL-01D0 training observations and event reports use server-side role/study/participant scope, CSRF, idempotency and audit; feedback corrections append versions. Current simulated consent gates new activity/feedback, while authorized staff can report an event after withdrawal to preserve an observed fact. Free-text fields may contain sensitive content in a future Research deployment, so this Demo-only path cannot be used for real patients. Events are not classified, notified or escalated by this application; use an approved institutional process. Downgrade `0005_training_observations` is rehearsed only on a disposable empty database.
-- REAL-01F0 export is a single assigned synthetic participant per request. The API enforces role/study/object scope, audits allowed and denied authenticated attempts, excludes identity and free-text columns, forbids caching and exposes row count/content hash. It is a live Demo query, not approved bulk/real-data export or a frozen snapshot; Q-07/Q-09 and institutional controls are still prerequisites for Research release.
+- REAL-01F0/F1/F2/F3 export is a single assigned synthetic participant per request. The API enforces role/study/object scope, audits allowed and denied authenticated attempts, rejects the patient role, excludes identity and free-text columns (including raw-observation context, cycle/visit labels, patient discomfort notes and correction reasons), forbids caching and exposes row count/content hash. Visit association IDs are checked against the same participant before serialization. Patient self-reports remain separate from staff observations and are exported only as structured facts. It is a live Demo query, not approved bulk/real-data export or a frozen snapshot; Q-07/Q-09 and institutional controls are still prerequisites for Research release.
 
 ## S6-01 synthetic pose shell boundary
 
@@ -39,10 +53,22 @@ DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页
 - Its client component creates only an inline synthetic SVG held in React state. It contains no camera permission request, file input, upload request, local storage or image persistence. Simulated consent `photo_scope=true` changes only the explanatory text and does not enable image collection.
 - The backend publishes no `/images` or `/uploads` route. Real photos, video, pose estimates, object storage and retention remain blocked by Q-01/Q-10 and the deployment gate.
 
+## S6-03 browser-local pose prototype boundary
+
+- `/participants/{id}/pose-lab` is hidden unless `POSE_PROTOTYPE_ENABLED=true`, then reuses the existing authenticated staff and coded-object server scope. It is not exposed in the patient portal or Research profile.
+- The file input stays disabled until the operator confirms the video is synthetic, public test material or explicitly authorized for local validation. This confirmation is an engineering friction, not institutional consent evidence.
+- Video is referenced through an in-memory Blob URL. The page has no upload call, persistence API, database write, camera request or browser storage. CSP limits model/runtime connections to the same origin; model and WASM assets are pinned and served locally.
+- Explicit JSON/CSV download can create sensitive derived data on the operator device. Operators must protect or remove such files under an approved procedure; the current Demo cannot enforce endpoint retention.
+- Local processing does not close Q-01/Q-10. Real capture, storage, repeatable research records, patient access and clinical scoring require separate approval and threat-model review.
+
 ## ENG-02A synthetic trend read boundary
 
 - The read-only assessment trend route reuses server-side role, study assignment and explicit participant assignment checks. Analyst/admin roles cannot directly read a coded participant trend; denied reads are audited through the participant guard, and allowed reads add an `assessment_trend` audit event.
 - The response contains only the authorized coded participant ID and existing assessment revisions, with no identity mapping or export. Latest confirmed values and pending drafts remain distinct; missing, invalid and unconfirmed records do not become zero scores or a clinical conclusion. Responses retain `Cache-Control: no-store`.
+
+ENG-02B training timeline reuses the same server-side staff role, study and explicit participant assignment guard. Allowed reads add a `training_timeline` audit event; denied attempts use the participant guard audit. Only structured observed state/minutes and latest feedback state/RPE leave this route; free-text observations, older feedback contents, patient reports and a fabricated completion rate are excluded. A null value remains unknown, not zero or safe.
+
+ENG-02C uses only the already scoped cycle and training-timeline reads for the same participant page. It does not accept a client-selected participant for linked details or add an export route. Missing linked details are displayed as unavailable; the page does not infer an unobserved session, completion rate or clinical result.
 
 ## Roles (initial recommendation)
 - Clinician/therapist: assigned participant assessments and reviews.
@@ -50,6 +76,10 @@ DEMO-V2-15：待保存的关键点/幂等键仅留当前页面内存，关闭页
 - Research assistant: limited encounter/feedback entry, not treatment approval.
 - Analyst: coded exports, no identity mapping by default.
 - Admin/operator: manage accounts/backups, not automatic clinical-record viewing.
+
+The REAL-01A synthetic administrator route is server guarded by Demo mode and the `admin` role. It accepts only marked `demo-…@example.org` staff and `SYN-` scopes; patient and admin creation, real identity import and Research administration stay closed. Assignment changes require CSRF, idempotency and expected state, are audited, and study revocation removes dependent object grants. A disabled account or changed role loses current sessions. The optional local admin seed is disabled unless `SEED_DEMO_ADMIN=true`; a public tunnel must not expose an intentionally seeded shared Demo admin without an operator decision.
+
+REAL-01B0 display profile revisions use the existing server-side staff role, study and explicit object scope for reads and writes. Corrections require CSRF, idempotency, expected revision and a synthetic reason, and add an audit event. Legacy rows without creator metadata expose null actor/time rather than an invented identity. These optional Demo fields do not provide real identity mapping or consent evidence.
 
 ## Deployment gate (must sign off)
 Approved protocol/ethics, purpose and consent language, legal retention, data-controller and hosting jurisdiction, access roster, incident response ownership, image policy, backup/restore test, dependency and vulnerability review. Product claims and potential medical-device status require institutional/regulatory review; this document does not certify compliance.

@@ -1,8 +1,8 @@
 # Logical data model (initial proposal)
 
-2026-11-26 DEMO-V2-15：迁移`0009_pose_geometry_v2`仅将`ck_pose_algorithm`扩大为v1/v2，未改表/历史JSON。新分析的v2平滑/残差结果追加在原result中；旧记录、哈希、复核保留。若v2记录存在，downgrade0008会抛错并保留迁移状态，不能为回退而改写版本。临时数据库验证了带旧数据升级与拒绝破坏性回退；共享卷未操作。
+2026-11-26 DEMO-V2-15：迁移`0021_pose_geometry_v2`仅将`ck_pose_algorithm`扩大为v1/v2，未改表/历史JSON。新分析的v2平滑/残差结果追加在原result中；旧记录、哈希、复核保留。若v2记录存在，downgrade0008会抛错并保留迁移状态，不能为回退而改写版本。临时数据库验证了带旧数据升级与拒绝破坏性回退；共享卷未操作。
 
-2026-11-26：增量迁移`0008_pose_analyses`新增`pose_analyses`（participant_id、input_data、input_sha256、algorithm_version、result、created_by/at）与`pose_reviews`（analysis_id、revision_no、decision、reason、recorded_by/at）。原AI输入/计算结果追加保存，人工复核独立版本；unique(analysis_id,revision_no)、revision_no>0、decision枚举由数据库约束。对象行锁串行化写入/审核，幂等沿用write_receipts。无原影像存储，无人工量表source更改，无级别/处方关联。迁移仅在独立测试库升降升验证，本机原有卷未迁移。
+2026-11-26：增量迁移`0020_pose_analyses`新增`pose_analyses`（participant_id、input_data、input_sha256、algorithm_version、result、created_by/at）与`pose_reviews`（analysis_id、revision_no、decision、reason、recorded_by/at）。原AI输入/计算结果追加保存，人工复核独立版本；unique(analysis_id,revision_no)、revision_no>0、decision枚举由数据库约束。对象行锁串行化写入/审核，幂等沿用write_receipts。无原影像存储，无人工量表source更改，无级别/处方关联。迁移仅在独立测试库升降升验证，本机原有卷未迁移。
 
 Use UUID primary keys, UTC timestamps, stable `study_code`, explicit soft-delete/retention policy only after approval. The table below is a **logical target**. Migration `0002_auth_scope` implements users, studies, assignments, coded participants, sessions, rate limits and audit. Migration `0003_synthetic_intake` adds `write_receipts`, `consent_records` and `screening_records`. Migration `0004_manual_assessments` adds only synthetic manual-total assessment headers and append-only revision snapshots. No identity mapping, verified signature, eligibility, grade, recommendation or outcome fields exist yet.
 
@@ -48,3 +48,35 @@ Every schema PR includes Alembic migration + downgrade/rollback considerations +
 ## Physical extension `0006_demo_v2` (2026-10-31)
 
 The additive migration creates `demo_participant_profiles` (one optional synthetic display row per existing participant), `demo_grade_results` (unique confirmed `assessment_revision_id`, version, grade, separate mode and JSON evidence), `demo_actions` (marked local catalog), and `demo_runs` (participant/grade link, action IDs, progress/status, optional link to existing `training_sessions`). `0007_demo_completed_actions` adds nullable `completed_action_ids` so actual completed actions are not inferred from planned IDs. `training_feedback_revisions` and `safety_events` remain unchanged. No old rows are deleted or rewritten; an authorized plan read may create a missing Demo result for a preexisting confirmed assessment. The local existing volume was backed up before forward migration. No downgrade is authorized on a populated database.
+
+## Synthetic patient binding `0008_demo_patient_binding` (2026-11-05)
+
+The additive migration permits the `patient` user role and creates `demo_patient_bindings` with one user and one participant per binding, `created_at` and nullable `revoked_at`. It stores only synthetic coded linkage, not real identity or consent. A clinician scoped to the participant may revoke the link; sessions are revoked and the row remains as history. No self-registration or reactivation route exists. Downgrade was rehearsed only on an empty disposable PostgreSQL database; never downgrade a populated Demo database without an approved rollback plan.
+
+## Synthetic publication events `0009_demo_patient_publication` (2026-11-05)
+
+`demo_patient_publications` adds one append-only event per participant/version (`published|withdrawn`), immutable `SYNTHETIC_PROCESS_ONLY` marker, actor and UTC time. Only the latest published event is projected to an active synthetic patient with current simulated consent. The event carries no plan details, action IDs, dose, video URL or clinical approval. The new table is additive; downgrade was tested only on an empty disposable PostgreSQL database.
+
+`0015_demo_patient_card_selection` adds nullable `card_code` and `card_title` to each publication event. A selected fixed synthetic option saves its title at publication time; withdrawal copies the snapshot. Older rows remain unchanged and are displayed with the legacy title. These fields are not a clinical plan, video record or approval; the populated database is never downgraded for testing.
+
+## Synthetic patient self-report revisions `0010_demo_patient_report` (2026-11-05)
+
+`demo_patient_report_revisions` stores append-only patient-authored snapshots under a stable `report_id` and increasing `revision_no`: occurred time, explicit activity state (`performed|not_performed|unknown`), optional actual minutes only if performed, explicit discomfort state (`reported|none|unknown`), description only if reported, synthetic correction reason, actor and UTC record time. No row means unknown; a null duration remains unknown and an explicit `none` is not inferred from silence. This separate source never creates or modifies staff `training_sessions`, completion, safety-event classification or a clinical plan. Current simulated consent is needed for new writes; a revoked binding blocks patient access. Free-text discomfort is not included in existing coded CSV export. Migration is additive; populated database downgrade is not approved.
+
+## Manual synthetic cycles `0011_synthetic_cycles` (backend checkpoint, 2026-11-06)
+
+`synthetic_cycles` groups one coded participant under a manually entered label. `synthetic_visit_revisions` stores append-only visit label, attendance (`unknown|attended|not_attended`), assessment state (`unknown|recorded|declined|not_measured`), optional existing assessment link and existing training session IDs. The API validates participant scope for every link. This is not an approved schedule or frozen cohort. Empty disposable PostgreSQL migration replay and synthetic browser persistence passed; populated database downgrade is not approved. See [ADR-0018](../decisions/0018-manual-synthetic-cycle-grouping.md).
+
+## Synthetic staff changes `0012_synthetic_staff_admin` (2026-11-06)
+
+`synthetic_staff_changes` is append-only: target staff, action (`create`, role/active change, study/object grant or revoke), optional scope/value, actor and UTC time. Current access still comes from `users`, `study_assignments` and `participant_assignments`; history prevents a seed rerun from silently restoring revoked defaults. No password or real identity is stored in change events. Migration is additive; a populated database must not be downgraded for testing.
+
+## Synthetic display profile revisions `0013_demo_profile_revisions` (2026-11-06)
+
+The original `demo_participant_profiles` row remains an immutable initial snapshot. New `demo_profile_revisions` stores append-only full display snapshots with `(participant_id, revision_no)` uniqueness, optional age/sex/assistance/note, correction reason, actor and UTC time. Newly created profiles also get an initial version-1 event. Existing profiles without that event are read as a legacy version 1 with actor/time unknown; the migration does not fabricate provenance or rewrite rows. The latest revision drives the current display read. This contains no identity or consent fields; populated database downgrade is not approved. See [ADR-0020](../decisions/0020-synthetic-profile-revisions.md).
+
+## 0018 合成反馈复核
+
+新增 `demo_patient_report_reviews`，以 `report_revision_id` 外键关联不可变的反馈修订；不重复存 participant_id，读取按源反馈联表限定对象。`(report_revision_id, review_no)` 唯一，序号正数，结果仅 reviewed/unable，备注 1–500 字。人员外键及 UTC 时间由服务端填入。表仅追加，不改已有表或行；没有级联删除。
+
+仅在隔离临时库演练 downgrade。现用数据库先留存可恢复备份、执行向前迁移；有记录后回滚应用保留新表，不对现用库执行 downgrade。

@@ -50,12 +50,13 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
               </div>
             </div>
             <dl className="kv">
-              <dt>测量时间</dt><dd>{formatDateTime(current.performed_at)}</dd>
               <dt>记录方案</dt><dd>{assessment.protocol_version}</dd>
               {current.missing_reason && <><dt>缺失/无效原因</dt><dd>{missingReasonText[current.missing_reason]}</dd></>}
             </dl>
           </div>
           <p style={{ marginTop: 12 }}>人工 SPPB 总分：{measurementText(current)}</p>
+          <p className="note">测量时间（北京时间）：{current.performed_at
+            ? new Date(current.performed_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", hour12: false }) : "未记录"}</p>
         </Card>
         <Card title="版本时间线" id="history-heading" sub="每次修改都追加新版本，历史版本不会被覆盖。">
           <ol className="timeline">{[...assessment.history].reverse().map(row => <li key={row.id} className={row.state === "confirmed" ? "confirmed" : undefined}>

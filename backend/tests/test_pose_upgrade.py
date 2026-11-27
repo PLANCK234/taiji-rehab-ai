@@ -43,7 +43,7 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
             capture_output=True, text=True, encoding="utf-8", errors="replace", check=False,
         )
 
-    first = migrate("upgrade", "0008_pose_analyses")
+    first = migrate("upgrade", "0020_pose_analyses")
     assert first.returncode == 0, first.stderr
     engine = create_engine(url)
     payload = PoseInput(**input_payload())
@@ -89,12 +89,12 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
                 algorithm_version="pose-geometry-v2", created_by=user_id,
             ))
             db.commit()
-        rollback = migrate("downgrade", "0008_pose_analyses")
+        rollback = migrate("downgrade", "0020_pose_analyses")
         assert rollback.returncode != 0
         assert "v2 evidence exists" in rollback.stderr
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-                "0011_pose_v3_free_text_reasons"
+                "0023_pose_v3_free_text_reasons"
             )
             assert connection.scalar(text("SELECT count(*) FROM pose_analyses")) == 2
         with Session(engine) as db:
@@ -106,12 +106,12 @@ def test_populated_v1_upgrade_and_v2_rollback_refusal():
                 }],
             ))
             db.commit()
-        structured_rollback = migrate("downgrade", "0009_pose_geometry_v2")
+        structured_rollback = migrate("downgrade", "0021_pose_geometry_v2")
         assert structured_rollback.returncode != 0
         assert "structured review evidence exists" in structured_rollback.stderr
         with engine.connect() as connection:
             assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-                "0011_pose_v3_free_text_reasons"
+                "0023_pose_v3_free_text_reasons"
             )
             assert connection.scalar(text("SELECT count(*) FROM pose_reviews")) == 2
     finally:

@@ -1,0 +1,75 @@
+import { readFile } from "node:fs/promises";
+import { expect, test } from "@playwright/test";
+
+const password = process.env.E2E_PASSWORD;
+if (!password) throw new Error("profile test requires synthetic E2E_PASSWORD");
+
+test("synthetic display profile correction persists and retains the original", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByLabel("邮箱").fill("demo-clinician-a@example.org");
+  await page.getByLabel("密码").fill(password);
+  await page.getByRole("button", { name: "登录", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "研究工作台" })).toBeVisible();
+  await page.getByRole("link", { name: "SYN-001" }).click();
+  const section = page.getByRole("region", { name: "合成展示资料" });
+  await expect(section.getByText("尚未填写合成展示资料。")).toBeVisible();
+  await section.getByLabel("演示年龄（可留空）").fill("67");
+  await section.getByLabel("演示性别").selectOption("unknown");
+  await section.getByRole("button", { name: "保存展示资料" }).click();
+  await expect(section.getByText(/当前版本 1/)).toBeVisible();
+  await section.getByLabel("演示年龄（可留空）").fill("68");
+  await section.getByLabel("演示性别").selectOption("female");
+  await section.getByLabel("更正原因（以 SYN- 开头）").fill("SYN-DEMO-CORRECTION");
+  await section.getByRole("button", { name: "保存更正" }).click();
+  await expect(section.getByText(/当前版本 2/)).toBeVisible();
+  await page.reload();
+  await expect(section.getByText(/当前版本 2/)).toBeVisible();
+  await expect(section.getByRole("listitem").filter({ hasText: /版本 1 · 年龄：67/ })).toBeVisible();
+  const latest = section.getByRole("listitem").filter({ hasText: /版本 2 · 年龄：68/ });
+  await expect(latest).toBeVisible();
+  await expect(latest).toContainText("更正原因：SYN-DEMO-CORRECTION");
+  const consentChanged = await page.evaluate(async () => {
+    const id = location.pathname.split("/").at(-1);
+    const history = await (await fetch(`/api/v1/participants/${id}/consents`)).json() as { state: string };
+    if (history.state === "granted") return false;
+    const csrf = document.cookie.split("; ").find((item) => item.startsWith("taiji_csrf="))?.split("=")[1];
+    if (!csrf) throw new Error("synthetic clinician has no CSRF token");
+    const response = await fetch(`/api/v1/participants/${id}/consents`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", "X-CSRF-Token": decodeURIComponent(csrf),
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({
+        document_version: "SYN-DEMO-V1", purpose_code: "SYN-RAW-OBSERVATION",
+        decision: "granted", photo_scope: false,
+      }),
+    });
+    if (response.status !== 201) throw new Error(`synthetic consent failed: ${response.status}`);
+    return true;
+  });
+  if (consentChanged) await page.reload();
+  const raw = page.getByRole("region", { name: "人工原始观察" });
+  await raw.getByLabel("原始数值").fill("4.120");
+  await raw.getByLabel("测量时间").fill("2026-11-07T10:00");
+  await raw.getByRole("button", { name: "保存原始观察" }).click();
+  await expect(raw.getByText(/版本 1 · 4.120 s/)).toBeVisible();
+  await raw.getByRole("button", { name: "更正此观察" }).click();
+  await raw.getByLabel("原始数值").fill("4.250");
+  await raw.getByLabel("测量时间").fill("2026-11-07T10:00");
+  await raw.getByLabel("更正原因").fill("SYN-RAW-CORRECTION");
+  await raw.getByRole("button", { name: "保存观察更正" }).click();
+  await expect(raw.getByText(/版本 2 · 4.250 s/)).toBeVisible();
+  await page.reload();
+  await expect(raw.getByText(/版本 1 · 4.120 s/)).toBeVisible();
+  await expect(raw.getByText(/版本 2 · 4.250 s/)).toBeVisible();
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: "下载编号化 CSV" }).click(),
+  ]);
+  const csv = await readFile((await download.path())!, "utf8");
+  expect(csv).toContain("manual_observation_revision");
+  expect(csv).toContain("4.120");
+  expect(csv).toContain("4.250");
+  expect(csv).not.toContain("SYN-RAW-CORRECTION");
+});

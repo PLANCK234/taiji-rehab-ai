@@ -7,12 +7,22 @@ import { getAssessmentTrend, getParticipantAssessments, measurementText, type As
 import { can, getCurrentUser } from "../../../lib/auth";
 import { getDemoPlan, gradeNames, runStatusNames, type DemoPlan } from "../../../lib/demo";
 import { formatDateTime } from "../../../lib/format";
-import { getConsentHistory, getParticipant, getScreeningHistory, type ConsentHistory } from "../../../lib/intake";
-import { completionNames, getSafetyEvents, getTrainingSessions, type TrainingSession } from "../../../lib/training";
+import { getCycles } from "../../../lib/cycles";
+import { getConsentHistory, getDemoProfileHistory, getParticipant, getScreeningHistory, type ConsentHistory } from "../../../lib/intake";
+import { getPublicationHistory, getPublicationReadiness, getSyntheticCardOptions } from "../../../lib/patient-publication";
+import { getPatientReports } from "../../../lib/patient-reports";
+import { getPatientReviews } from "../../../lib/patient-reviews";
+import { completionNames, getSafetyEvents, getTrainingSessions, getTrainingTimeline, type TrainingSession } from "../../../lib/training";
 import AssessmentTrendSection from "./assessment-trend";
 import CreateAssessmentForm from "./create-assessment-form";
 import { ConsentForm, ScreeningForm } from "./intake-forms";
+import CycleForms from "./cycle-forms";
+import ManualObservations from "./manual-observations";
+import ProfileSection from "./profile-section";
+import PublicationControls from "./publication-controls";
+import StaffPatientReports from "./staff-patient-reports";
 import TrainingForms from "./training-forms";
+import TrainingTimelineSection from "./training-timeline";
 
 export const dynamic = "force-dynamic";
 
@@ -34,18 +44,34 @@ function nextStep(id: string, consent: ConsentHistory | null, assessments: Asses
   return null;
 }
 
-export default async function ParticipantPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ParticipantPage({ params, searchParams }: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ feedbackVersion?: string | string[] }>;
+}) {
   const { id } = await params;
   const cookieHeader = (await headers()).get("cookie") ?? "";
   const user = await getCurrentUser(cookieHeader);
   if (!user) redirect("/login");
   const participant = await getParticipant(id, cookieHeader);
   if (!participant) notFound();
-  const [consents, screenings, assessments, trend, sessions, safetyEvents, plan] = await Promise.all([
+  const [consents, screenings, assessments, trend, sessions, safetyEvents, plan, publicationHistory, cardOptions,
+    publicationReadiness, patientReports, cycles, profileHistory, trainingTimeline, patientReviews] = await Promise.all([
     getConsentHistory(id, cookieHeader), getScreeningHistory(id, cookieHeader),
     getParticipantAssessments(id, cookieHeader), getAssessmentTrend(id, cookieHeader),
     getTrainingSessions(id, cookieHeader), getSafetyEvents(id, cookieHeader), getDemoPlan(id, cookieHeader),
+    getPublicationHistory(id, cookieHeader), getSyntheticCardOptions(id, cookieHeader),
+    user.role === "clinician" ? getPublicationReadiness(id, cookieHeader) : null,
+    getPatientReports(cookieHeader, id), getCycles(id, cookieHeader), getDemoProfileHistory(id, cookieHeader),
+    getTrainingTimeline(id, cookieHeader), getPatientReviews(id, cookieHeader),
   ]);
+  const posePrototypeEnabled = process.env.POSE_PROTOTYPE_ENABLED === "true";
+  const { feedbackVersion } = await searchParams;
+  const selectedFeedbackVersion = publicationHistory?.find(
+    entry => entry.state === "published" && String(entry.version) === feedbackVersion,
+  )?.version;
+  const versionIssue = feedbackVersion !== undefined && selectedFeedbackVersion === undefined
+    ? (publicationHistory === null ? "unavailable" : "invalid")
+    : undefined;
   const canWrite = can.write(user.role);
   const consentGranted = consents?.state === "granted";
   const grade = plan?.grade;
@@ -70,9 +96,15 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
       </div>}
       actions={<>
         <Link className="btn btn-secondary" href={`/participants/${id}/ai-assessment`}>AI视频动作评估</Link>
+        {/* A full document load lets the browser apply the pose lab's CSP. */}
+        {posePrototypeEnabled ? <a className="btn btn-secondary" href={`/participants/${id}/pose-lab`}>打开本地视频姿态实验室</a> : null}
         <Link className="btn" href={grade ? `/participants/${id}/demo` : "#assessments-heading"}>{grade ? "打开训练方案" : "先完成基础评估"}</Link>
       </>} />
 
+    <nav aria-label="患者端流程快捷入口" className="row" style={{ gap: 8, marginBottom: 12 }}>
+      {user.role === "clinician" && <a className="badge badge-blue plain" href="#publication-heading">前往患者端发布</a>}
+      <a className="badge badge-blue plain" href="#patient-reports-heading">查看患者自报</a>
+    </nav>
     <section className="card" aria-label="流程进度">
       <FlowSteps steps={steps} />
       {step && <div className="next-step">
@@ -101,6 +133,9 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
           </div>
         </Card>
         <AssessmentTrendSection trend={trend} />
+        <TrainingTimelineSection timeline={trainingTimeline} />
+        <CycleForms participantId={id} initialCycles={cycles} assessments={assessments ?? []} sessions={sessions ?? []}
+          trainingTimeline={trainingTimeline} canWrite={canWrite && consentGranted} />
         <Card title="训练观察与反馈" id="training-heading" sub="记录已发生的训练与反馈；缺失值保持“未记录”，不会当作 0。">
           {sessions === null ? <Notice tone="warn">训练记录暂不可用。</Notice> : sessions.length ? (
             <ul className="list">{sessions.map(row => <li key={row.id}>
@@ -119,9 +154,15 @@ export default async function ParticipantPage({ params }: { params: Promise<{ id
           ) : <p className="note">尚无事件记录。</p>}
           <TrainingForms participantId={participant.id} canWrite={canWrite} consentGranted={consentGranted} sessions={sessions ?? []} />
         </Card>
+        <ManualObservations participantId={id} canWrite={canWrite && consentGranted} />
+        <PublicationControls participantId={id} studyCode={participant.study_code} initialHistory={publicationHistory}
+          cardOptions={cardOptions} readiness={publicationReadiness} canPublish={user.role === "clinician"} />
+        <StaffPatientReports reports={patientReports} publicationVersion={selectedFeedbackVersion} versionIssue={versionIssue}
+          participantId={id} reviews={patientReviews} canReview={canWrite} />
       </div>
 
       <div className="stack">
+        <ProfileSection participantId={id} history={profileHistory} canWrite={canWrite} />
         <Card title="模拟同意" id="consent-heading">
           {consents ? <>
             <p>当前记录：{consentText[consents.state]}</p>

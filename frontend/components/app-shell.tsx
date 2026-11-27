@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { roleNames, type CurrentUser } from "../lib/auth";
+import { roleLabel, type CurrentUser } from "../lib/auth";
 import LogoutButton from "./logout-button";
 import TaijiMark from "./taiji-mark";
 
@@ -16,7 +16,7 @@ export default function AppShell({ user, wide = false, children }: { user: Curre
         <div className="shell-user">
           <span className="user-chip" title={user.email}>
             <span className="avatar" aria-hidden="true">{initial}</span>
-            <span className="who"><span>{user.email}</span><small>{roleNames[user.role] ?? user.role}</small></span>
+            <span className="who"><span>{user.email}</span><small>{roleLabel(user.role)}</small></span>
           </span>
           <LogoutButton />
         </div>

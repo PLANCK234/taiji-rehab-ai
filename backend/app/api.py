@@ -94,6 +94,10 @@ def check_origin(request: Request) -> None:
             port = None
         if port is not None:
             allowed_origins.update({f"http://{host}:{port}" for host in ("localhost", "127.0.0.1")})
+    if os.environ.get("APP_ENV") in {"local", "test"}:
+        local_origin = os.environ.get("APP_LOCAL_URL")
+        if local_origin:
+            allowed_origins.add(local_origin.rstrip("/"))
     if origin and origin.rstrip("/") not in allowed_origins:
         raise HTTPException(status_code=403, detail="origin denied")
 
@@ -177,6 +181,8 @@ def logout(
 def studies(
     auth: AuthContext = Depends(current_auth), db: Session = Depends(get_db)
 ) -> list[StudyView]:
+    if auth.user.role not in READ_ROLES | {"analyst", "admin"}:
+        raise HTTPException(status_code=403, detail="access denied")
     rows = db.scalars(
         select(Study)
         .join(StudyAssignment, StudyAssignment.study_id == Study.id)

@@ -8,6 +8,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     String,
     UniqueConstraint,
@@ -74,7 +75,8 @@ class User(Base):
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint(
-            "role IN ('clinician','clinical_approver','research_assistant','analyst','admin')",
+            "role IN ('clinician','clinical_approver','research_assistant',"
+            "'analyst','admin','patient')",
             name="ck_users_role",
         ),
     )
@@ -87,11 +89,40 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class SyntheticStaffChange(Base):
+    """Append-only synthetic staff and authorization administration history."""
+
+    __tablename__ = "synthetic_staff_changes"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    target_user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    action: Mapped[str] = mapped_column(String(40), nullable=False)
+    scope_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    value: Mapped[str | None] = mapped_column(String(40))
+    actor_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class Study(Base):
     __tablename__ = "studies"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     code: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+
+
+class ManualObservationRevision(Base):
+    __tablename__ = "manual_observation_revisions"
+    __table_args__ = (
+        UniqueConstraint("observation_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_manual_observation_revision"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    observation_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    participant_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("participants.id"))
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    snapshot: Mapped[dict] = mapped_column(JSON, nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class StudyAssignment(Base):
@@ -122,6 +153,119 @@ class ParticipantAssignment(Base):
     )
 
 
+class DemoPatientBinding(Base):
+    """One synthetic patient account per coded participant; revoked rows stay for audit."""
+
+    __tablename__ = "demo_patient_bindings"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), primary_key=True)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), unique=True, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class DemoPatientPublication(Base):
+    """Append-only synthetic publication test events, without actionable plan content."""
+
+    __tablename__ = "demo_patient_publications"
+    __table_args__ = (
+        UniqueConstraint("participant_id", "version"),
+        CheckConstraint(
+            "state IN ('published','withdrawn')", name="ck_demo_patient_publication_state"
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    version: Mapped[int] = mapped_column(nullable=False)
+    state: Mapped[str] = mapped_column(String(20), nullable=False)
+    marker: Mapped[str] = mapped_column(String(40), nullable=False)
+    card_code: Mapped[str | None] = mapped_column(String(40))
+    card_title: Mapped[str | None] = mapped_column(String(100))
+    actions: Mapped[list[dict[str, str]] | None] = mapped_column(JSON(none_as_null=True))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class DemoPatientReportReview(Base):
+    """Append-only staff review of an exact patient-authored revision."""
+
+    __tablename__ = "demo_patient_report_reviews"
+    __table_args__ = (
+        UniqueConstraint("report_revision_id", "review_no"),
+        CheckConstraint("review_no > 0", name="ck_report_review_no"),
+        CheckConstraint("result IN ('reviewed','unable')", name="ck_report_review_result"),
+        CheckConstraint("length(trim(note)) BETWEEN 1 AND 500", name="ck_report_review_note"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    report_revision_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("demo_patient_report_revisions.id"), nullable=False
+    )
+    review_no: Mapped[int] = mapped_column(nullable=False)
+    result: Mapped[str] = mapped_column(String(20), nullable=False)
+    note: Mapped[str] = mapped_column(String(500), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class DemoPatientReportRevision(Base):
+    """Patient-authored synthetic fact snapshots; revisions are append-only."""
+
+    __tablename__ = "demo_patient_report_revisions"
+    __table_args__ = (
+        UniqueConstraint("report_id", "revision_no"),
+        ForeignKeyConstraint(
+            ["participant_id", "publication_version"],
+            ["demo_patient_publications.participant_id", "demo_patient_publications.version"],
+            name="fk_demo_report_publication",
+        ),
+        Index("ix_demo_patient_report_participant", "participant_id", "recorded_at"),
+        CheckConstraint("revision_no > 0", name="ck_patient_report_revision_positive"),
+        CheckConstraint(
+            "activity_state IN ('performed','not_performed','unknown')",
+            name="ck_patient_report_activity_state",
+        ),
+        CheckConstraint(
+            "discomfort_state IN ('reported','none','unknown')",
+            name="ck_patient_report_discomfort_state",
+        ),
+        CheckConstraint(
+            "actual_minutes IS NULL OR actual_minutes >= 0",
+            name="ck_patient_report_minutes",
+        ),
+        CheckConstraint(
+            "(activity_state = 'performed' OR actual_minutes IS NULL)",
+            name="ck_patient_report_minutes_shape",
+        ),
+        CheckConstraint(
+            "(discomfort_state = 'reported' AND discomfort_note IS NOT NULL) OR "
+            "(discomfort_state != 'reported' AND discomfort_note IS NULL)",
+            name="ck_patient_report_discomfort_shape",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    report_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    publication_version: Mapped[int | None] = mapped_column()
+    pose_summary: Mapped[dict[str, int] | None] = mapped_column(JSON(none_as_null=True))
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    activity_state: Mapped[str] = mapped_column(String(20), nullable=False)
+    actual_minutes: Mapped[int | None] = mapped_column()
+    discomfort_state: Mapped[str] = mapped_column(String(20), nullable=False)
+    discomfort_note: Mapped[str | None] = mapped_column(String(500))
+    change_reason: Mapped[str | None] = mapped_column(String(500))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class DemoParticipantProfile(Base):
     """Synthetic display metadata; never a real identity mapping."""
 
@@ -140,6 +284,36 @@ class DemoParticipantProfile(Base):
     sex: Mapped[str | None] = mapped_column(String(16))
     needs_assistance: Mapped[bool | None] = mapped_column()
     note: Mapped[str | None] = mapped_column(String(500))
+
+
+class DemoProfileRevision(Base):
+    """Append-only synthetic display profile snapshots; the old profile row stays intact."""
+
+    __tablename__ = "demo_profile_revisions"
+    __table_args__ = (
+        UniqueConstraint("participant_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_demo_profile_revision_positive"),
+        CheckConstraint(
+            "age IS NULL OR age BETWEEN 0 AND 120", name="ck_demo_profile_revision_age"
+        ),
+        CheckConstraint(
+            "sex IS NULL OR sex IN ('female','male','other','unknown')",
+            name="ck_demo_profile_revision_sex",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    age: Mapped[int | None] = mapped_column()
+    sex: Mapped[str | None] = mapped_column(String(16))
+    needs_assistance: Mapped[bool | None] = mapped_column()
+    note: Mapped[str | None] = mapped_column(String(500))
+    change_reason: Mapped[str | None] = mapped_column(String(64))
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
 class DemoGradeResult(Base):
@@ -350,6 +524,54 @@ class TrainingSession(Base):
     completion_status: Mapped[str] = mapped_column(String(16), nullable=False)
     notes: Mapped[str | None] = mapped_column(String(1000))
     source: Mapped[str] = mapped_column(String(32), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class SyntheticCycle(Base):
+    """Manually named nonclinical grouping, without a protocol schedule."""
+
+    __tablename__ = "synthetic_cycles"
+    __table_args__ = (UniqueConstraint("participant_id", "label"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    participant_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("participants.id"), nullable=False
+    )
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class SyntheticVisitRevision(Base):
+    """Append-only visit status and links to preexisting factual records."""
+
+    __tablename__ = "synthetic_visit_revisions"
+    __table_args__ = (
+        UniqueConstraint("visit_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_synthetic_visit_revision_positive"),
+        CheckConstraint(
+            "attendance IN ('unknown','attended','not_attended')",
+            name="ck_synthetic_visit_attendance",
+        ),
+        CheckConstraint(
+            "assessment_state IN ('unknown','recorded','declined','not_measured')",
+            name="ck_synthetic_visit_assessment_state",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    visit_id: Mapped[uuid.UUID] = mapped_column(Uuid, nullable=False)
+    cycle_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("synthetic_cycles.id"), nullable=False
+    )
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    attendance: Mapped[str] = mapped_column(String(20), nullable=False)
+    assessment_state: Mapped[str] = mapped_column(String(20), nullable=False)
+    assessment_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("assessments.id"))
+    training_session_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False)
+    change_reason: Mapped[str | None] = mapped_column(String(500))
     recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"), nullable=False)
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 

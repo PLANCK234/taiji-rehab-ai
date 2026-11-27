@@ -2,6 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 import { csrfFromCookies, getAssignedParticipants, postIntake } from "./intake";
 
 describe("synthetic intake client", () => {
+  it("passes an abort signal to fetch and reports an aborted request as unavailable", async () => {
+    const controller = new AbortController();
+    const fetcher = vi.fn().mockRejectedValue(new DOMException("synthetic timeout", "AbortError"));
+    const result = await postIntake("/patient/reports", {}, "SYN-request-key", "taiji_csrf=token", fetcher, controller.signal);
+    expect(fetcher.mock.calls[0][1].signal).toBe(controller.signal);
+    expect(result).toEqual({ status: 503, value: null });
+  });
   it("reads the local or secure CSRF cookie and blocks writes when absent", async () => {
     expect(csrfFromCookies("taiji_csrf=local-token; other=1")).toBe("local-token");
     expect(csrfFromCookies("__Host-taiji_csrf=secure-token")).toBe("secure-token");

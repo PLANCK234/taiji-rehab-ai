@@ -7,6 +7,7 @@ import ActionIcon from "../../../../components/action-icon";
 import { Badge, Empty } from "../../../../components/ui";
 import { demoError, gradeNames, runStatusNames, writeDemo, type DemoAction, type DemoPlan, type DemoRun } from "../../../../lib/demo";
 import type { DemoProfile } from "../../../../lib/intake";
+import DemoVideo from "./demo-video";
 
 const sexLabel = { female: "女", male: "男", other: "其他", unknown: "未知" };
 
@@ -87,6 +88,7 @@ export default function DemoPlanClient({ participantId, studyCode, profile, plan
       {selected && <div className="dialog-body">
         <div className="row" style={{ gap: 12 }}><ActionIcon category={selected.category} />
           <div><div className="eyebrow">{selected.category} · {gradeNames[selected.demo_grade as "I"] ?? selected.demo_grade}演示</div><h2 style={{ margin: 0 }}>{selected.name}</h2></div></div>
+        <DemoVideo action={selected} />
         <p>{selected.explanation}</p>
         <ol>{selected.steps.map((step, index) => <li key={index}>{step}</li>)}</ol>
         <p className="note">演示要领未经临床审核，仅供研究人员演示，不作为自主训练指导。</p>

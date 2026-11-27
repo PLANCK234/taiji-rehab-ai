@@ -1,4 +1,4 @@
-# ADR-0018：减少操作摩擦、动作库内容与 pose-geometry-v3
+# ADR-0025：减少操作摩擦、动作库内容与 pose-geometry-v3
 
 状态：已实施（2026-11-26，分支 `feat/ux-refresh`）
 

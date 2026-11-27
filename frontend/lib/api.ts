@@ -31,7 +31,7 @@ export async function apiGet<T>(
 ): Promise<T | null> {
   try {
     const response = await fetcher(`${baseUrl}/api/v1${path}`, {
-      headers: { cookie: cookieHeader }, cache: "no-store",
+      headers: cookieHeader ? { cookie: cookieHeader } : undefined, cache: "no-store",
     });
     return response.ok ? ((await response.json()) as T) : null;
   } catch {
@@ -42,7 +42,7 @@ export async function apiGet<T>(
 export async function apiSend<T>(
   path: string,
   body: object,
-  options: { key?: string; cookie?: string; method?: HttpMethod; fetcher?: typeof fetch } = {},
+  options: { key?: string; cookie?: string; method?: HttpMethod; fetcher?: typeof fetch; signal?: AbortSignal } = {},
 ): Promise<WriteResult<T>> {
   const { key = crypto.randomUUID(), method = "POST", fetcher = fetch } = options;
   const csrf = csrfFromCookies(options.cookie ?? document.cookie);
@@ -53,6 +53,7 @@ export async function apiSend<T>(
       credentials: "same-origin",
       headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf, "Idempotency-Key": key },
       body: JSON.stringify(body),
+      ...(options.signal ? { signal: options.signal } : {}),
     });
     return { status: response.status, value: response.ok ? ((await response.json()) as T) : null };
   } catch {

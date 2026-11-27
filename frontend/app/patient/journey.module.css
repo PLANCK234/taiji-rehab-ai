@@ -1,0 +1,29 @@
+.page { max-width: 860px; margin: 4vh auto; }
+.journey { margin-top: 32px; }
+.intro p { margin: 8px 0; }
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 0; margin: 24px 0 16px; list-style: none; }
+.steps button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 82px; padding: 14px 12px; text-align: left; color: #365747; border-color: #c4d7c9; background: #fffefa; }
+.steps button:hover { color: #20352d; border-color: #286c51; background: #eaf3e9; }
+.steps button[aria-current="step"] { background: #286c51; color: white; border-color: #286c51; }
+.steps button[aria-current="step"]:disabled { opacity: 1; cursor: default; }
+.steps strong { display: block; }
+.steps small { display: block; color: inherit; font-size: .75rem; font-weight: 400; margin-top: 4px; }
+.number { display: grid; place-items: center; flex: 0 0 28px; height: 28px; border: 1px solid currentColor; border-radius: 50%; font-size: .85rem; }
+.position { color: #3c7058; font-size: .9rem; }
+.heading { margin: 28px 0 0; font-size: 1.25rem; }
+.heading:focus-visible { outline: 3px solid #398067; outline-offset: 6px; border-radius: 4px; }
+.placeholder { margin-top: 20px; padding: 24px; border: 1px dashed #afc8b7; border-radius: 16px; background: #f0f6ee; }
+.placeholder p { color: #54675c; }
+.checklist { padding-left: 22px; }
+.checklist li { margin: 12px 0; }
+.navigation { display: flex; justify-content: space-between; gap: 12px; margin: 24px 0 32px; }
+.secondary { color: #286c51; background: #fffefa; border-color: #b9cbbd; }
+@media (max-width: 600px) {
+  .page { padding: 20px 16px; margin: 0 auto; }
+  .page h1 { font-size: 2.4rem; }
+  .page > p { overflow-wrap: anywhere; }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .steps button { min-height: 76px; }
+  .placeholder { padding: 18px; }
+  .navigation button { flex: 1; padding: 12px; }
+}

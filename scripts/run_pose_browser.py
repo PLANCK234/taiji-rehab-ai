@@ -61,12 +61,15 @@ def main() -> None:
             raise RuntimeError("PostgreSQL startup failed")
         run([sys.executable, "-m", "alembic", "upgrade", "head"])
         env["APP_ENV"] = "local"
+        env["SEED_DEMO_ADMIN"] = "true"
         run([sys.executable, "-m", "app.seed_demo"])
         run([sys.executable, "-m", "app.seed_demo_actions"])
         env["APP_ENV"] = "test"
         background([sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1",
                     "--port", str(api_port)], BACKEND, "api")
         wait_ready(f"http://127.0.0.1:{api_port}/ready")
+        env["POSE_PROTOTYPE_ENABLED"] = "true"
+        run(["node", "scripts/copy-pose-assets.mjs"], FRONTEND)
         run(["node", "scripts/prepare-pose.mjs"], FRONTEND)
         run(["node", "node_modules/next/dist/bin/next", "build"], FRONTEND)
         background(["node", "node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1",
@@ -74,7 +77,6 @@ def main() -> None:
         wait_ready(f"http://127.0.0.1:{ui_port}/login")
         # E2E_SPECS overrides the default suite, e.g. E2E_SPECS="demo-v2.real.ts".
         specs = os.environ.get("E2E_SPECS", "").split() or [
-            "pose.real.ts", "demo-v2.real.ts", "training.real.ts", "real-business.real.ts",
             "--grep-invert", "127.0.0.1 browser origin",
         ]
         run(["node", "node_modules/@playwright/test/cli.js", "test", "--config",

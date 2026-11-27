@@ -9,7 +9,7 @@ Before testing, use only SYNTHETIC data; test identities must not correspond to 
 5. Record a valid cycle endpoint SPPB, compare score changes on trend page. Missing outcomes show missing (not no improvement).
 6. Freeze cycle as data manager, check counts/missingness; export coded CSV without name/phone. Check checksum and frozen snapshot cannot be overwritten.
 7. Register candidate rule, attempt publication without clinical signoff (denied). Complete mock approval, verify only permitted release transition; historical suggestions keep old version.
-8. Open photo demo. Verify explicit unavailable label, no fake pose score, and no permanent upload if no consent.
+8. Open the original photo demo and verify its explicit unavailable label and no fake score. If `POSE_PROTOTYPE_ENABLED=true`, open the separate local-video lab with a synthetic fixture: the file input stays disabled before confirmation, skeleton/results appear after local analysis, JSON/CSV download works, and no clinical/SPPB/Tai Chi score or persistence claim appears. Real patient video remains out of scope.
 9. Login to Study B and attempt A-001 URL/export: deny. Test backup restore using synthetic DB.
 
 **Signoff fields**: test date, build SHA, test environment, participants (roles not personal data), pass/fail, supporting evidence, blockers, decision owner. A clinician must sign off on rule content separately from UI acceptance.
