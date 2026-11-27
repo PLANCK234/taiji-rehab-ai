@@ -1,7 +1,7 @@
 # Contributing / PR workflow
 
 1. Choose a single requirement ID and acceptance test; create small PR branch (`feat/FR-006-feedback`, `fix/...`, `docs/...`).
-2. Read root and nearest directory `AGENTS.md`; note related open questions. Stop if medical rule is unresolved.
+2. Read root and nearest `AGENTS.md`, scope and evidence. For the CKLL-20260904 clinical-AI development authorization, proceed with the documented configuration/algorithm tasks; missing numeric inputs do not block building the framework. Record unsupported facts and changes outside that scope separately.
 3. Update code, tests, DB migration, API contract and docs in the same PR when affected.
 4. Verify lint/typecheck/tests and report commands and real outputs. Use synthetic fixtures only; never paste PHI in issues.
 5. PR template: **Problem / Scope / Design / Clinical or privacy impact / Migration / Test evidence / Rollback / Linked FR-AT IDs**.
@@ -10,6 +10,8 @@
 Commit style suggestion: Conventional Commits; not mandatory until team signs off. Avoid large unrelated format churn.
 
 ## Cross-developer workflow
+
+2026-11-26用户要求：代码、文档、参数与证据更新均须通过功能分支提交PR；不得只留本地检查点。当前临床AI范围更新与公开批件副本进入PR #11；后续每个独立任务保留验收和提交记录。
 
 - `main` is the stable integration branch. Use `feat/<task-id>-<description>`, `fix/<task-id>-<description>` or `docs/<description>` for local work; merge by reviewed PR.
 - Agents may commit their scoped local changes. Do not force push, push to remote `main`, merge a PR or discard another person's uncommitted work without explicit developer authorization.

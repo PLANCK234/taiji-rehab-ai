@@ -4,7 +4,7 @@
 
 面向**医疗研究人员**的 Web 工作台：编码建档 → 人工 SPPB 评估 → 版本化 Demo 分级 → 太极动作方案与训练 → 训练反馈 → AI 视频动作分析与人工复核。所有数据由 FastAPI 写入 PostgreSQL，可追溯、可导出。
 
-> 当前只用于**合成数据演示**。Demo 分级与动作组合（`DEMO_ONLY`）不是临床处方；真实患者数据需另行完成伦理、同意、安全与部署审批。
+> 当前运行用于**合成数据演示**。研究伦理批件CKLL-20260904已登记，用户已开放临床分级、剂量/禁忌、AI自动方案及准确率模块开发，见[待开发计划](docs/product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)。现有`DEMO_ONLY`仍保留原语义；新临床能力和真实数据接入尚未在软件中交付。
 
 ## 功能一览
 
@@ -14,6 +14,7 @@
 | 人工评估 | 草稿 / 确认 / 追加更正，零分、缺失、无效严格区分 |
 | 太极训练 | 12 个动作（含要领与步骤），按等级自动组合；开始/暂停/继续/结束/反馈，刷新可恢复 |
 | AI 动作分析 | 浏览器本地 MediaPipe 识别 33 关键点（原视频不上传）；后端 `pose-geometry-v3` 计算关节角度、躯干倾斜、骨盆重心移动、左右差；工作人员可逐项修正复核 |
+| 五次坐站计时 | AI评估页打开已存骨架→生成候选用时→人工核对起止、修正/重测；AI与人工值分存，支持重试恢复和分页历史；不自动换算SPPB分 |
 | 数据导出 | 单对象编号化 CSV，不含身份与自由文本，附 SHA-256 |
 | 患者端 | 患者账号四步流程：查看已发布训练卡片与教学视频、本机摄像预览、提交自报反馈；医护端复核 |
 | 管理与周期 | `/admin` 人员授权；合成训练周期与访视；训练时间线 |
@@ -34,7 +35,7 @@ Start-Process http://localhost:3000
 演示账号（密码为 `.env` 中的 `DEMO_PASSWORD`，登录页可一键填入邮箱）：
 `demo-clinician-a@example.org`、`demo-clinician-b@example.org`、`demo-analyst@example.org`，患者端 `demo-patient@example.org`。
 
-- 已有数据库：先备份，再执行 `alembic upgrade head`（当前头 `0023`）；重跑 `seed_demo_actions` 会更新动作要领文本。不要删除数据卷。
+- 已有数据库：先备份，再执行 `alembic upgrade head`（当前头 `0024`；新增坐站测量/复核表，有证据时拒绝回退）；本轮仅迁移隔离测试库，共享库未升级。重跑 `seed_demo_actions` 会更新动作要领文本。不要删除数据卷。
 - 忘记演示密码：在 `.env` 写新密码并临时设置 `RESET_DEMO_PASSWORD=true` 后重跑 `seed_demo`。
 - 可选复评夹具：`python -m app.seed_reassessment_demo`。
 

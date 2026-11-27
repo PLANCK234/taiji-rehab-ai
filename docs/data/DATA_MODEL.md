@@ -1,5 +1,7 @@
 # Logical data model (initial proposal)
 
+0024_sppb_measurements（DEMO-V2-64）：新增`sppb_measurements`（source_analysis_id→pose_analyses、algorithm_version、result、created_by/at）及`sppb_reviews`（measurement_id、revision_no、decision、start_ms、fifth_stand_ms、reason、recorded_by/at）。对象归属经源pose确定；unique(measurement_id,revision_no)、正修订、decision和完整修正时间由DB约束。无原视频复制，无量表或分级表变更。原始结果不可经API更新；复核追加。空新表可回退，有测量时锁表并拒绝回退，保留证据。见 [ADR-0027](../decisions/0027-persisted-sppb-timing-review.md)。
+
 2026-11-26 DEMO-V2-15：迁移`0021_pose_geometry_v2`仅将`ck_pose_algorithm`扩大为v1/v2，未改表/历史JSON。新分析的v2平滑/残差结果追加在原result中；旧记录、哈希、复核保留。若v2记录存在，downgrade0008会抛错并保留迁移状态，不能为回退而改写版本。临时数据库验证了带旧数据升级与拒绝破坏性回退；共享卷未操作。
 
 2026-11-26：增量迁移`0020_pose_analyses`新增`pose_analyses`（participant_id、input_data、input_sha256、algorithm_version、result、created_by/at）与`pose_reviews`（analysis_id、revision_no、decision、reason、recorded_by/at）。原AI输入/计算结果追加保存，人工复核独立版本；unique(analysis_id,revision_no)、revision_no>0、decision枚举由数据库约束。对象行锁串行化写入/审核，幂等沿用write_receipts。无原影像存储，无人工量表source更改，无级别/处方关联。迁移仅在独立测试库升降升验证，本机原有卷未迁移。

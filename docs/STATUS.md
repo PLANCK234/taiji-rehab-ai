@@ -2,7 +2,11 @@
 
 > 本文件只记录**当前**状态。旧的逐任务验证日志：AI 姿态分支见 [STATUS_HISTORY](archive/STATUS_HISTORY.md)，团队主分支见 [STATUS_HISTORY_MAIN](archive/STATUS_HISTORY_MAIN.md)。
 
-更新：2026-11-26 · 分支 `feat/ux-refresh`（已合入 main `7ad8d64`） · 迁移头 `0023_pose_v3_free_text_reasons`
+更新：2026-11-26 · PR #10 已合并 main `5ea8c44`；分支 `feat/sppb-measure-v1` · 迁移头 `0024_sppb_measurements`（只在隔离测试库应用）
+
+本轮67 DONE：已记录[伦理批件CKLL-20260904与用户授权](evidence/CKLL-20260904.md)，将临床分级、剂量/禁忌、AI自动方案及准确率模块列为已授权待开发；固定seed初始化、专家调参和训练结局回归见[计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)。本轮文档/公开副本已做页内容/哈希/视觉、143任务ID/链接及diff检查，见[验收](testing/CLINICAL_SCOPE_VALIDATION.md)；无API/数据库/运行开关或临床数值变更。
+
+DEMO-V2-64/65 DONE：AI页可从已存骨架生成五次坐站候选用时，人工指定起点、修正/重测并保留独立版本；含数据库持久化、分页、失败重试和冲突恢复。[接口证据](testing/SPPB_SERVICE_VALIDATION.md) / [网页证据](testing/SPPB_UI_VALIDATION.md)。[PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)现已含67范围更新并转为可审核，尚未合并；新提交CI不以旧基线代替。现有运行没有量表分或评估草稿副作用。
 
 ## 能做什么（合成数据 Demo）
 
@@ -16,24 +20,25 @@
 | 训练观察 / 反馈 / 事件 | DONE | 追加版本，缺失不当作 0；事件可在反馈前单独报告 |
 | 编号化 CSV 导出 | DONE | 单对象实时导出，不含自由文本与身份信息，附 SHA-256 |
 | AI 视频动作评估 | DONE（工程） | 浏览器本地 MediaPipe 33 点 → 后端 `pose-geometry-v3`：6 关节角度/幅度、平滑与噪声、**躯干倾斜、骨盆左右/上下移动、左右幅度差** → 人工复核（可逐项修正） |
+| 五次坐站候选计时 | DONE（合成） | 已存骨架→候选计时→人工起止复核；AI/人工分存，支持分页/刷新/失败重试；不自动换算SPPB分 |
 | 患者端（四步流程） | DONE（合成） | 患者账号、发布卡片与教学视频、本机摄像预览、自报反馈与离开保护（团队主分支） |
 | 医护发布 / 自报复核 / 周期 / 人员管理 | DONE（合成） | 合成卡片发布与撤回、患者自报复核、训练时间线与合成周期、`/admin` 人员授权（团队主分支） |
 | 本地视频姿态实验室 | 开关启用 | `POSE_PROTOTYPE_ENABLED=true` 时出现；坐站计时对照（团队主分支） |
 | 微信小程序 | 准备中 | 设计令牌与页面映射见 [设计系统](product/DESIGN_SYSTEM.md)、[小程序方案](product/MINIPROGRAM_PLAN.md) |
 
-## 最近验证（2026-11-26，合入 main 后重跑）
+## 应用最近验证基线（2026-11-26，本地；本轮文档任务未重跑）
 
-- 后端：`uv run ruff check .` 通过；`uv run pytest` **95 passed / 6 opt-in skipped**；OpenAPI 快照已重新生成。
-- PostgreSQL 门禁 `scripts/run_eng04_integration.py`：临时库迁移 0001→0023 升→check→降→升及 PG 测试 **7 passed**（含 0019→0020 衔接）。
-- 前端：lint、typecheck 通过；单元测试 **133 passed**（34 个文件，含 main 的患者端/实验室/发布测试）。
-- 真实浏览器 `scripts/run_pose_browser.py`（真实模型 → Next 生产构建 → FastAPI → 临时 PostgreSQL，`SEED_DEMO_ADMIN`/`POSE_PROTOTYPE_ENABLED` 开启）：全部 `*.real.ts` **24 passed**；仅排除需要固定 3000 端口的 127.0.0.1 登录用例（该用例由 Docker 版 `run_eng04b_browser.py` 覆盖，本轮未运行）。
-- 本机 Chrome 运行需设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`；单独跑某个用例可设 `E2E_SPECS="demo-v2.real.ts"`。远端 CI 尚未运行。
+- 后端Ruff通过，pytest **125 passed / 8 opt-in skipped**；OpenAPI快照已生成。
+- 隔离PostgreSQL迁移0001→0024升/check/空库降/升、带旧数据升级及拒绝破坏性回退；PG测试 **9 passed**，含真实并发201/409。
+- 前端lint/typecheck通过，**141 tests / 36 files**；Next生产构建通过。
+- 全套真实浏览器 **25 passed**，含模型识别、旧训练/患者流程和坐站网页；1366/390截图已查看，无横向溢出，本面板按钮≥44px。固定3000端口127登录用例沿用[A0 Docker证据](testing/PR10-MERGE-VALIDATION.md)，本轮未重复。
+- 本机 Chrome 运行需设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`；单独跑某个用例可设 `E2E_SPECS="demo-v2.real.ts"`。本轮为本地证据，远端CI以PR最新提交结果为准。
 
 ## 未完成 / 阻断
 
-- **临床**：S3-01 仍 BLOCKED（Q-03 适配模板/禁忌/剂量、Q-09 发布责任人未签核）。Demo 分级与动作不是处方。
-- **AI**：没有 SPPB 自动评分、康复阶段或动作标准分（需 Q-14 评分表、Q-15 阶段模板）；v3 指标是图像平面描述量，尚无人体视频精度验证；实体手机/遮挡/辅具场景未测。
-- **真实数据**：Research 配置关闭；伦理、同意、安全与部署审批均未在仓库中记录。
+- **临床**：S3-01已解除旧笼统审批阻断，改为待实施；68–71开发参数/剂量禁忌、AI自动方案、回归和评测。具体规则及数值版本由后续专家调参落地，既有Demo语义保留。
+- **AI**：SPPB自动评分、阶段/动作分和AI方案尚未实现；识别率/结局评测模块已授权开发，当前没有人体精度或疗效实测数字；实体手机/遮挡/辅具场景未测。
+- **真实数据**：研究伦理批件已登记；现有运行仍合成，Research配置未改。平台真实接入、留存/存储/部署及逐对象同意记录按具体协议与工程输入继续落实，不再称“无伦理依据”。
 - **小程序**：尚未建工程；需要先加 token 鉴权（见方案文档）。
 
 下一步见 [HANDOFF](HANDOFF.md)。

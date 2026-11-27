@@ -2887,6 +2887,352 @@
         "title": "ScreeningView",
         "type": "object"
       },
+      "SppbCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "manual_start_ms": {
+            "anyOf": [
+              {
+                "maximum": 300000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Start Ms"
+          },
+          "source_analysis_id": {
+            "format": "uuid",
+            "title": "Source Analysis Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_analysis_id"
+        ],
+        "title": "SppbCreate",
+        "type": "object"
+      },
+      "SppbDetail": {
+        "properties": {
+          "algorithm_version": {
+            "title": "Algorithm Version",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "human_confirmation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SppbHumanConfirmation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/SppbReviewRecord"
+            },
+            "title": "Reviews",
+            "type": "array"
+          },
+          "source_analysis_id": {
+            "format": "uuid",
+            "title": "Source Analysis Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "source_analysis_id",
+          "algorithm_version",
+          "result",
+          "created_by",
+          "created_at",
+          "reviews",
+          "human_confirmation"
+        ],
+        "title": "SppbDetail",
+        "type": "object"
+      },
+      "SppbHumanConfirmation": {
+        "properties": {
+          "elapsed_seconds": {
+            "title": "Elapsed Seconds",
+            "type": "number"
+          },
+          "evidence_type": {
+            "const": "HUMAN_CONFIRMATION",
+            "default": "HUMAN_CONFIRMATION",
+            "title": "Evidence Type",
+            "type": "string"
+          },
+          "fifth_stand_ms": {
+            "title": "Fifth Stand Ms",
+            "type": "number"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "review_id": {
+            "format": "uuid",
+            "title": "Review Id",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "start_ms": {
+            "title": "Start Ms",
+            "type": "number"
+          }
+        },
+        "required": [
+          "review_id",
+          "revision_no",
+          "start_ms",
+          "fifth_stand_ms",
+          "elapsed_seconds",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "SppbHumanConfirmation",
+        "type": "object"
+      },
+      "SppbMeasurementView": {
+        "properties": {
+          "algorithm_version": {
+            "title": "Algorithm Version",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "format": "uuid",
+            "title": "Created By",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "result": {
+            "additionalProperties": true,
+            "title": "Result",
+            "type": "object"
+          },
+          "source_analysis_id": {
+            "format": "uuid",
+            "title": "Source Analysis Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "source_analysis_id",
+          "algorithm_version",
+          "result",
+          "created_by",
+          "created_at"
+        ],
+        "title": "SppbMeasurementView",
+        "type": "object"
+      },
+      "SppbPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SppbMeasurementView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "offset",
+          "limit"
+        ],
+        "title": "SppbPage",
+        "type": "object"
+      },
+      "SppbReviewInput": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "accepted_timing",
+              "modified_timing",
+              "needs_retake",
+              "rejected"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "fifth_stand_ms": {
+            "anyOf": [
+              {
+                "maximum": 300000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fifth Stand Ms"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "start_ms": {
+            "anyOf": [
+              {
+                "maximum": 300000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Ms"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "decision",
+          "reason"
+        ],
+        "title": "SppbReviewInput",
+        "type": "object"
+      },
+      "SppbReviewRecord": {
+        "properties": {
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          },
+          "fifth_stand_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fifth Stand Ms"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "measurement_id": {
+            "format": "uuid",
+            "title": "Measurement Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "format": "uuid",
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "revision_no": {
+            "title": "Revision No",
+            "type": "integer"
+          },
+          "start_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Ms"
+          }
+        },
+        "required": [
+          "id",
+          "measurement_id",
+          "revision_no",
+          "decision",
+          "start_ms",
+          "fifth_stand_ms",
+          "reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "SppbReviewRecord",
+        "type": "object"
+      },
       "StaffChange": {
         "additionalProperties": false,
         "properties": {
@@ -6224,6 +6570,130 @@
         "summary": "Record Screening"
       }
     },
+    "/api/v1/participants/{participant_id}/sppb-measurements": {
+      "get": {
+        "operationId": "list_measurements_api_v1_participants__participant_id__sppb_measurements_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 1000000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SppbPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Measurements"
+      },
+      "post": {
+        "operationId": "create_measurement_api_v1_participants__participant_id__sppb_measurements_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "participant_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Participant Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SppbCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SppbMeasurementView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Measurement"
+      }
+    },
     "/api/v1/participants/{participant_id}/training-sessions": {
       "get": {
         "operationId": "list_training_sessions_api_v1_participants__participant_id__training_sessions_get",
@@ -6620,6 +7090,108 @@
           }
         },
         "summary": "Review Analysis"
+      }
+    },
+    "/api/v1/sppb-measurements/{measurement_id}": {
+      "get": {
+        "operationId": "get_measurement_api_v1_sppb_measurements__measurement_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "measurement_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Measurement Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SppbDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Measurement"
+      }
+    },
+    "/api/v1/sppb-measurements/{measurement_id}/reviews": {
+      "post": {
+        "operationId": "review_measurement_api_v1_sppb_measurements__measurement_id__reviews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "measurement_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Measurement Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 16,
+              "pattern": "^[A-Za-z0-9._-]+$",
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SppbReviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SppbReviewRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Review Measurement"
       }
     },
     "/api/v1/studies": {

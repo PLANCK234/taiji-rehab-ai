@@ -415,6 +415,13 @@ main > section:not([class]) + section:not([class]) { margin-top: 18px; }
 .pose-video-stage video, .pose-video-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .pose-video-stage canvas { pointer-events: none; }
 .pose-camera-portrait { aspect-ratio: 3 / 4; max-width: 420px; margin-inline: auto; }
+.sppb-panel { min-width: 0; overflow-wrap: anywhere; }
+.sppb-panel fieldset { min-width: 0; margin: 14px 0; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); }
+.sppb-panel .button-row { flex-wrap: wrap; }
+.sppb-panel button { min-height: 44px; }
+.sppb-panel .check { min-height: 44px; align-items: center; }
+.sppb-detail { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 18px; }
+.sppb-reviews li { padding-block: 8px; }
 .pose-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
 .annotation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
 .annotation-grid label { display: grid; gap: 8px; }

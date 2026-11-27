@@ -1,5 +1,22 @@
 # 任务台账
 
+## 下一阶段接续（2026-11-26）
+
+本轮用户优先级更新：研究伦理文件已记录，临床分级/剂量禁忌/AI方案与评测开放开发。先67完成范围及算法设计登记，再68参数配置；66的3D对照仍保留，不作为临床配置开发的前置阻断。
+
+| Task ID | 目标 | 依赖 | 状态 | 最小文件 / 验收 / 测试 |
+|---|---|---|---|---|
+| DEMO-V2-62 | A0：核对并合并 PR #10，补 Docker 浏览器验收 | PR #10 最新提交全部 CI 通过；用户交接授权合并 | DONE | 五项 CI 成功；Docker 浏览器 20 项通过，含固定 3000 端口登录及清理；按精确 HEAD 合并为 `5ea8c44`。见 [证据](testing/PR10-MERGE-VALIDATION.md)；无业务或迁移变更 |
+| DEMO-V2-63 | A：后端五次坐站候选测量算法 | 已有本地坐站实验算法；合成关键点 | DONE | AT-AI-MEASURE-01；独立算法/CLI，自动及人工起点、第五次候选计时、未知原因、参数和哈希；15 项新增合成案例随全量后端 **110 passed / 6 skipped**，Ruff 通过。无 API/迁移/分级变更。见 [验证](testing/SPPB_MEASURE_VALIDATION.md) |
+| DEMO-V2-64 | 坐站候选测量持久化及逐项人工复核接口 | DEMO-V2-63；现有授权/同意/审计框架 | DONE | AT-AI-MEASURE-02：0024新表、OpenAPI、权限/同意/CSRF/幂等/并发、未知/分页/原值保留；Ruff、后端125/8skip、PG9、浏览器HTTP1及前端lint/typecheck/生产构建通过。见[证据](testing/SPPB_SERVICE_VALIDATION.md)；共享库未迁移 |
+| DEMO-V2-65 | AI评估页坐站测量及人工复核面板 | DEMO-V2-64 | DONE | AT-AI-MEASURE-03：已有骨架测量、人工起点、独立人工结果/历史、失败恢复、409和分页；前端lint/typecheck、141项测试、生产构建、全套真实浏览器25项通过；1366/390截图亲检、无溢出、按钮≥44px。见[证据](testing/SPPB_UI_VALIDATION.md)；无临床计分 |
+| DEMO-V2-66 | 可选worldLandmarks及3D角度对照 | 当前MediaPipe Worker/既有2D版本与验证链 | NOT_STARTED | 扩展带版本的可选33点世界坐标输入并向后兼容；保留旧2D报告及缺失语义；仅3D角度对照，不推断地面距离或医学分；已知旋转/缺失单测与真实模型浏览器验证，必要时新增迁移，不改0024历史 |
+| DEMO-V2-67 | 伦理证据、临床开发范围及回归优化待开发计划 | 用户本轮授权及CKLL-20260904 | DONE | AT-CLIN-DOC-01：1页批件及公开副本视觉/哈希核对；开发授权/参数来源/实测表现分开；解除旧笼统阻断，新增68–71；交接143 Task IDs/链接及diff检查通过。见[验收](testing/CLINICAL_SCOPE_VALIDATION.md)；本轮无应用代码/数据库改动，更新进入PR #11 |
+| DEMO-V2-68 | 临床分级/剂量/禁忌参数注册与专家调参 | 67开发授权；具体配置来源作为输入，不阻塞框架 | NOT_STARTED | backend规则schema及版本/来源/seed、frontend编辑和调参；配置空值不当零，模型与临床参数分存，专家修改追加；可复现及权限/历史/回滚测试，见[计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md) |
+| DEMO-V2-69 | AI分数驱动方案决策及推送 | 68参数契约，既有AI/人工分数与有效策略 | NOT_STARTED | 分数→分级→配置允许集合内方案/剂量，自动和人工模式、覆盖/撤回/追踪；禁止跨版本混算，缺失与禁忌冲突测试；API/PG/浏览器验收 |
+| DEMO-V2-70 | 训练结局驱动的回归优化 | 68契约；冻结样本/标签与时间截止 | NOT_STARTED | ml固定基线/Ridge/可训练候选、seed与参数更新、对象和时间隔离、预处理防泄漏、比较/注册/影子对照；合成先验算法验证，真实效果仅报告实测 |
+| DEMO-V2-71 | 识别/分级/方案评测和宣传引用模块 | 独立标注及评测协议；不依赖虚构准确率 | NOT_STARTED | 指标/样本量/区间/亚组/版本报告及展示；未测显示未验证，宣传内容引用实际报告；识别率与康复结局分开；无数据及版本错配验收 |
+
 > 2026-10-31 REAL-01 接续从 `9ea36c8` 合并检查点核对本表与实际代码。此前 S6-01 分支的差异归档见[差异记录](archive/testing/S6-01-REMOTE-RECONCILIATION.md)；下方 REAL 任务是新目标的工程拆分，真实患者数据上线另需机构审批。
 C-01 已实现实时检出调参与分层提示；下一步记录同一手机的侧身、外套、空画面表现。
 
@@ -134,7 +151,7 @@ C-01 患者端合成联调已在隔离 Chromium 验证入口门禁、预览和�
 | S1-01 | 1 | 登录、会话、RBAC、研究分配与编码对象只读权限 | P0 | Sprint 0 | `feat/s1-01-auth-scope` | DONE | `frontend/`, `backend/`, migration | FR-001；AT-05 读取/角色部分；跨研究与跨对象 403、审计、CSRF/限流、迁移测试 | 2026-10-30：后端 14 tests、前端 4 tests、容器登录/越权/注销与演示密码重置、迁移升降升、Alembic check；导出部分待 S5-01 |
 | S1-02 | 1 | 合成对象建档、同意和筛查 | P0 | S1-01；Q-01/07 的合成数据回退边界 | `feat/s1-02-synthetic-intake` | DONE | `frontend/`, `backend/`, migration | FR-002, AT-03/14 合成部分；缺项与同意测试；真实身份/照片关闭 | 2026-10-30：后端 Ruff/pytest 18、前端 Node 容器 lint/typecheck/test 7/build；PostgreSQL 迁移升降升/check、授权/同意/筛查烟测；前端代理页面 200/状态复核。AT-14 真实数据准入待人工签核 |
 | S2-01 | 2 | 评估录入、缺失与历史版本 | P0 | S1-01/02；Q-02 未决时仅 PRD 明许的人工确认总分合成路径 | `feat/s2-01-manual-assessments` | DONE | `frontend/`, `backend/`, migration | FR-003, AT-01/02 录入部分；草稿与更正测试；无分项自动计分 | 2026-10-30：Ruff/pytest 22；Node 26/pnpm 10 lint/typecheck/test 11/build；临时 PostgreSQL 17 升降升/check、权限/同意/幂等与重启持久化、Next 代理页面烟测；详见 STATUS |
-| S3-01 | 3 | 已批准规则候选和人工审核 | P0 | Sprint 2；Q-03/09 | 未分配 | BLOCKED | `backend/`, `frontend/`, `ml/` | FR-004/005, AT-02/04/10 | Q-03 适配模板/禁忌/剂量及 Q-09 审批/发布责任人未签核；不得发布临床规则或建议 |
+| S3-01 | 3 | 版本化临床规则与自动/人工决策 | P0 | Sprint 2；67授权，68参数契约 | 项目指定专家（软件账号待绑定） | NOT_STARTED | `backend/`, `frontend/`, `ml/` | FR-004/005, AT-02/04/10 | 2026-11-26批件及用户授权已记录，解除旧笼统审批阻断；按68/69开发配置/自动方案/专家调参，具体参数版本及来源待落地；不是已交付临床规则 |
 | S4-01 | 4 | 训练会话、结构反馈和安全事件 | P0 | Sprint 3；Q-04/12 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migration | FR-006/007, AT-06/07/08 | — |
 | S5-01 | 5 | 周期复评、冻结与去标识导出 | P0 | Sprint 4；Q-05/06/07 | 未分配 | NOT_STARTED | `backend/`, `frontend/`, migration | FR-008/009/011, AT-01/05 导出部分/09 | — |
 | S6-01 | 6 | 可选拍照演示壳 | P1 | Q-01/10 或纯合成演示 | `feat/s6-01-synthetic-pose-demo` | DONE | `frontend/`, `backend/` | AT-12 合成部分；明确未接入识别；仅本地预览，不持久上传 | 2026-10-31 检查点：后端 Ruff/pytest 23（无图片 API）；前端 lint/typecheck/test 12/build、DOM 生成/清除；临时 PostgreSQL + Next HTTP 授权/未授权/跨研究及模拟照片范围烟测；浏览器手工 E2E 未运行，详见 STATUS |
@@ -169,7 +186,7 @@ C-01 患者端合成联调已在隔离 Chromium 验证入口门禁、预览和�
 | ENG-01A | 工程 | 可重放的合成建档至人工复评 Demo 夹具 | P0 | S1-02/S2-01；ENG-04A | `feat/eng-01a-synthetic-reassessment` | DONE | `backend/app/seed_reassessment_demo.py`, `backend/tests/`, `README.md`, `docs/` | 基于真实迁移库创建编码对象、同意/筛查、基线与复评；可重复、可隔离，展示缺失和历史；不生成候选等级 | 2026-10-31：普通 pytest 25 passed/2 opt-in skipped；临时 PostgreSQL 升降升和相关 3 passed；Ruff；见 STATUS |
 | ENG-02 | 工程 | 研究工作台指标与周期趋势 | P0 | ENG-02A；训练完成率/RPE 依赖 ENG-01 的非临床会话记录；周期汇总依赖非临床周期数据 | `feat/eng-02a-assessment-trends` | IN_PROGRESS | `backend/`, `frontend/`, `docs/` | 按研究/对象服务端权限，从数据库记录展示功能指标、完成率、RPE、缺失及复评趋势；不硬编码科研结果 | A/B/C 合成子集已有对象级人工总分序列、训练观察/RPE 序列和手工访视关联详情；正式周期完成率缺获批计划分母，研究级汇总仍未实现 |
 | ENG-02A | 工程 | 已有人工 SPPB 记录的研究趋势与缺失视图 | P0 | S1-02/S2-01；ENG-04A | `feat/eng-02a-assessment-trends` | DONE | `backend/`, `frontend/`, tests, `scripts/`, `docs/` | 只读、按对象授权、从已确认数据库版本计算基线/复评序列；草稿和缺失分别呈现，缺失不当零；数据库/API/页面测试 | 2026-10-31：后端 Ruff/pytest 27 + 2 opt-in；临时 PostgreSQL 3 passed；前端 lint/typecheck/test 15/build；临时 PostgreSQL→API→Next 页面/跨研究烟测；见 STATUS |
-| ENG-03 | 工程 | 离线数据质量、患者级隔离、V0 基线及候选评估框架 | P1 | ENG-03A；真实疗效标签/发布仍受 Q-06/09 和 S7-01 阻断 | `feat/eng-03a-synthetic-offline-dataset` | IN_PROGRESS | `ml/`, `docs/`, tests | 合成数据集可复现；同一对象不得跨 train/val/test；V0/候选评估有版本、泄漏检查及缺失报告；无已确认标签时仅描述分析或显著标注的合成演示标签；SPPB 官方标准不改 | ENG-03A 合成质量/切分子范围完成；V0/候选模型及真实数据仍待审批 |
+| ENG-03 | 工程 | 离线数据质量、患者级隔离、V0 基线及候选评估框架 | P1 | ENG-03A；67授权，结局标签/冻结样本为输入 | `feat/eng-03a-synthetic-offline-dataset` | IN_PROGRESS | `ml/`, `docs/`, tests | 合成可复现；对象及时间隔离；版本/泄漏/缺失报告；无真实标签只报合成验证，不改官方量表定义 | 伦理依据及训练优化开发已开放；后续70落实回归/候选比较，S7-01落实版本生效 |
 | ENG-03A | 工程 | 合成离线数据集、质量报告及对象级划分基础 | P1 | S1-02/S2-01 | `feat/eng-03a-synthetic-offline-dataset` | DONE | `ml/`, tests, `docs/` | 固定合成种子可重复；校验缺失/重复/跨对象泄漏；不推导临床疗效标签或阈值 | 2026-10-31：ml Ruff/pytest 4、CLI 导出/重复运行、单测异内容拒绝覆盖；见 STATUS |
 | ENG-04 | 工程 | 自动化质量门禁与可恢复交接 | P0 | S1-02/S2-01/S6-02；完整业务 E2E 随 ENG-01/02 能力完成 | `feat/eng-04a-postgres-contract` | IN_PROGRESS | `backend/tests/`, `frontend/e2e/`, `.github/`, `scripts/`, `docs/` | 后端/前端、权限与隔离、迁移、API 契约、核心业务浏览器流程和新会话恢复均有可执行证据；每个子任务单独验证 | A–H 的合成门禁、清理、恢复、纵向流程和红色远端附件上传已验证；正式临床流程受审批阻断 |
 | ENG-04A | 工程 | 临时 PostgreSQL 核心 API、迁移和契约门禁及 ENG ID 交接校验 | P0 | S1-02/S2-01/S6-02 | `feat/eng-04a-postgres-contract` | DONE | `backend/tests/`, `.github/workflows/`, `scripts/`, `docs/` | 临时数据库升降升/check；真实 PostgreSQL 合成建档、同意、筛查、人工基线/复评、缺失/历史和跨对象/角色拒绝；OpenAPI 快照一致；交接脚本接受 ENG Task ID；本地与 CI 可复现 | 2026-10-31：临时 tmpfs PostgreSQL 17 升→check→降→升与真实 API 测试通过；后端 Ruff/pytest 24 + 1 opt-in；交接校验通过；远端 CI 待 PR，详见 STATUS |

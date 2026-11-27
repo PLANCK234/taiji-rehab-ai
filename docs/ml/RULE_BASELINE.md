@@ -1,5 +1,7 @@
 # V0 interpretable grading baseline
 
+2026-11-26更新：临床分级、剂量/禁忌与AI方案开发已由用户授权，并有[研究伦理依据](../evidence/CKLL-20260904.md)。下一任务68建立独立临床配置及专家调参，69接入自动方案。下表既有数值属于旧候选/Demo映射，批件本页没有这些切点，不能把它们记为本次PDF已逐项签核；不以“无伦理材料”阻止新框架开发。实际临床参数由有来源的版本配置给出。
+
 ## Published source-derived SPPB bands (require clinical sign-off before real-data activation)
 | Valid confirmed SPPB total | Functional level | Proposed system handling |
 |---|---|---|

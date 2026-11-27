@@ -1,5 +1,18 @@
 # REST API contract (proposed /api/v1)
 
+## 坐站测量接口（DEMO-V2-64）
+
+| 方法/路径 | 合同 |
+|---|---|
+| POST `/participants/{id}/sppb-measurements` | `{source_analysis_id, manual_start_ms?: number|null}`；来源必须为同一对象已保存pose；服务端固定`sppb-measure-v1`，不接受客户端result/算法参数；201返回id、source_analysis_id、algorithm_version、result、created_by/at |
+| GET `/participants/{id}/sppb-measurements?limit=20&offset=0` | `{items,total,limit,offset}`；limit1..100，offset0..1000000；按created_at/id降序，不含骨架输入 |
+| GET `/sppb-measurements/{id}` | 候选原值 + `reviews`按修订递增 + 独立`human_confirmation`或null |
+| POST `/sppb-measurements/{id}/reviews` | `{expected_revision,decision,reason,start_ms?,fifth_stand_ms?}`；decision为accepted_timing/modified_timing/needs_retake/rejected；修正需完整且0≤start<end≤源录像末时刻，其余不允许替换时间；201返回人员/时间/修订 |
+
+创建角色clinician/research_assistant，读取为已有READ_ROLES，复核clinician/clinical_approver；所有请求检查研究与对象范围，所有写入含当前模拟同意、CSRF及Idempotency-Key。重试也重新授权；同键同内容回放原资源、变内容409，版本冲突409。未知候选不可直接接受（422），可明确修正或重测；失败事务不保留收据。
+
+人工修正为独立完整快照，不继承旧版；接受使用AI原值，重测/拒绝令当前投影null。人工投影含HUMAN_CONFIRMATION、复核id/版本/人员/时间及计时。AI候选含MODEL_CANDIDATE及质量/原因，SPPB分始终null；无评估或分级副作用。接口仅用于合成Demo。见 [验收](../testing/SPPB_SERVICE_VALIDATION.md)。
+
 ## 2026-11-26 已实现的合成视频姿态分析
 
 **DEMO-V2-19/ADR-0018增补**：新建分析使用`pose-geometry-v3`（v1/v2 原样保留）。`result.posture`：`trunk_lean_median_deg`、`trunk_lean_range_p05_p95_deg`、`trunk_lean_variation_status`、`pelvis_lateral_range_pct_torso`、`pelvis_vertical_range_pct_torso`（占中位躯干长度%）、`valid_frames`、`coverage`、`reason`；`result.symmetry.{elbow,shoulder,knee}`：`left_range_deg`、`right_range_deg`、`difference_deg`（左−右，平滑幅度）；`series[].angles.trunk_lean`。关键点不足时为 null。所有 `change_reason` 改为自由文本（去空白，≤240，空白=未填），不再要求 `SYN-` 代码。

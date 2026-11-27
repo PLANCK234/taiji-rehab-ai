@@ -1,5 +1,7 @@
 # Data dictionary and missingness
 
+坐站计时增量（0024）：`sppb_measurements.result`保存MODEL_CANDIDATE、算法参数、输入哈希、候选时刻、质量比例、失败原因、elapsed_seconds（未知null）及sppb_score=null。source_analysis_id为不可变骨架来源外键。`sppb_reviews.start_ms/fifth_stand_ms`仅modified_timing有值，零起点有效，需start<end；其他决定两者null。理由为自由文字，保留人员/UTC时间/修订，未加入CSV导出。人工投影仅为最新有效复核的HUMAN_CONFIRMATION，不改写AI或旧历史。见 [接口](../api/API_CONTRACT.md)。
+
 **DEMO-V2-19增补**：pose-geometry-v3 追加 `posture`（躯干偏离竖直角度、骨盆左右/上下移动占躯干长度%）与 `symmetry`（左右平滑幅度差，度）；均为图像平面描述量，缺失为 null。`assessment_revisions.change_reason` 列宽 64→240（迁移 0011）。
 
 **DEMO-V2-15增补**：pose-geometry-v2保留v1原始角度/范围，追加`series.smoothed_angles`和各关节`smoothed_range_p05_p95_deg`（度）、`noise_sigma_deg`（度，高频残差代理）、`noise_residual_count`与`variation_status`。残差不足7个则噪声null；missing处原始/平滑均null，不把0°和未知混淆。`signal_processing`记录时间窗/分段/阈值；状态“高于残差”不等于真实动作或达标。v1没有这些字段时显示旧版未计算，不能展示为0。原始输入与旧结果不重算；列表仅摘要、完整证据在详情。

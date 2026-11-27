@@ -66,6 +66,7 @@ def main() -> int:
             "tests/test_export_postgres.py",
             "tests/test_pose_postgres.py",
             "tests/test_pose_upgrade.py",
+            "tests/test_sppb_postgres.py",
             env=env,
         )
         return 0

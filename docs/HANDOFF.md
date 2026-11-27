@@ -4,13 +4,13 @@
 
 | 项目 | 当前状态 |
 |---|---|
-| Branch / HEAD | `feat/ux-refresh`：AI 姿态分支 + 界面重设计，已合入团队 main `7ad8d64`，PR 目标 main。以 `git log -1` 为准。 |
-| 最近独立任务 | DEMO-V2-57/58/59 DONE：逐项修正、界面重设计与摩擦清理、pose-geometry-v3（原记 17/18/19）。见 [ADR-0025](decisions/0025-usable-demo-and-pose-v3.md)。 |
-| 验证 | 见 [STATUS](STATUS.md)“最近验证”（合并后重跑）。 |
+| Branch / HEAD | `feat/sppb-measure-v1`，基线为 PR #10 合并 main `5ea8c44`；以 `git log -1` 为准。 |
+| 最近独立任务 | DEMO-V2-67 DONE：记录CKLL-20260904及用户授权，新增[临床AI待开发计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)及68–71；[验收](testing/CLINICAL_SCOPE_VALIDATION.md)。公开副本遮盖电话，原件保留；64/65应用功能保持。 |
+| 验证 | 本轮仅文档/证据：PDF原件/副本哈希、页面视觉、文档链接及diff检查；应用125/8skip、PG9、前端141、浏览器25为上一检查点，本轮未重跑。 |
 | 当前缺口 | 小程序未建工程（需 Bearer 鉴权）；AI 无量表评分/阶段（Q-14/Q-15）；v3 指标无人体视频精度验证；实体手机未测；正式教学视频发布仍 BLOCKED。 |
-| 临床与数据阻断 | S3-01 BLOCKED（Q-03/Q-09）；真实数据、影像、部署审批均未记录；Research 默认拒绝。 |
-| 下一 Task ID | `DEMO-V2-60`：先实现 Bearer token 鉴权（ADR + 测试），再按 [小程序方案](product/MINIPROGRAM_PLAN.md) 建 `miniprogram/`。并行可做 `DEMO-V2-51` 实体手机验证。 |
-| 下一步文件 | `backend/app/api.py`（current_auth/require_csrf）、`backend/app/security.py`、[设计系统](product/DESIGN_SYSTEM.md)、`frontend/lib/api.ts`。 |
-| 未提交/推送 | 以实际 `git status` 为准；不删除数据库卷。已有库（main 链，至 0019）升级前先备份，再 `alembic upgrade head`（新增 0020–0023：姿态表、v2/v3、逐项修正、更正原因放宽），然后重跑 `python -m app.seed_demo_actions` 更新动作要领。 |
+| 临床与数据阻断 | 研究伦理及临床AI开发授权已记录，S3-01改为待实施；具体参数待专家调参，不阻断配置框架。真实数据接入和部署仍是未交付工程范围，运行开关本轮不变。 |
+| 下一 Task ID | `DEMO-V2-68`：临床分级/剂量/禁忌参数注册、版本及专家调参；随后69自动方案、70回归、71评测。66的3D对照保留，不是68前置。 |
+| 下一步文件 | `backend/app/`临床参数schema及版本存储、`frontend/`专家编辑、`ml/`seed/参数契约；按[待开发计划](product/CLINICAL_AI_DEVELOPMENT_BACKLOG.md)先登记最小实施范围与验收。 |
+| 未提交/推送 | 67范围更新提交`8e30bf8`已推送，[PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)已更新并转为可审核（open，非draft），尚未合并；用户原始PDF含电话，保留本地未跟踪，公开副本已入PR。最终HEAD以git log为准；本轮无数据库改动。 |
 
 历史检查点见 [SESSION_LOG](SESSION_LOG.md)、[STATUS_HISTORY](archive/STATUS_HISTORY.md) 与团队 main 的 [HANDOFF 历史](archive/HANDOFF_HISTORY_MAIN.md)。
