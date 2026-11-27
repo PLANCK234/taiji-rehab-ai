@@ -30,7 +30,7 @@ DEMO-V2-64/65 DONE：AI页可从已存骨架生成五次坐站候选用时，人
 - 隔离PostgreSQL迁移0001→0024升/check/空库降/升、带旧数据升级及拒绝破坏性回退；PG测试 **9 passed**，含真实并发201/409。
 - 前端lint/typecheck通过，**141 tests / 36 files**；Next生产构建通过。
 - 全套真实浏览器 **25 passed**，含模型识别、旧训练/患者流程和坐站网页；1366/390截图已查看，无横向溢出，本面板按钮≥44px。固定3000端口127登录用例沿用[A0 Docker证据](testing/PR10-MERGE-VALIDATION.md)，本轮未重复。
-- 本机 Chrome 运行需设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`；单独跑某个用例可设 `E2E_SPECS="demo-v2.real.ts"`。远端 CI 尚未运行。
+- 本机 Chrome 运行需设置 `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`；单独跑某个用例可设 `E2E_SPECS="demo-v2.real.ts"`。本轮为本地证据，远端CI以PR最新提交结果为准。
 
 ## 未完成 / 阻断
 

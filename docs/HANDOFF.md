@@ -11,6 +11,6 @@
 | 临床与数据阻断 | S3-01 BLOCKED（Q-03/Q-09）；真实数据、影像、部署审批均未记录；Research 默认拒绝。 |
 | 下一 Task ID | `DEMO-V2-66`：可选worldLandmarks/3D角度对照与2D兼容；SPPB评分配置及人工草稿仍后续独立登记；`DEMO-V2-60`保留小程序/Bearer任务。 |
 | 下一步文件 | `frontend/workers/pose-worker.js`、`frontend/lib/pose.ts`、`backend/app/pose_schemas.py`及版本化3D分析；不改写现有2D/sppb-measure-v1结果，不把3D相对坐标当作地面四米标定。 |
-| 未提交/推送 | 当前分支继续[草稿 PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)，新提交以git log/status为准；尚未合并。本次0024仅用于隔离测试库，共享数据库未升级。 |
+| 未提交/推送 | 64功能提交`8ef9f03`、65功能提交`22f9891`均已推送并更新[草稿 PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)标题/说明，尚未合并；最终HEAD与工作区以git log/status为准。0024仅在隔离测试库验证，共享数据库未升级。 |
 
 历史检查点见 [SESSION_LOG](SESSION_LOG.md)、[STATUS_HISTORY](archive/STATUS_HISTORY.md) 与团队 main 的 [HANDOFF 历史](archive/HANDOFF_HISTORY_MAIN.md)。
