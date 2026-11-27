@@ -6,7 +6,7 @@
 
 DEMO-V2-62 DONE：五项 CI 成功、Docker 浏览器 **20 passed**（含固定 3000 端口回环登录）、隔离资源清理通过。见 [证据](testing/PR10-MERGE-VALIDATION.md)。
 
-DEMO-V2-63 DONE：独立 `sppb-measure-v1` 坐站候选用时及离线 CLI；15 项新增合成测试，后端全量 **110 passed / 6 skipped**、Ruff 通过。尚未接入页面、API 或评估草稿。见 [验证](testing/SPPB_MEASURE_VALIDATION.md)。
+DEMO-V2-63 DONE：独立 `sppb-measure-v1` 坐站候选用时及离线 CLI；15 项新增合成测试，后端全量 **110 passed / 6 skipped**、Ruff 通过。尚未接入页面、API 或评估草稿。见 [验证](testing/SPPB_MEASURE_VALIDATION.md)。功能提交 `be8fbb5` 已推送，已创建 [草稿 PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)；该增量尚未合并，新 CI 结果待远端完成。
 
 ## 能做什么（合成数据 Demo）
 
