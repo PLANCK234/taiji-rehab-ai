@@ -71,6 +71,48 @@ class PoseReview(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
+class SppbMeasurement(Base):
+    __tablename__ = "sppb_measurements"
+    __table_args__ = (
+        CheckConstraint("algorithm_version = 'sppb-measure-v1'", name="ck_sppb_algorithm"),
+        Index("ix_sppb_source_created", "source_analysis_id", "created_at"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    source_analysis_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("pose_analyses.id"))
+    algorithm_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    result: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
+class SppbReview(Base):
+    __tablename__ = "sppb_reviews"
+    __table_args__ = (
+        UniqueConstraint("measurement_id", "revision_no"),
+        CheckConstraint("revision_no > 0", name="ck_sppb_review_revision"),
+        CheckConstraint(
+            "decision IN ('accepted_timing','modified_timing','needs_retake','rejected')",
+            name="ck_sppb_review_decision",
+        ),
+        CheckConstraint(
+            "(decision = 'modified_timing' AND start_ms IS NOT NULL "
+            "AND fifth_stand_ms IS NOT NULL AND start_ms >= 0 "
+            "AND fifth_stand_ms > start_ms AND fifth_stand_ms <= 300000) OR "
+            "(decision <> 'modified_timing' AND start_ms IS NULL AND fifth_stand_ms IS NULL)",
+            name="ck_sppb_review_timing",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    measurement_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("sppb_measurements.id"))
+    revision_no: Mapped[int] = mapped_column(nullable=False)
+    decision: Mapped[str] = mapped_column(String(32), nullable=False)
+    start_ms: Mapped[float | None] = mapped_column(nullable=True)
+    fifth_stand_ms: Mapped[float | None] = mapped_column(nullable=True)
+    reason: Mapped[str] = mapped_column(String(1000), nullable=False)
+    recorded_by: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+
 class User(Base):
     __tablename__ = "users"
     __table_args__ = (

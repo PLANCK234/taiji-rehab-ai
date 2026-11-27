@@ -1,5 +1,7 @@
 # Requirements traceability
 
+AT-AI-MEASURE-02 / DEMO-V2-64：`sppb_api.py`、`sppb_schemas.py`、`sppb_review.py`、models与0024迁移；[接口/PG/浏览器证据](testing/SPPB_SERVICE_VALIDATION.md)，OpenAPI快照已更新；无临床计分。
+
 | 新增验收 | 实现 | 验证 |
 |---|---|---|
 | AT-AI-MEASURE-01 / DEMO-V2-63 | `backend/app/sppb_measure.py`：独立坐站计时、未知原因、配置及输入哈希；离线 CLI | `backend/tests/test_sppb_measure.py`；[合成验证](testing/SPPB_MEASURE_VALIDATION.md)；无评分、API 或数据库行为变更 |

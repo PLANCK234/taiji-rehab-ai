@@ -802,3 +802,9 @@ CSV 校验和当前视频派生值重算后先进入待确认内存状态，只�
 - 后端 Ruff、全量110 passed/6 opt-in skipped（含新增15项）通过；CLI子进程真实执行；初轮夹具失败及修正见[验证](testing/SPPB_MEASURE_VALIDATION.md)。
 - 无API/数据库/前端改动，无新迁移；未验证人体、老年人或实机，不产生SPPB分。ADR-0026、台账/追踪/交接已更新。
 - 当前分支 `feat/sppb-measure-v1`，基线main `5ea8c44`；功能提交`be8fbb5`已推送并创建[草稿PR #11](https://github.com/PLANCK234/taiji-rehab-ai/pull/11)，尚未合并；下一任务DEMO-V2-64持久化/逐项复核。
+
+## 2026-11-26 DEMO-V2-64/65 接续
+
+- 64：0024新增候选/追加复核表、分页/详情/写入接口，复用来源骨架；原值与人工值分开，无分级副作用；共享库未迁移。
+- Ruff、后端125/8skip、PG9项、浏览器HTTP1项、前端lint/typecheck/build通过；首轮测试修正见[记录](testing/SPPB_SERVICE_VALIDATION.md)。
+- 完成64独立检查点后继续65网页操作面板；PR #11仍为草稿，功能分支后续提交不直接合入main。

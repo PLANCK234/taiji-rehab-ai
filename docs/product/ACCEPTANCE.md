@@ -1,5 +1,7 @@
 # Acceptance criteria and test matrix
 
+`AT-AI-MEASURE-02`（DEMO-V2-64）：测量与人工确认独立持久化，原值保留；授权/同意/CSRF/幂等/并发版本、分页、未知、零起点、迁移保留和回退保护通过实际数据库/浏览器验证。见 [SPPB-S-01..06](../testing/SPPB_SERVICE_VALIDATION.md)。不包含网页面板或临床计分。
+
 `AT-AI-MEASURE-01`（DEMO-V2-63）：独立五次坐站候选测量按已知合成轨迹复算自动/人工起点及第五次时刻，保留版本/参数/输入哈希；缺失、多人、支撑疑似及不足次数返回未知用时和具体原因；不产生量表分或分级。验收案例 SPPB-M-01..07 见 [验证记录](../testing/SPPB_MEASURE_VALIDATION.md)。该验收不包含浏览器、持久化、人体精度或临床计分。
 
 ## AI 视频评估新增验收规划（2026-11-26）

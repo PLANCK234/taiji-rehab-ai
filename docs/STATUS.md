@@ -2,7 +2,9 @@
 
 > 本文件只记录**当前**状态。旧的逐任务验证日志：AI 姿态分支见 [STATUS_HISTORY](archive/STATUS_HISTORY.md)，团队主分支见 [STATUS_HISTORY_MAIN](archive/STATUS_HISTORY_MAIN.md)。
 
-更新：2026-11-26 · PR #10 已合并 main `5ea8c44`；新分支 `feat/sppb-measure-v1` · 迁移头 `0023_pose_v3_free_text_reasons`
+更新：2026-11-26 · PR #10 已合并 main `5ea8c44`；分支 `feat/sppb-measure-v1` · 迁移头 `0024_sppb_measurements`（只在隔离测试库应用）
+
+DEMO-V2-64 DONE：候选/人工计时独立持久化、分页、权限/重试/并发和回退保护。后端Ruff、125 passed/8 skipped、隔离PG 9 passed、真实浏览器HTTP 1 passed、前端lint/typecheck及生产构建通过。见 [证据](testing/SPPB_SERVICE_VALIDATION.md)。下一步网页面板。
 
 DEMO-V2-62 DONE：五项 CI 成功、Docker 浏览器 **20 passed**（含固定 3000 端口回环登录）、隔离资源清理通过。见 [证据](testing/PR10-MERGE-VALIDATION.md)。
 

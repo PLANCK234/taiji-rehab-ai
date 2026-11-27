@@ -22,6 +22,7 @@ from app.pose_api import router as pose_router
 from app.research_api import router as research_router
 from app.research_export_api import router as export_router
 from app.runtime import require_demo
+from app.sppb_api import router as sppb_router
 from app.staff_admin_api import router as staff_admin_router
 from app.training_api import router as training_router
 
@@ -37,6 +38,7 @@ app.include_router(export_router)
 app.include_router(training_router)
 app.include_router(demo_router)
 app.include_router(pose_router)
+app.include_router(sppb_router)
 app.include_router(patient_router)
 app.include_router(patient_reports_router)
 app.include_router(patient_reviews_router)
